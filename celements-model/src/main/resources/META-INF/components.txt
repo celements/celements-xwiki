@@ -1,6 +1,4 @@
 com.celements.common.classes.ClassesCompositorComponent
-com.celements.common.classes.listener.WikiCreatedEventListener
-com.celements.common.classes.listener.DocumentUpdatedEventListener
 com.celements.web.classes.oldcore.XWikiRightsClass
 com.celements.filebase.AttachmentService
 com.celements.rights.CelementsRightScriptService
