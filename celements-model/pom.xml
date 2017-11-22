@@ -32,6 +32,12 @@
   <description>Celements XWiki</description>
   <dependencies>
     <!-- Add here all your dependencies -->
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <scm>
     <connection>scm:git:git@github.com:celements/celements-xwiki.git</connection>
