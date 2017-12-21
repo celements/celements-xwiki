@@ -2,14 +2,18 @@ package com.celements.model.object.restriction;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.NotNull;
 
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
+import com.celements.model.classes.fields.list.ListField;
 import com.celements.model.object.ObjectBridge;
+import com.google.common.collect.Lists;
 
 @NotThreadSafe
 public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> {
@@ -51,7 +55,22 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
    * NOTE: value may not be null, instead use {@link #filterAbsent(ClassField)}
    */
   public final @NotNull <T> B filter(@NotNull ClassField<T> field, @NotNull T value) {
-    return filter(new FieldRestriction<>(getBridge(), field, value));
+    if (isSingleSelectListField(field)) {
+      return filter(newListFieldRestriction(field, value));
+    } else {
+      return filter(new FieldRestriction<>(getBridge(), field, value));
+    }
+  }
+
+  private boolean isSingleSelectListField(ClassField<?> field) {
+    return (field instanceof ListField) && !((ListField<?>) field).isMultiSelect();
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T, S> ObjectRestriction<O> newListFieldRestriction(ClassField<T> field, T value) {
+    ListField<S> listField = (ListField<S>) field;
+    List<S> values = (List<S>) value;
+    return new FieldRestriction<>(getBridge(), listField, Lists.partition(values, 1));
   }
 
   /**
@@ -59,6 +78,11 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
    */
   public final @NotNull <T> B filter(@NotNull ClassField<T> field, @NotNull Collection<T> values) {
     return filter(new FieldRestriction<>(getBridge(), field, values));
+  }
+
+  private void test() {
+    ClassField<List<String>> myListField = null;
+    filter(myListField, Arrays.asList("a", "b", "c"));
   }
 
   /**
