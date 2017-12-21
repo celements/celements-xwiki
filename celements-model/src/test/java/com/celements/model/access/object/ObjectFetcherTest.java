@@ -191,6 +191,39 @@ public class ObjectFetcherTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_fetch_list_multiSelect() throws Exception {
+    ClassField<List<String>> field = FIELD_MY_LIST_MS;
+    String val1 = "val1";
+    BaseObject obj1 = addObj(classRef, field, Arrays.asList(val1));
+    String val2 = "val2";
+    BaseObject obj2 = addObj(classRef, field, Arrays.asList(val2));
+    BaseObject obj3 = addObj(classRef, field, Arrays.asList(val1, val2));
+
+    assertObjs(newFetcher().filter(field, Arrays.asList(val1)), obj1);
+    assertObjs(newFetcher().filter(field, Arrays.asList(val2)), obj2);
+    assertObjs(newFetcher().filter(field, Arrays.asList(val1, val2)), obj3);
+    assertObjs(newFetcher().filter(field, Arrays.asList(Arrays.asList(val1), Arrays.asList(val2))),
+        obj1, obj2);
+    assertObjs(newFetcher().filterAbsent(field));
+  }
+
+  @Test
+  public void test_fetch_list_singleSelect() throws Exception {
+    ClassField<List<String>> field = FIELD_MY_LIST_SS;
+    String val1 = "val1";
+    BaseObject obj1 = addObj(classRef, field, Arrays.asList(val1));
+    String val2 = "val2";
+    BaseObject obj2 = addObj(classRef, field, Arrays.asList(val2));
+
+    assertObjs(newFetcher().filter(field, Arrays.asList(val1)), obj1);
+    assertObjs(newFetcher().filter(field, Arrays.asList(val2)), obj2);
+    assertObjs(newFetcher().filter(field, Arrays.asList(val1, val2)), obj1, obj2);
+    assertObjs(newFetcher().filter(field, Arrays.asList(Arrays.asList(val1), Arrays.asList(val2))),
+        obj1, obj2);
+    assertObjs(newFetcher().filterAbsent(field));
+  }
+
+  @Test
   public void test_fetchFirst() throws Exception {
     BaseObject obj1 = addObj(classRef, null, null);
     addObj(classRef2, null, null);
@@ -302,6 +335,8 @@ public class ObjectFetcherTest extends AbstractComponentTest {
         obj.setStringValue(field.getName(), (String) value);
       } else if (field.getType() == Integer.class) {
         obj.setIntValue(field.getName(), firstNonNull((Integer) value, 0));
+      } else if (field.getType() == List.class) {
+        obj.setStringListValue(field.getName(), (List<?>) value);
       }
     }
     return obj;
