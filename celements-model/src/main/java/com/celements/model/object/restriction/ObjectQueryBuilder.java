@@ -2,7 +2,6 @@ package com.celements.model.object.restriction;
 
 import static com.google.common.base.Preconditions.*;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -78,11 +77,6 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
    */
   public final @NotNull <T> B filter(@NotNull ClassField<T> field, @NotNull Collection<T> values) {
     return filter(new FieldRestriction<>(getBridge(), field, values));
-  }
-
-  private void test() {
-    ClassField<List<String>> myListField = null;
-    filter(myListField, Arrays.asList("a", "b", "c"));
   }
 
   /**
