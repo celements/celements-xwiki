@@ -15,10 +15,10 @@ import com.google.common.primitives.Longs;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 
-@Component(CelementsDocumentIdComputer.NAME)
-public class CelementsDocumentIdComputer implements DocumentIdComputer {
+@Component(UniqueHashIdComputer.NAME)
+public class UniqueHashIdComputer implements CelementsIdComputer {
 
-  public static final String NAME = "celements";
+  public static final String NAME = "uniqueHash";
 
   private static final String HASH_ALGO = "MD5";
   private static final int BITS_COLLISION = 2;

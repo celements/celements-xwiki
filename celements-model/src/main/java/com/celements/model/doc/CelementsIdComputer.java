@@ -6,7 +6,7 @@ import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.model.reference.DocumentReference;
 
 @ComponentRole
-public interface DocumentIdComputer {
+public interface CelementsIdComputer {
 
   /**
    * @return computes the id for the given document
