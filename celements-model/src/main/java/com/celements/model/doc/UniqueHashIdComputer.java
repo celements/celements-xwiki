@@ -1,6 +1,7 @@
 package com.celements.model.doc;
 
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Verify.*;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -13,7 +14,6 @@ import org.xwiki.model.reference.DocumentReference;
 import com.celements.model.util.ModelUtils;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.base.Verify;
 import com.google.common.base.VerifyException;
 import com.google.common.primitives.Longs;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -24,6 +24,8 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   public static final String NAME = "uniqueHash";
 
   private static final String HASH_ALGO = "MD5";
+  private static final byte BITS_COLLISION_COUNT = 2;
+  private static final byte BITS_OBJECT_COUNT = 12;
 
   @Requirement
   private ModelUtils modelUtils;
@@ -35,11 +37,9 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   }
 
   @Override
-  public long computeDocumentId(DocumentReference docRef, String lang, int collisionCount)
+  public long computeDocumentId(DocumentReference docRef, String lang, long collisionCount)
       throws IdComputationException {
-    verifyCollisionCount(collisionCount);
-    long docId = hashMD5(serializeLocalUid(docRef, lang)) << getObjectBits();
-    return combine(docId, collisionCount, getCollisionBits());
+    return computeId(docRef, lang, collisionCount, 0);
   }
 
   @Override
@@ -48,14 +48,25 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     return computeDocumentId(doc.getDocumentReference(), doc.getLanguage());
   }
 
-  /**
-   * bitwise combination of the long 'base' with 'bits' bits of the long 'msb' placed at the
-   * left (most significant bits)
-   */
-  private long combine(long base, long msb, int bits) {
-    base = ~(~(base << bits) >>> bits); // set msb's to 1 for and'ing
-    msb = ~(~msb << (64 - bits)); // shift to left and set right side to 1 for and'ing
-    return base & msb;
+  private long computeId(DocumentReference docRef, String lang, long collisionCount,
+      long objectCount) throws IdComputationException {
+    long docId = hashMD5(serializeLocalUid(docRef, lang));
+    verifyCount(collisionCount, BITS_COLLISION_COUNT);
+    verifyCount(objectCount, BITS_OBJECT_COUNT);
+    docId = andifyLeft(andifyRight(docId, BITS_OBJECT_COUNT), BITS_COLLISION_COUNT);
+    byte bitsRight = 64 - BITS_COLLISION_COUNT;
+    collisionCount = andifyRight(collisionCount << bitsRight, bitsRight);
+    byte bitsLeft = 64 - BITS_OBJECT_COUNT;
+    objectCount = andifyLeft(objectCount, bitsLeft);
+    return collisionCount & docId & objectCount;
+  }
+
+  private long andifyLeft(long base, byte bits) {
+    return ~(~(base << bits) >>> bits);
+  }
+
+  private long andifyRight(long base, byte bits) {
+    return ~(~(base >> bits) << bits);
   }
 
   /**
@@ -71,24 +82,13 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     }
   }
 
-  private void verifyCollisionCount(int collisionCount) throws IdComputationException {
+  private void verifyCount(long count, byte bits) throws IdComputationException {
     try {
-      Verify.verify(collisionCount >= 0, "negative collision count '%s' not allowed",
-          collisionCount);
-      Verify.verify(collisionCount < (1 << getCollisionBits()),
-          "collision count '%s' outside of defined range '2^%s'", collisionCount,
-          getCollisionBits());
+      verify(count >= 0, "negative count '%s' not allowed", count);
+      verify(count < (1L << bits), "count '%s' outside of defined range '2^%s'", count, bits);
     } catch (VerifyException exc) {
       throw new IdComputationException(exc);
     }
-  }
-
-  private int getCollisionBits() {
-    return 2; // TODO configurable?
-  }
-
-  private int getObjectBits() {
-    return 12; // TODO configurable?
   }
 
   /**
