@@ -30,4 +30,4 @@ com.celements.convert.bean.BeanXObjectConverter
 com.celements.model.object.xwiki.XWikiObjectBridge
 com.celements.store.CelHibernateStore
 com.celements.web.classes.oldcore.XWikiGlobalRightsClass
-com.celements.model.doc.CelementsDocumentIdComputer
+com.celements.store.id.UniqueHashIdComputer
