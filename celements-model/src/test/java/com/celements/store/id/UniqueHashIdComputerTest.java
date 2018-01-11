@@ -133,8 +133,35 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
 
   @Test
   public void test_computeDocumentId() throws Exception {
+    System.out.println(Long.toHexString(idComputer.computeDocumentId(docRef, "")));
     assertEquals(0x30da7f3f8545d000L, idComputer.computeDocumentId(docRef, lang));
     assertEquals(0xb0da7f3f8545d000L, idComputer.computeDocumentId(docRef, lang, 0b10));
+  }
+
+  @Test
+  public void test_computeDocumentId_docRef() throws Exception {
+    long exp = 0x30da7f3f8545d000L;
+    assertEquals(exp, idComputer.computeDocumentId(docRef, lang));
+    docRef.getWikiReference().setName("asdf");
+    assertEquals(exp, idComputer.computeDocumentId(docRef, lang));
+    docRef.setName("asdf");
+    assertFalse(exp == idComputer.computeDocumentId(docRef, lang));
+    new ExceptionAsserter<NullPointerException>(NullPointerException.class) {
+
+      @Override
+      protected void execute() throws Exception {
+        idComputer.computeDocumentId(null, lang);
+      }
+    }.evaluate();
+  }
+
+  @Test
+  public void test_computeDocumentId_lang() throws Exception {
+    long exp = 0x2ec3dd404a0a3000L;
+    assertEquals(exp, idComputer.computeDocumentId(docRef, ""));
+    assertEquals(exp, idComputer.computeDocumentId(docRef, " "));
+    assertEquals(exp, idComputer.computeDocumentId(docRef, null));
+    assertFalse(exp == idComputer.computeDocumentId(docRef, "de"));
   }
 
   @Test
