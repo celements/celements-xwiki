@@ -1,4 +1,4 @@
-package com.celements.model.doc;
+package com.celements.store.id;
 
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Verify.*;

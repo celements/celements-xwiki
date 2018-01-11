@@ -1,4 +1,4 @@
-package com.celements.model.doc;
+package com.celements.store.id;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
