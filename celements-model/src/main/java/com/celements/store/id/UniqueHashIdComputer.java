@@ -48,8 +48,8 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     return computeDocumentId(doc.getDocumentReference(), doc.getLanguage());
   }
 
-  private long computeId(DocumentReference docRef, String lang, long collisionCount,
-      long objectCount) throws IdComputationException {
+  long computeId(DocumentReference docRef, String lang, long collisionCount, long objectCount)
+      throws IdComputationException {
     long docId = hashMD5(serializeLocalUid(docRef, lang));
     verifyCount(collisionCount, BITS_COLLISION_COUNT);
     verifyCount(objectCount, BITS_OBJECT_COUNT);
@@ -61,18 +61,18 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     return collisionCount & docId & objectCount;
   }
 
-  private long andifyLeft(long base, byte bits) {
+  long andifyLeft(long base, byte bits) {
     return ~(~(base << bits) >>> bits);
   }
 
-  private long andifyRight(long base, byte bits) {
+  long andifyRight(long base, byte bits) {
     return ~(~(base >> bits) << bits);
   }
 
   /**
    * @return first 8 bytes of MD5 hash from given string
    */
-  private long hashMD5(String str) throws IdComputationException {
+  long hashMD5(String str) throws IdComputationException {
     try {
       MessageDigest digest = MessageDigest.getInstance(HASH_ALGO);
       digest.update(str.getBytes("utf-8"));
@@ -82,19 +82,10 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     }
   }
 
-  private void verifyCount(long count, byte bits) throws IdComputationException {
-    try {
-      verify(count >= 0, "negative count '%s' not allowed", count);
-      verify(count < (1L << bits), "count '%s' outside of defined range '2^%s'", count, bits);
-    } catch (VerifyException exc) {
-      throw new IdComputationException(exc);
-    }
-  }
-
   /**
    * @return calculated local uid like LocalUidStringEntityReferenceSerializer from XWiki 4.0+
    */
-  private String serializeLocalUid(DocumentReference docRef, String lang) {
+  String serializeLocalUid(DocumentReference docRef, String lang) {
     StringBuilder key = new StringBuilder();
     for (String name : Splitter.on('.').split(serialize(docRef, lang))) {
       if (!name.isEmpty()) {
@@ -106,6 +97,15 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   private String serialize(DocumentReference docRef, String lang) {
     return modelUtils.serializeRefLocal(docRef) + '.' + Strings.nullToEmpty(lang).trim();
+  }
+
+  private void verifyCount(long count, byte bits) throws IdComputationException {
+    try {
+      verify(count >= 0, "negative count '%s' not allowed", count);
+      verify(count < (1L << bits), "count '%s' outside of defined range '2^%s'", count, bits);
+    } catch (VerifyException exc) {
+      throw new IdComputationException(exc);
+    }
   }
 
 }
