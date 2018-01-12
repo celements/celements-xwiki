@@ -44,8 +44,13 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   @Override
   public long computeDocumentId(XWikiDocument doc) throws IdComputationException {
+    return computeId(doc, 0);
+  }
+
+  private long computeId(XWikiDocument doc, long objectCount) throws IdComputationException {
     checkNotNull(doc);
-    return computeDocumentId(doc.getDocumentReference(), doc.getLanguage());
+    long collisionCount = 0;
+    return computeId(doc.getDocumentReference(), doc.getLanguage(), collisionCount, objectCount);
   }
 
   long computeId(DocumentReference docRef, String lang, long collisionCount, long objectCount)
