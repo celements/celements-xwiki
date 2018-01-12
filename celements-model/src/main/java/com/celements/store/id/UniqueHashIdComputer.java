@@ -55,9 +55,9 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   long computeId(DocumentReference docRef, String lang, long collisionCount, long objectCount)
       throws IdComputationException {
-    long docId = hashMD5(serializeLocalUid(docRef, lang));
     verifyCount(collisionCount, BITS_COLLISION_COUNT);
     verifyCount(objectCount, BITS_OBJECT_COUNT);
+    long docId = hashMD5(serializeLocalUid(docRef, lang));
     docId = andifyLeft(andifyRight(docId, BITS_OBJECT_COUNT), BITS_COLLISION_COUNT);
     byte bitsRight = 64 - BITS_COLLISION_COUNT;
     collisionCount = andifyRight(collisionCount << bitsRight, bitsRight);
@@ -71,7 +71,16 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   }
 
   long andifyRight(long base, byte bits) {
-    return ~(~(base >> bits) << bits);
+    return ~(~(base >>> bits) << bits);
+  }
+
+  private void verifyCount(long count, byte bits) throws IdComputationException {
+    try {
+      verify(count >= 0, "negative count '%s' not allowed", count);
+      verify(count < (1L << bits), "count '%s' outside of defined range '2^%s'", count, bits);
+    } catch (VerifyException exc) {
+      throw new IdComputationException(exc);
+    }
   }
 
   /**
@@ -102,15 +111,6 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   private String serialize(DocumentReference docRef, String lang) {
     return modelUtils.serializeRefLocal(docRef) + '.' + Strings.nullToEmpty(lang).trim();
-  }
-
-  private void verifyCount(long count, byte bits) throws IdComputationException {
-    try {
-      verify(count >= 0, "negative count '%s' not allowed", count);
-      verify(count < (1L << bits), "count '%s' outside of defined range '2^%s'", count, bits);
-    } catch (VerifyException exc) {
-      throw new IdComputationException(exc);
-    }
   }
 
 }
