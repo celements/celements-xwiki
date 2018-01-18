@@ -3,7 +3,7 @@ package com.celements.store.id;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Verify.*;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -78,7 +78,7 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   private void verifyCount(long count, byte bits) throws IdComputationException {
     try {
       verify(count >= 0, "negative count '%s' not allowed", count);
-      verify(count < (1L << bits), "count '%s' outside of defined range '2^%s'", count, bits);
+      verify((count >>> bits) == 0, "count '%s' outside of defined range '2^%s'", count, bits);
     } catch (VerifyException exc) {
       throw new IdComputationException(exc);
     }
@@ -90,9 +90,9 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   long hashMD5(String str) throws IdComputationException {
     try {
       MessageDigest digest = MessageDigest.getInstance(HASH_ALGO);
-      digest.update(str.getBytes("utf-8"));
+      digest.update(str.getBytes(StandardCharsets.UTF_8));
       return Longs.fromByteArray(digest.digest());
-    } catch (NoSuchAlgorithmException | UnsupportedEncodingException exc) {
+    } catch (NoSuchAlgorithmException exc) {
       throw new IdComputationException("failed calculating hash", exc);
     }
   }
