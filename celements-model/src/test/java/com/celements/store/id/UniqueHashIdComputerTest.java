@@ -63,10 +63,10 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
   @Test
   public void test_computeId_collisionCount() throws Exception {
     // full md5: 0xf0da7f3f8545ded5L
-    assertEquals(0x30da7f3f8545ded5L, idComputer.computeId(docRef, lang, 0b00, 0xed5));
-    assertEquals(0x70da7f3f8545ded5L, idComputer.computeId(docRef, lang, 0b01, 0xed5));
-    assertEquals(0xb0da7f3f8545ded5L, idComputer.computeId(docRef, lang, 0b10, 0xed5));
-    assertEquals(0xf0da7f3f8545ded5L, idComputer.computeId(docRef, lang, 0b11, 0xed5));
+    assertEquals(0x30da7f3f8545ded5L, idComputer.computeId(docRef, lang, (byte) 0b00, 0xed5));
+    assertEquals(0x70da7f3f8545ded5L, idComputer.computeId(docRef, lang, (byte) 0b01, 0xed5));
+    assertEquals(0xb0da7f3f8545ded5L, idComputer.computeId(docRef, lang, (byte) 0b10, 0xed5));
+    assertEquals(0xf0da7f3f8545ded5L, idComputer.computeId(docRef, lang, (byte) 0b11, 0xed5));
   }
 
   @Test
@@ -75,7 +75,7 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
 
       @Override
       protected void execute() throws IdComputationException {
-        idComputer.computeId(docRef, lang, -1, 0);
+        idComputer.computeId(docRef, lang, (byte) -1, 0);
       }
     }.evaluate().getCause();
     assertSame(VerifyException.class, cause.getClass());
@@ -88,7 +88,7 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
 
       @Override
       protected void execute() throws IdComputationException {
-        idComputer.computeId(docRef, lang, 0b100, 0);
+        idComputer.computeId(docRef, lang, (byte) 0b100, 0);
       }
     }.evaluate().getCause();
     assertSame(VerifyException.class, cause.getClass());
@@ -98,11 +98,11 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
   @Test
   public void test_computeId_objectCount() throws Exception {
     // full md5: 0xf0da7f3f8545ded5L
-    assertEquals(0xf0da7f3f8545d000L, idComputer.computeId(docRef, lang, 0b11, 0));
-    assertEquals(0xf0da7f3f8545d005L, idComputer.computeId(docRef, lang, 0b11, 5));
-    assertEquals(0xf0da7f3f8545ded5L, idComputer.computeId(docRef, lang, 0b11, 0xed5));
-    assertEquals(0xf0da7f3f8545d0a0L, idComputer.computeId(docRef, lang, 0b11, 0xa0));
-    assertEquals(0xf0da7f3f8545dfffL, idComputer.computeId(docRef, lang, 0b11, 0xfff));
+    assertEquals(0xf0da7f3f8545d000L, idComputer.computeId(docRef, lang, (byte) 0b11, 0));
+    assertEquals(0xf0da7f3f8545d005L, idComputer.computeId(docRef, lang, (byte) 0b11, 5));
+    assertEquals(0xf0da7f3f8545ded5L, idComputer.computeId(docRef, lang, (byte) 0b11, 0xed5));
+    assertEquals(0xf0da7f3f8545d0a0L, idComputer.computeId(docRef, lang, (byte) 0b11, 0xa0));
+    assertEquals(0xf0da7f3f8545dfffL, idComputer.computeId(docRef, lang, (byte) 0b11, 0xfff));
   }
 
   @Test
@@ -111,7 +111,7 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
 
       @Override
       protected void execute() throws IdComputationException {
-        idComputer.computeId(docRef, lang, 0, -1);
+        idComputer.computeId(docRef, lang, (byte) 0, -1);
       }
     }.evaluate().getCause();
     assertSame(VerifyException.class, cause.getClass());
@@ -124,7 +124,7 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
 
       @Override
       protected void execute() throws IdComputationException {
-        idComputer.computeId(docRef, lang, 0, 1 << 12);
+        idComputer.computeId(docRef, lang, (byte) 0, 1 << 12);
       }
     }.evaluate().getCause();
     assertSame(VerifyException.class, cause.getClass());
@@ -135,7 +135,7 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
   public void test_computeDocumentId() throws Exception {
     System.out.println(Long.toHexString(idComputer.computeDocumentId(docRef, "")));
     assertEquals(0x30da7f3f8545d000L, idComputer.computeDocumentId(docRef, lang));
-    assertEquals(0xb0da7f3f8545d000L, idComputer.computeDocumentId(docRef, lang, 0b10));
+    assertEquals(0xb0da7f3f8545d000L, idComputer.computeDocumentId(docRef, lang, (byte) 0b10));
   }
 
   @Test

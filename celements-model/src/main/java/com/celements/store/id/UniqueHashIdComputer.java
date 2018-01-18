@@ -33,11 +33,12 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   @Override
   public long computeDocumentId(DocumentReference docRef, String lang)
       throws IdComputationException {
-    return computeDocumentId(docRef, lang, 0);
+    byte collisionCount = 0;
+    return computeDocumentId(docRef, lang, collisionCount);
   }
 
   @Override
-  public long computeDocumentId(DocumentReference docRef, String lang, long collisionCount)
+  public long computeDocumentId(DocumentReference docRef, String lang, byte collisionCount)
       throws IdComputationException {
     return computeId(docRef, lang, collisionCount, 0);
   }
@@ -47,23 +48,23 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     return computeId(doc, 0);
   }
 
-  private long computeId(XWikiDocument doc, long objectCount) throws IdComputationException {
+  private long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {
     checkNotNull(doc);
-    long collisionCount = 0;
+    byte collisionCount = 0;
     return computeId(doc.getDocumentReference(), doc.getLanguage(), collisionCount, objectCount);
   }
 
-  long computeId(DocumentReference docRef, String lang, long collisionCount, long objectCount)
+  long computeId(DocumentReference docRef, String lang, byte collisionCount, int objectCount)
       throws IdComputationException {
     verifyCount(collisionCount, BITS_COLLISION_COUNT);
     verifyCount(objectCount, BITS_OBJECT_COUNT);
     long docId = hashMD5(serializeLocalUid(docRef, lang));
-    docId = andifyLeft(andifyRight(docId, BITS_OBJECT_COUNT), BITS_COLLISION_COUNT);
+    long center = andifyLeft(andifyRight(docId, BITS_OBJECT_COUNT), BITS_COLLISION_COUNT);
     byte bitsRight = 64 - BITS_COLLISION_COUNT;
-    collisionCount = andifyRight(collisionCount << bitsRight, bitsRight);
+    long left = andifyRight(((long) collisionCount) << bitsRight, bitsRight);
     byte bitsLeft = 64 - BITS_OBJECT_COUNT;
-    objectCount = andifyLeft(objectCount, bitsLeft);
-    return collisionCount & docId & objectCount;
+    long right = andifyLeft(objectCount, bitsLeft);
+    return left & center & right;
   }
 
   long andifyLeft(long base, byte bits) {

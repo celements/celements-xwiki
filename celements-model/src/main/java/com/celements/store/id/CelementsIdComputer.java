@@ -25,7 +25,7 @@ public interface CelementsIdComputer {
    *           if unable to compute an id
    */
   long computeDocumentId(@NotNull DocumentReference docRef, @Nullable String lang,
-      long collisionCount) throws IdComputationException;
+      byte collisionCount) throws IdComputationException;
 
   /**
    * @return computes the id for the given document
