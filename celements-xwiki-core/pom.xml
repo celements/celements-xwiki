@@ -27,7 +27,7 @@
     <version>2.21</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>cel-xwiki-core-stub</artifactId>
+  <artifactId>celelements-xwiki-core</artifactId>
   <version>1.0-SNAPSHOT</version>
   <description>Celements XWiki</description>
   <dependencies>
