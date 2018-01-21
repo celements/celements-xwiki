@@ -138,6 +138,7 @@ import com.xpn.xwiki.objects.classes.StaticListClass;
 import com.xpn.xwiki.objects.classes.TextAreaClass;
 import com.xpn.xwiki.plugin.query.XWikiCriteria;
 import com.xpn.xwiki.render.XWikiVelocityRenderer;
+import com.xpn.xwiki.store.IdVersion;
 import com.xpn.xwiki.store.XWikiAttachmentStoreInterface;
 import com.xpn.xwiki.store.XWikiStoreInterface;
 import com.xpn.xwiki.store.XWikiVersioningStoreInterface;
@@ -224,6 +225,8 @@ public class XWikiDocument implements DocumentModelBridge
     protected Version version;
 
     private long id = 0;
+
+    private IdVersion idVersion = IdVersion.XWIKI_2;
 
     private boolean mostRecent = true;
 
@@ -557,6 +560,13 @@ public class XWikiDocument implements DocumentModelBridge
     public void setId(long id)
     {
         this.id = id;
+    }
+
+    public IdVersion getIdVersion() {
+      if (idVersion == null) {
+        throw new IllegalStateException("no version set");
+      }
+      return idVersion;
     }
 
     /**
