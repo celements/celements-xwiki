@@ -65,6 +65,10 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
     return (field instanceof ListField) && !((ListField<?>) field).isMultiSelect();
   }
 
+  /**
+   * unchecked conversion warning since compiler is unable to perform type check for the generic
+   * relationship {@code ListField<T> extends ClassField<List<T>>}
+   */
   @SuppressWarnings("unchecked")
   private <T, S> ObjectRestriction<O> newListFieldRestriction(ClassField<T> field, T value) {
     ListField<S> listField = (ListField<S>) field;
