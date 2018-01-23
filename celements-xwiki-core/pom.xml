@@ -82,25 +82,21 @@
     <dependency>
       <groupId>commons-collections</groupId>
       <artifactId>commons-collections</artifactId>
-      <version>3.2.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.4</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
       <artifactId>commons-beanutils</artifactId>
-      <version>1.8.3</version>
       <scope>provided</scope>
     </dependency>
 
@@ -108,55 +104,46 @@
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-configuration-default</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-observation-local</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-observation-remote</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-velocity</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-context</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-model</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-bridge</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-rendering-api</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-rendering-xwiki</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -182,13 +169,11 @@
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-query-manager</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-rendering-macro-wikibridge</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -199,7 +184,6 @@
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-component-multi</artifactId>
-      <version>2.7.2</version>
       <!-- Only required at runtime (ie in the distribution) -->
       <scope>provided</scope>
     </dependency>
@@ -243,7 +227,6 @@
     <dependency>
       <groupId>ecs</groupId>
       <artifactId>ecs</artifactId>
-      <version>1.4.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -252,18 +235,17 @@
       <version>1.6.1</version>
       <scope>provided</scope>
     </dependency>
+
     <!-- The JRCS JARS are are in our repo till we get them published on the central repository.
          JRCS home page: http://www.suigeneris.org/kb/display/jrcs/JRCS+Home -->
     <dependency>
       <groupId>org.suigeneris</groupId>
       <artifactId>jrcs.diff</artifactId>
-      <version>0.4.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.suigeneris</groupId>
       <artifactId>jrcs.rcs</artifactId>
-      <version>0.4.2</version>
       <scope>provided</scope>
     </dependency>
 
@@ -279,7 +261,6 @@
     <dependency>
       <groupId>securityfilter</groupId>
       <artifactId>securityfilter</artifactId>
-      <version>2.0</version>
       <scope>provided</scope>
     </dependency>
 
