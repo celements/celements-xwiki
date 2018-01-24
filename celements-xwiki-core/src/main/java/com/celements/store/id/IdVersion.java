@@ -1,4 +1,4 @@
-package com.xpn.xwiki.store;
+package com.celements.store.id;
 
 public enum IdVersion {
 
