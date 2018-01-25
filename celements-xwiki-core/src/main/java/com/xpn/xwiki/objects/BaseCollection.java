@@ -49,7 +49,6 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 
-import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.objects.classes.BaseClass;
@@ -129,8 +128,6 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     private long id;
 
-    private IdVersion idVersion;
-
     /**
      * {@inheritDoc}
      * 
@@ -150,17 +147,6 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
       this.id = id;
       this.idVersion = idVersion;
       verifyIdVersion();
-    }
-
-    public IdVersion getIdVersion() {
-      verifyIdVersion();
-      return idVersion;
-    }
-    
-    private void verifyIdVersion() {
-      if (idVersion == null) {
-        throw new IllegalStateException("no id version set");
-      }
     }
 
     public int getNumber()
