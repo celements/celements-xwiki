@@ -85,13 +85,17 @@ public abstract class BaseElement implements ElementInterface, Serializable
       verifyIdVersion();
     }
 
+    public boolean hasValidId() {
+      return idVersion != null;
+    }
+
     public IdVersion getIdVersion() {
       verifyIdVersion();
       return idVersion;
     }
-    
+
     private void verifyIdVersion() {
-      if (idVersion == null) {
+      if (!hasValidId()) {
         throw new IllegalStateException("no id version set");
       }
     }
