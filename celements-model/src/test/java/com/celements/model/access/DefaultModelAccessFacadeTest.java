@@ -28,6 +28,7 @@ import com.celements.model.classes.TestClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.classes.fields.DateField;
 import com.celements.model.classes.fields.StringField;
+import com.celements.model.classes.fields.list.ListField;
 import com.celements.model.context.ModelContext;
 import com.celements.model.util.ClassFieldValue;
 import com.celements.rights.access.exceptions.NoAccessRightsException;
@@ -1017,10 +1018,13 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     for (int i = 0; i < ret.size(); i++) {
       ClassField<?> field = classDef.getFields().get(i);
       assertEquals(field, ret.get(i).getField());
+      Object value = ret.get(i).getValue();
       if (field.equals(TestClassDefinition.FIELD_MY_STRING)) {
-        assertEquals(val, ret.get(i).getValue());
+        assertEquals(val, value);
+      } else if (field instanceof ListField) {
+        assertTrue(ret.get(i).toString(), ((List<?>) value).isEmpty());
       } else {
-        assertNull(ret.get(i).getValue());
+        assertNull(ret.get(i).toString(), value);
       }
     }
   }

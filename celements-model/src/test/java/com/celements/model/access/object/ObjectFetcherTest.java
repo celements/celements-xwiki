@@ -224,6 +224,20 @@ public class ObjectFetcherTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_fetch_single_list() throws Exception {
+    ClassField<String> field = FIELD_MY_SINGLE_LIST;
+    String val1 = "val1";
+    BaseObject obj1 = addObj(classRef, field, val1);
+    String val2 = "val2";
+    BaseObject obj2 = addObj(classRef, field, val2);
+
+    assertObjs(newFetcher().filter(field, Arrays.asList(val1)), obj1);
+    assertObjs(newFetcher().filter(field, Arrays.asList(val2)), obj2);
+    assertObjs(newFetcher().filter(field, Arrays.asList(val1, val2)), obj1, obj2);
+    assertObjs(newFetcher().filterAbsent(field));
+  }
+
+  @Test
   public void test_fetchFirst() throws Exception {
     BaseObject obj1 = addObj(classRef, null, null);
     addObj(classRef2, null, null);
