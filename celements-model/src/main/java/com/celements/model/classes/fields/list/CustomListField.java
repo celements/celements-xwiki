@@ -6,6 +6,9 @@ import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
 import com.celements.marshalling.Marshaller;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.objects.classes.ListClass;
 import com.xpn.xwiki.objects.classes.StaticListClass;
@@ -51,8 +54,14 @@ public class CustomListField<T> extends ListField<T> {
   @Override
   protected ListClass getListClass() {
     StaticListClass element = new StaticListClass();
-    element.setValues(serialize(getValues(), DEFAULT_SEPARATOR));
+    element.setValues(serializedValuesForPropertyClass());
     return element;
+  }
+
+  protected String serializedValuesForPropertyClass() {
+    // always use DEFAULT_SEPARATOR, XWiki expects it in the PropertyClass
+    return FluentIterable.from(getValues()).transform(getMarshaller().getSerializer()).filter(
+        Predicates.notNull()).join(Joiner.on(DEFAULT_SEPARATOR));
   }
 
   public List<T> getValues() {
