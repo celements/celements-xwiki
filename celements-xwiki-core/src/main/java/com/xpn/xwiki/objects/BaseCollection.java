@@ -150,10 +150,14 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
     }
 
     public IdVersion getIdVersion() {
-      if (idVersion == null) {
-        throw new IllegalStateException("no version set");
-      }
+      verifyIdVersion();
       return idVersion;
+    }
+    
+    private void verifyIdVersion() {
+      if (idVersion == null) {
+        throw new IllegalStateException("no id version set");
+      }
     }
 
     public int getNumber()
