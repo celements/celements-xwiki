@@ -49,7 +49,6 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 
-import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.objects.classes.BaseClass;
@@ -127,8 +126,6 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
     private DocumentReferenceResolver<EntityReference> currentReferenceDocumentReferenceResolver =
         Utils.getComponent(DocumentReferenceResolver.class, "current/reference");
 
-    private IdVersion idVersion = IdVersion.XWIKI_2;
-
     public int getId()
     {
         return hashCode();
@@ -147,17 +144,6 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void setId(int id)
     {
-    }
-
-    public IdVersion getIdVersion() {
-      verifyIdVersion();
-      return idVersion;
-    }
-    
-    private void verifyIdVersion() {
-      if (idVersion == null) {
-        throw new IllegalStateException("no id version set");
-      }
     }
 
     public int getNumber()
