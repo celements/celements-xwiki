@@ -24,6 +24,7 @@ package com.xpn.xwiki.objects;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.util.Optional;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -42,9 +43,6 @@ import com.xpn.xwiki.web.Utils;
 public class BaseProperty extends BaseElement implements PropertyInterface, Serializable, Cloneable
 {
     private BaseCollection object;
-
-    // only needed as hibernate foreign key
-    private long id;
 
     /**
      * {@inheritDoc}
@@ -93,13 +91,9 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
     }
 
     @Override
-    public long getId()
-    {
-        if (this.object == null) {
-            return this.id;
-        } else {
-            return getObject().getId();
-        }
+    public long getId() {
+      BaseElement element = getObject() != null ? getObject() : this;
+      return element.getId();
     }
 
     /**

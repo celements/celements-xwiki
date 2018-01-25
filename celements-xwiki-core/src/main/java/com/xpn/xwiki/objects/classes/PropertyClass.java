@@ -33,6 +33,7 @@ import org.xwiki.velocity.VelocityManager;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.objects.BaseCollection;
+import com.xpn.xwiki.objects.BaseElement;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
@@ -103,12 +104,9 @@ public class PropertyClass extends BaseCollection implements PropertyClassInterf
     }
 
     @Override
-    public long getId()
-    {
-        if (getObject() == null) {
-            return super.getId();
-        }
-        return getObject().getId();
+    public long getId() {
+      BaseElement element = getObject() != null ? getObject() : this;
+      return element.getId();
     }
 
     public String toString(BaseProperty property)

@@ -71,7 +71,19 @@ public abstract class BaseElement implements ElementInterface, Serializable
     private EntityReferenceSerializer<String> localEntityReferenceSerializer =
         Utils.getComponent(EntityReferenceSerializer.class, "local");
 
-    private IdVersion idVersion = IdVersion.XWIKI_2;
+    private long id;
+
+    private IdVersion idVersion;
+
+    public long getId() {
+      return id;
+    }
+
+    public void setId(long id, IdVersion idVersion) {
+      this.id = id;
+      this.idVersion = idVersion;
+      verifyIdVersion();
+    }
 
     public IdVersion getIdVersion() {
       verifyIdVersion();
