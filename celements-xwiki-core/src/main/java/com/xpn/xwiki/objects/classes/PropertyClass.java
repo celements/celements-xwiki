@@ -54,8 +54,6 @@ public class PropertyClass extends BaseCollection implements PropertyClassInterf
 {
     private BaseClass object;
 
-    private int id;
-
     private PropertyMetaClass pMetaClass;
 
     public PropertyClass()
@@ -105,18 +103,12 @@ public class PropertyClass extends BaseCollection implements PropertyClassInterf
     }
 
     @Override
-    public int getId()
+    public long getId()
     {
         if (getObject() == null) {
-            return this.id;
+            return super.getId();
         }
         return getObject().getId();
-    }
-
-    @Override
-    public void setId(int id)
-    {
-        this.id = id;
     }
 
     public String toString(BaseProperty property)

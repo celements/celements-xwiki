@@ -43,7 +43,8 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
 {
     private BaseCollection object;
 
-    private int id;
+    // only needed as hibernate foreign key
+    private long id;
 
     /**
      * {@inheritDoc}
@@ -91,27 +92,14 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
         return (getId() == ((BaseProperty) el).getId());
     }
 
-    public int getId()
+    @Override
+    public long getId()
     {
-        // I hate this.. needed for hibernate to find the object
-        // when loading the collections..
         if (this.object == null) {
             return this.id;
         } else {
             return getObject().getId();
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.PropertyInterface#setId(int)
-     */
-    public void setId(int id)
-    {
-        // I hate this.. needed for hibernate to find the object
-        // when loading the collections..
-        this.id = id;
     }
 
     /**

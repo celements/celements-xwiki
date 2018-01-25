@@ -127,12 +127,9 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
     private DocumentReferenceResolver<EntityReference> currentReferenceDocumentReferenceResolver =
         Utils.getComponent(DocumentReferenceResolver.class, "current/reference");
 
-    private IdVersion idVersion = IdVersion.XWIKI_2;
+    private long id;
 
-    public int getId()
-    {
-        return hashCode();
-    }
+    private IdVersion idVersion;
 
     /**
      * {@inheritDoc}
@@ -145,8 +142,14 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
         return (getName() + getClassName()).hashCode();
     }
 
-    public void setId(int id)
-    {
+    public long getId() {
+      return id;
+    }
+
+    public void setId(long id, IdVersion idVersion) {
+      this.id = id;
+      this.idVersion = idVersion;
+      verifyIdVersion();
     }
 
     public IdVersion getIdVersion() {

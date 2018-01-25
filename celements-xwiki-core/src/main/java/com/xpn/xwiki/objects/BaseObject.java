@@ -117,16 +117,6 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
         return str.hashCode();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseCollection#setId(int)
-     */
-    @Override
-    public void setId(int id)
-    {
-    }
-
     public void displayHidden(StringBuffer buffer, String name, String prefix, XWikiContext context)
     {
         ((PropertyClass) getXClass(context).get(name)).displayHidden(buffer, name, prefix, this, context);
