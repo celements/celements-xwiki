@@ -563,11 +563,19 @@ public class XWikiDocument implements DocumentModelBridge
         this.id = id;
     }
 
+    public boolean hasValidId() {
+      return idVersion != null;
+    }
+
     public IdVersion getIdVersion() {
-      if (idVersion == null) {
-        throw new IllegalStateException("no version set");
-      }
+      verifyIdVersion();
       return idVersion;
+    }
+    
+    private void verifyIdVersion() {
+      if (!hasValidId()) {
+        throw new IllegalStateException("no id version set");
+      }
     }
 
     /**
