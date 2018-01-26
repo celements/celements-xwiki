@@ -164,7 +164,7 @@ public class CelHibernateStoreCollectionPart {
 
       if (!alreadyLoaded) {
         try {
-          session.load(object, new Long(object1.getId()));
+          session.load(object, new Integer(object1.getId()));
         } catch (ObjectNotFoundException e) {
           // There is no object data saved
           object = null;
@@ -194,7 +194,7 @@ public class CelHibernateStoreCollectionPart {
           if ((bclass != null) && (bclass.hasCustomMapping())
               && context.getWiki().hasCustomMappings()) {
             Session dynamicSession = session.getSession(EntityMode.MAP);
-            Map<String, ?> map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Long(
+            Map<String, ?> map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Integer(
                 object.getId()));
             // Let's make sure to look for null fields in the dynamic mapping
             bclass.fromValueMap(map, object);
@@ -318,7 +318,7 @@ public class CelHibernateStoreCollectionPart {
           && context.getWiki().hasCustomMappings()) {
         handledProps = bclass.getCustomMappingPropertyList(context);
         Session dynamicSession = session.getSession(EntityMode.MAP);
-        Object map = dynamicSession.get(bclass.getName(), new Long(object.getId()));
+        Object map = dynamicSession.get(bclass.getName(), new Integer(object.getId()));
         if (map != null) {
           if (evict) {
             dynamicSession.evict(map);
