@@ -53,8 +53,9 @@ public class ListFieldTest extends AbstractComponentTest {
 
   @Test
   public void test_immutability() {
-    assertInstancesOf(ListField.class, areImmutable(), allowingForSubclassing(),
+    assertInstancesOf(AbstractListField.class, areImmutable(), allowingForSubclassing(),
         AllowedReason.provided(Marshaller.class).isAlsoImmutable());
+    assertInstancesOf(ListField.class, areImmutable(), allowingForSubclassing());
     assertInstancesOf(CustomListField.class, areImmutable(), allowingForSubclassing(),
         assumingFields("values").areSafelyCopiedUnmodifiableCollectionsWithImmutableElements());
     assertInstancesOf(StaticListField.class, areImmutable(), allowingForSubclassing());
@@ -71,8 +72,8 @@ public class ListFieldTest extends AbstractComponentTest {
     assertEquals(picker, field.getPicker());
     assertEquals(separator, field.getSeparator());
     assertEquals(values, field.getValues());
-    assertEquals(ListField.DEFAULT_SEPARATOR, new StaticListField.Builder(TestClassDefinition.NAME,
-        field.getName()).build().getSeparator());
+    assertEquals(AbstractListField.DEFAULT_SEPARATOR, new StaticListField.Builder(
+        TestClassDefinition.NAME, field.getName()).build().getSeparator());
   }
 
   @Test
@@ -86,35 +87,14 @@ public class ListFieldTest extends AbstractComponentTest {
     assertEquals(picker, xField.isPicker());
     assertEquals(separator, xField.getSeparators());
     assertEquals(" ", xField.getSeparator()); // this is the view separator
-    assertEquals(values, xField.getList(getContext()));
     assertEquals("separator has to be | for XField values", Joiner.on(
-        ListField.DEFAULT_SEPARATOR).join(values), xField.getValues());
-  }
-
-  @Test
-  public void test_resolve_serialize() throws Exception {
-    StaticListField field = fieldBuilder.values(Arrays.asList("A", "B", "C", "D")).build();
-    DocumentReference classRef = field.getClassDef().getClassRef();
-    IModelAccessFacade modelAccess = Utils.getComponent(IModelAccessFacade.class);
-    XWikiDocument doc = new XWikiDocument(classRef);
-    List<String> value = Arrays.asList("B");
-
-    BaseClass bClass = expectNewBaseObject(classRef);
-    expectPropertyClass(bClass, field.getName(), (PropertyClass) field.getXField());
-
-    replayDefault();
-    modelAccess.setProperty(doc, new ClassFieldValue<>(field, value));
-    List<String> ret = modelAccess.getFieldValue(doc, field).orNull();
-    verifyDefault();
-
-    assertEquals(value, ret);
-    assertEquals(value, modelAccess.getXObject(doc, classRef).getListValue(field.getName()));
+        AbstractListField.DEFAULT_SEPARATOR).join(values), xField.getValues());
+    assertEquals(values, xField.getList(getContext()));
   }
 
   @Test
   public void test_resolve_serialize_multiselect() throws Exception {
-    StaticListField field = fieldBuilder.multiSelect(true).values(Arrays.asList("A", "B", "C",
-        "D")).build();
+    StaticListField field = fieldBuilder.values(Arrays.asList("A", "B", "C", "D")).build();
     DocumentReference classRef = field.getClassDef().getClassRef();
     IModelAccessFacade modelAccess = Utils.getComponent(IModelAccessFacade.class);
     XWikiDocument doc = new XWikiDocument(classRef);
@@ -133,9 +113,30 @@ public class ListFieldTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_resolve_serialize_null() throws Exception {
-    StaticListField field = fieldBuilder.multiSelect(true).values(Arrays.asList("A", "B", "C",
+  public void test_resolve_serialize_singleSelect() throws Exception {
+    StaticListField field = fieldBuilder.multiSelect(false).values(Arrays.asList("A", "B", "C",
         "D")).build();
+    DocumentReference classRef = field.getClassDef().getClassRef();
+    IModelAccessFacade modelAccess = Utils.getComponent(IModelAccessFacade.class);
+    XWikiDocument doc = new XWikiDocument(classRef);
+    List<String> value = Arrays.asList("B");
+
+    BaseClass bClass = expectNewBaseObject(classRef);
+    expectPropertyClass(bClass, field.getName(), (PropertyClass) field.getXField());
+
+    replayDefault();
+    modelAccess.setProperty(doc, new ClassFieldValue<>(field, value));
+    List<String> ret = modelAccess.getFieldValue(doc, field).orNull();
+    verifyDefault();
+
+    assertEquals(value, ret);
+    assertEquals(value.get(0), modelAccess.getXObject(doc, classRef).getStringValue(
+        field.getName()));
+  }
+
+  @Test
+  public void test_resolve_serialize_null() throws Exception {
+    StaticListField field = fieldBuilder.values(Arrays.asList("A", "B", "C", "D")).build();
     DocumentReference classRef = field.getClassDef().getClassRef();
     IModelAccessFacade modelAccess = Utils.getComponent(IModelAccessFacade.class);
     XWikiDocument doc = new XWikiDocument(classRef);
