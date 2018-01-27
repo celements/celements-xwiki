@@ -8,6 +8,7 @@ import org.apache.log4j.WriterAppender;
 import org.apache.log4j.spi.LoggingEvent;
 import org.xwiki.configuration.ConfigurationSource;
 
+import com.celements.configuration.CelementsAllPropertiesConfigurationSource;
 import com.xpn.xwiki.web.Utils;
 
 /**
@@ -45,8 +46,9 @@ public class NoStackTracePatternLayout extends PatternLayout {
   private Level getNoStackTraceLevel() {
     String levelName = null;
     if ((Utils.getComponentManager() != null) && Utils.getComponentManager().hasComponent(
-        ConfigurationSource.class)) {
-      levelName = Utils.getComponent(ConfigurationSource.class).getProperty(CFG_SRC_KEY_LEVEL);
+        ConfigurationSource.class, CelementsAllPropertiesConfigurationSource.NAME)) {
+      levelName = Utils.getComponent(ConfigurationSource.class,
+          CelementsAllPropertiesConfigurationSource.NAME).getProperty(CFG_SRC_KEY_LEVEL);
     }
     return Level.toLevel(levelName, DEFAULT_LEVEL);
   }
