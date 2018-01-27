@@ -109,6 +109,7 @@ import org.xwiki.rendering.util.ParserUtils;
 import org.xwiki.velocity.VelocityManager;
 import org.xwiki.velocity.XWikiVelocityException;
 
+import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.CoreConfiguration;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiConstant;
@@ -224,6 +225,9 @@ public class XWikiDocument implements DocumentModelBridge
     protected Version version;
 
     private long id = 0;
+
+    // TODO remove idVersion init in [CELDEV-602] - XWikiDocument get/setId
+    private IdVersion idVersion = IdVersion.XWIKI_2;
 
     private boolean mostRecent = true;
 
@@ -557,6 +561,21 @@ public class XWikiDocument implements DocumentModelBridge
     public void setId(long id)
     {
         this.id = id;
+    }
+
+    public boolean hasValidId() {
+      return idVersion != null;
+    }
+
+    public IdVersion getIdVersion() {
+      verifyIdVersion();
+      return idVersion;
+    }
+    
+    private void verifyIdVersion() {
+      if (!hasValidId()) {
+        throw new IllegalStateException("no id version set");
+      }
     }
 
     /**

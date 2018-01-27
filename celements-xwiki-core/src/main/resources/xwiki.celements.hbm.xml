@@ -9,6 +9,13 @@
       <column name="XWD_ID" not-null="true" />
       <generator class="assigned" />
     </id>
+    <property name="idVersion" access="field">
+      <column name="XWD_ID_VERSION" not-null="true" default="0" />
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.celements.store.id.IdVersion</param>
+        <param name="useNamed">false</param>
+      </type>
+    </property>
     <property name="fullName" type="string">
       <column name="XWD_FULLNAME" length="255" not-null="true" />
     </property>
@@ -456,6 +463,13 @@
       <column name="XWO_ID" not-null="true" />
       <generator class="assigned" />
     </id>
+    <property name="idVersion" access="field">
+      <column name="XWO_ID_VERSION" not-null="true" default="0" />
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.celements.store.id.IdVersion</param>
+        <param name="useNamed">false</param>
+      </type>
+    </property>
     <property name="number" type="integer">
       <column name="XWO_NUMBER" not-null="false" />
     </property>

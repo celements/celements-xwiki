@@ -21,6 +21,7 @@
 
 package com.xpn.xwiki.objects;
 
+import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -69,6 +70,24 @@ public abstract class BaseElement implements ElementInterface, Serializable
      */
     private EntityReferenceSerializer<String> localEntityReferenceSerializer =
         Utils.getComponent(EntityReferenceSerializer.class, "local");
+
+    // TODO remove idVersion init in [CELDEV-618] - BaseCollection get/setId as long
+    private IdVersion idVersion = IdVersion.XWIKI_2;
+    
+    public boolean hasValidId() {
+      return idVersion != null;
+    }
+
+    public IdVersion getIdVersion() {
+      verifyIdVersion();
+      return idVersion;
+    }
+    
+    private void verifyIdVersion() {
+      if (!hasValidId()) {
+        throw new IllegalStateException("no id version set");
+      }
+    }
 
     /**
      * {@inheritDoc}
