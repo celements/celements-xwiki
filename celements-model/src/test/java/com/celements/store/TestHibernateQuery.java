@@ -149,7 +149,7 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
       @Override
       public Object answer() throws Throwable {
         BaseProperty property = (BaseProperty) getCurrentArguments()[0];
-        Integer objId = property.getObject().getId();
+        Long objId = property.getObject().getId();
         for (BaseObject templBaseObject : objList) {
           if (objId.equals(templBaseObject.getId())) {
             for (Object theObj : templBaseObject.getFieldList()) {

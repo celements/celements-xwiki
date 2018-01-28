@@ -97,7 +97,7 @@ public class CelHibernateStorePropertyPart {
 
       final Query query = session.createQuery(
           "select prop.name from BaseProperty as prop where prop.id.id = :id and prop.id.name= :name");
-      query.setInteger("id", property.getId());
+      query.setLong("id", property.getId());
       query.setString("name", property.getName());
 
       if (query.uniqueResult() == null) {
