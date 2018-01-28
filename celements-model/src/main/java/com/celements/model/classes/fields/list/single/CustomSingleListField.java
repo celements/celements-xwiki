@@ -1,4 +1,4 @@
-package com.celements.model.classes.fields.list;
+package com.celements.model.classes.fields.list.single;
 
 import java.util.List;
 
@@ -14,11 +14,11 @@ import com.xpn.xwiki.objects.classes.ListClass;
 import com.xpn.xwiki.objects.classes.StaticListClass;
 
 @Immutable
-public class CustomListField<T> extends ListField<T> {
+public class CustomSingleListField<T> extends SingleListField<T> {
 
   protected final List<T> values;
 
-  public static class Builder<B extends Builder<B, T>, T> extends ListField.Builder<B, T> {
+  public static class Builder<B extends Builder<B, T>, T> extends SingleListField.Builder<B, T> {
 
     private List<T> values;
 
@@ -39,13 +39,13 @@ public class CustomListField<T> extends ListField<T> {
     }
 
     @Override
-    public CustomListField<T> build() {
-      return new CustomListField<>(getThis());
+    public CustomSingleListField<T> build() {
+      return new CustomSingleListField<>(getThis());
     }
 
   }
 
-  protected CustomListField(@NotNull Builder<?, T> builder) {
+  protected CustomSingleListField(@NotNull Builder<?, T> builder) {
     super(builder);
     this.values = builder.values != null ? ImmutableList.copyOf(builder.values)
         : ImmutableList.<T>of();

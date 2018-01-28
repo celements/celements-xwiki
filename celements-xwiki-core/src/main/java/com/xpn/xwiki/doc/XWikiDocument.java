@@ -226,6 +226,7 @@ public class XWikiDocument implements DocumentModelBridge
 
     private long id = 0;
 
+    // TODO remove idVersion init in [CELDEV-602] - XWikiDocument get/setId
     private IdVersion idVersion = IdVersion.XWIKI_2;
 
     private boolean mostRecent = true;
@@ -562,11 +563,19 @@ public class XWikiDocument implements DocumentModelBridge
         this.id = id;
     }
 
+    public boolean hasValidId() {
+      return idVersion != null;
+    }
+
     public IdVersion getIdVersion() {
-      if (idVersion == null) {
-        throw new IllegalStateException("no version set");
-      }
+      verifyIdVersion();
       return idVersion;
+    }
+    
+    private void verifyIdVersion() {
+      if (!hasValidId()) {
+        throw new IllegalStateException("no id version set");
+      }
     }
 
     /**

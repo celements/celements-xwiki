@@ -1,5 +1,7 @@
 package com.celements.model.classes;
 
+import java.util.List;
+
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -8,6 +10,8 @@ import org.xwiki.model.reference.DocumentReference;
 import com.celements.model.classes.fields.BooleanField;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.classes.fields.StringField;
+import com.celements.model.classes.fields.list.StringListField;
+import com.celements.model.classes.fields.list.single.StringSingleListField;
 import com.celements.model.classes.fields.number.IntField;
 import com.celements.model.classes.fields.ref.DocumentReferenceField;
 
@@ -24,6 +28,9 @@ public class TestClassDefinition extends AbstractClassDefinition implements
   public static final ClassField<Integer> FIELD_MY_INT = getFieldMyInt();
   public static final ClassField<Boolean> FIELD_MY_BOOL = getFieldMyBool();
   public static final ClassField<DocumentReference> FIELD_MY_DOCREF = getFieldMyDocRef();
+  public static final ClassField<List<String>> FIELD_MY_LIST_MS = getFieldMyList(true);
+  public static final ClassField<List<String>> FIELD_MY_LIST_SS = getFieldMyList(false);
+  public static final ClassField<String> FIELD_MY_SINGLE_LIST = getFieldMySingleList();
 
   @Override
   public String getName() {
@@ -59,6 +66,15 @@ public class TestClassDefinition extends AbstractClassDefinition implements
 
   private static ClassField<DocumentReference> getFieldMyDocRef() {
     return new DocumentReferenceField.Builder(NAME, "myDocRef").size(30).build();
+  }
+
+  private static ClassField<List<String>> getFieldMyList(boolean multiSelect) {
+    return new StringListField.Builder<>(NAME, "myList" + (multiSelect ? "MS" : "SS")).multiSelect(
+        multiSelect).build();
+  }
+
+  private static ClassField<String> getFieldMySingleList() {
+    return new StringSingleListField.Builder(NAME, "mySingleList").build();
   }
 
 }
