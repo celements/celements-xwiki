@@ -65,11 +65,14 @@ public class AbstractClassDefinitionTest extends AbstractComponentTest {
   @Test
   public void test_getFields() throws Exception {
     replayDefault();
-    assertEquals(4, testClass.getFields().size());
+    assertEquals(7, testClass.getFields().size());
     assertTrue(testClass.getFields().contains(TestClassDefinition.FIELD_MY_BOOL));
     assertTrue(testClass.getFields().contains(TestClassDefinition.FIELD_MY_DOCREF));
     assertTrue(testClass.getFields().contains(TestClassDefinition.FIELD_MY_STRING));
     assertTrue(testClass.getFields().contains(TestClassDefinition.FIELD_MY_INT));
+    assertTrue(testClass.getFields().contains(TestClassDefinition.FIELD_MY_LIST_MS));
+    assertTrue(testClass.getFields().contains(TestClassDefinition.FIELD_MY_LIST_SS));
+    assertTrue(testClass.getFields().contains(TestClassDefinition.FIELD_MY_SINGLE_LIST));
     verifyDefault();
   }
 
