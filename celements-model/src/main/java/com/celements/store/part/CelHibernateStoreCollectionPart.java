@@ -63,7 +63,7 @@ public class CelHibernateStoreCollectionPart {
       } else {
         query = session.createQuery("select obj.id from BaseObject as obj where obj.id = :id");
       }
-      query.setInteger("id", object.getId());
+      query.setLong("id", object.getId());
       if (query.uniqueResult() == null) {
         if (stats) {
           session.save(object);
@@ -91,7 +91,7 @@ public class CelHibernateStoreCollectionPart {
         Session dynamicSession = session.getSession(EntityMode.MAP);
         query = session.createQuery("select obj.id from " + bclass.getName()
             + " as obj where obj.id = :id");
-        query.setInteger("id", object.getId());
+        query.setLong("id", object.getId());
         if (query.uniqueResult() == null) {
           dynamicSession.save(bclass.getName(), objmap);
         } else {
@@ -164,7 +164,7 @@ public class CelHibernateStoreCollectionPart {
 
       if (!alreadyLoaded) {
         try {
-          session.load(object, new Integer(object1.getId()));
+          session.load(object, new Long(object1.getId()));
         } catch (ObjectNotFoundException e) {
           // There is no object data saved
           object = null;
@@ -194,7 +194,7 @@ public class CelHibernateStoreCollectionPart {
           if ((bclass != null) && (bclass.hasCustomMapping())
               && context.getWiki().hasCustomMappings()) {
             Session dynamicSession = session.getSession(EntityMode.MAP);
-            Map<String, ?> map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Integer(
+            Map<String, ?> map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Long(
                 object.getId()));
             // Let's make sure to look for null fields in the dynamic mapping
             bclass.fromValueMap(map, object);
@@ -213,7 +213,7 @@ public class CelHibernateStoreCollectionPart {
 
         Query query = session.createQuery(
             "select prop.name, prop.classType from BaseProperty as prop where prop.id.id = :id");
-        query.setInteger("id", object.getId());
+        query.setLong("id", object.getId());
         List<?> list = query.list();
         Iterator<?> it = list.iterator();
         while (it.hasNext()) {
@@ -318,7 +318,7 @@ public class CelHibernateStoreCollectionPart {
           && context.getWiki().hasCustomMappings()) {
         handledProps = bclass.getCustomMappingPropertyList(context);
         Session dynamicSession = session.getSession(EntityMode.MAP);
-        Object map = dynamicSession.get(bclass.getName(), new Integer(object.getId()));
+        Object map = dynamicSession.get(bclass.getName(), new Long(object.getId()));
         if (map != null) {
           if (evict) {
             dynamicSession.evict(map);
@@ -350,7 +350,7 @@ public class CelHibernateStoreCollectionPart {
         if (object instanceof BaseObject) {
           cobject.setGuid(((BaseObject) object).getGuid());
         }
-        cobject.setId(object.getId());
+        cobject.setId(object.getId(), object.getIdVersion());
         if (evict) {
           session.evict(cobject);
         }
