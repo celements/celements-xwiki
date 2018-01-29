@@ -24,7 +24,6 @@ package com.xpn.xwiki.objects;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
-import java.util.Optional;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
