@@ -14,8 +14,8 @@ public final class StaticListField extends StringListField {
       super(classDefName, name);
     }
 
-    // override needed for backwards compatibility with older version to avoid NoSuchMethodError:
-    // com.celements.model.classes.fields.list.StaticListField$Builder.values(Ljava/util/List;)
+    // XXX can be removed once all projects include the celements-model dependency, but for now
+    // override needed for backwards compatibility with older version to avoid NoSuchMethodError
     @Override
     public Builder values(List<String> values) {
       return super.values(values);
