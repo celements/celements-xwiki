@@ -33,6 +33,27 @@ public abstract class ListField<T> extends AbstractListField<List<T>, T> {
       return getThis();
     }
 
+    // XXX can be removed once all projects include the celements-model 1.2+, but for now
+    // override needed for backwards compatibility with older version to avoid NoSuchMethodError
+    @Override
+    public B size(@Nullable Integer val) {
+      return super.size(val);
+    }
+
+    // XXX can be removed once all projects include the celements-model 1.2+, but for now
+    // override needed for backwards compatibility with older version to avoid NoSuchMethodError
+    @Override
+    public B displayType(@Nullable String val) {
+      return super.displayType(val);
+    }
+
+    // XXX can be removed once all projects include the celements-model 1.2+, but for now
+    // override needed for backwards compatibility with older version to avoid NoSuchMethodError
+    @Override
+    public B picker(@Nullable Boolean val) {
+      return super.picker(val);
+    }
+
     public B separator(@Nullable String val) {
       separator = val;
       return getThis();
