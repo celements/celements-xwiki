@@ -203,7 +203,7 @@ public class CelHibernateStoreCollectionPart {
             while (iter.hasNext()) {
               String prop = iter.next();
               if (map.get(prop) == null) {
-                handledProps.remove(prop);
+                iter.remove();
               }
             }
             logCustomMappingLoadOutcome(object, handledProps, map);
