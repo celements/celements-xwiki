@@ -777,4 +777,16 @@
       <generator class="assigned" />
     </id>
   </class>
+  <class entity-name="Test.MultiSelectClass" table="cel_test_multiselect">
+    <id name="id" type="integer" unsaved-value="undefined">
+      <column name="CTMS_ID" not-null="true" />
+      <generator class="assigned" />
+    </id>
+    <property name="mystring" type="string">
+      <column name="CTMS_STRING" />
+    </property>
+    <property name="mylist" type="string">
+      <column name="CTMS_LIST" />
+    </property>
+  </class>
 </hibernate-mapping>
