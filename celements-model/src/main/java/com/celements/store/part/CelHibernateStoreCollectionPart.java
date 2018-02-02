@@ -208,7 +208,7 @@ public class CelHibernateStoreCollectionPart {
             logCustomMappingLoadOutcome(object, handledProps, map);
           }
         } catch (Exception exc) {
-          LOGGER.warn("Failed loading custom mapping for doc [{}], class [{}], nb [{}]",
+          LOGGER.error("Failed loading custom mapping for doc [{}], class [{}], nb [{}]",
               object.getDocumentReference(), object.getXClassReference(), object.getNumber(), exc);
         }
 
