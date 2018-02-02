@@ -199,8 +199,9 @@ public class CelHibernateStoreCollectionPart {
             // Let's make sure to look for null fields in the dynamic mapping
             bclass.fromValueMap(map, object);
             handledProps = bclass.getCustomMappingPropertyList(context);
-            for (Object element : handledProps) {
-              String prop = (String) element;
+            Iterator<String> iter = handledProps.iterator();
+            while (iter.hasNext()) {
+              String prop = iter.next();
               if (map.get(prop) == null) {
                 handledProps.remove(prop);
               }
@@ -284,7 +285,9 @@ public class CelHibernateStoreCollectionPart {
       if (bTransaction) {
         store.endTransaction(context, false, false);
       }
-    } catch (Exception e) {
+    } catch (
+
+    Exception e) {
       Object[] args = { object.getName(), object.getClass(), Integer.valueOf(object.getNumber()
           + "") };
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
