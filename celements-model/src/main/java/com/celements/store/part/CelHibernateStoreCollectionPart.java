@@ -205,8 +205,11 @@ public class CelHibernateStoreCollectionPart {
                 handledProps.remove(prop);
               }
             }
+            logCustomMappingLoadOutcome(object, handledProps, map);
           }
-        } catch (Exception e) {
+        } catch (Exception exc) {
+          LOGGER.warn("Failed loading custom mapping for doc [{}], class [{}], nb [{}]",
+              object.getDocumentReference(), object.getXClassReference(), object.getNumber(), exc);
         }
 
         // Load strings, integers, dates all at once
@@ -297,6 +300,27 @@ public class CelHibernateStoreCollectionPart {
       }
     }
 
+  }
+
+  /**
+   * logs the outcome of the custom mapping load in detail. useful for debugging, e.g.
+   * [CELDEV-630] - ListField multiselect for mapped classes
+   */
+  private void logCustomMappingLoadOutcome(BaseCollection object, List<String> handledProps,
+      Map<String, ?> map) {
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("logCustomMappingLoadOutcome - for doc [{}], class [{}], nb [{}]", map,
+          object.getDocumentReference(), object.getXClassReference(), object.getNumber());
+      LOGGER.debug("logCustomMappingLoadOutcome - handled properties: {}", handledProps);
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("logCustomMappingLoadOutcome - custom mapping: {}", map);
+        for (Object obj : object.getFieldList()) {
+          BaseProperty prop = (BaseProperty) obj;
+          LOGGER.trace("logCustomMappingLoadOutcome - added [{}] property [{}] with value: {}",
+              prop.getClassType(), prop.getName(), prop.getValue());
+        }
+      }
+    }
   }
 
   public void deleteXWikiCollection(BaseCollection object, XWikiContext context,
