@@ -14,7 +14,7 @@ import com.celements.model.classes.fields.list.StaticListField;
 
 @Singleton
 @Component(TestMultiSelectClass.CLASS_DEF_HINT)
-public class TestMultiSelectClass extends AbstractClassDefinition {
+public class TestMultiSelectClass extends AbstractClassDefinition implements TestClass {
 
   public static final String CLASS_SPACE = "Test";
   public static final String CLASS_NAME = "MultiSelectClass";
