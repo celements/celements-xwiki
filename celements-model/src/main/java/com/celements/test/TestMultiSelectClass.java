@@ -27,6 +27,12 @@ public class TestMultiSelectClass extends AbstractClassDefinition {
   public static final ClassField<List<String>> FIELD_LIST = new StaticListField.Builder(CLASS_FN,
       "mylist").multiSelect(true).size(5).values(Arrays.asList("A", "B", "C", "D")).build();
 
+  public static final ClassField<String> FIELD_UNMAPPED_1 = new StringField.Builder(CLASS_FN,
+      "unmapped1").build();
+
+  public static final ClassField<String> FIELD_UNMAPPED_2 = new StringField.Builder(CLASS_FN,
+      "unmapped2").build();
+
   @Override
   public String getName() {
     return CLASS_FN;
