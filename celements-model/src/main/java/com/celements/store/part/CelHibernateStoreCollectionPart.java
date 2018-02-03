@@ -1,6 +1,7 @@
 package com.celements.store.part;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -191,11 +192,12 @@ public class CelHibernateStoreCollectionPart {
         }
 
         List<String> handledProps = new ArrayList<>();
-        try {
-          if ((bclass != null) && (bclass.hasCustomMapping())
-              && context.getWiki().hasCustomMappings()) {
+        if ((bclass != null) && (bclass.hasCustomMapping())
+            && context.getWiki().hasCustomMappings()) {
+          Map<String, ?> map = Collections.emptyMap();
+          try {
             Session dynamicSession = session.getSession(EntityMode.MAP);
-            Map<String, ?> map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Integer(
+            map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Integer(
                 object.getId()));
             // Let's make sure to look for null fields in the dynamic mapping
             bclass.fromValueMap(map, object);
@@ -207,11 +209,12 @@ public class CelHibernateStoreCollectionPart {
                 iter.remove();
               }
             }
-            logCustomMappingLoadOutcome(object, handledProps, map);
+          } catch (Exception exc) {
+            LOGGER.error("Failed loading custom mapping for doc [{}], class [{}], nb [{}]",
+                object.getDocumentReference(), object.getXClassReference(), object.getNumber(),
+                exc);
           }
-        } catch (Exception exc) {
-          LOGGER.error("Failed loading custom mapping for doc [{}], class [{}], nb [{}]",
-              object.getDocumentReference(), object.getXClassReference(), object.getNumber(), exc);
+          logCustomMappingLoadOutcome(object, handledProps, map);
         }
 
         // Load strings, integers, dates all at once
