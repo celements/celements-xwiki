@@ -1,6 +1,7 @@
 package com.celements.store.part;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -312,11 +313,11 @@ public class CelHibernateStoreCollectionPart {
   private void logCustomMappingLoadOutcome(BaseCollection object, List<String> handledProps,
       Map<String, ?> map) {
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("logCustomMappingLoadOutcome - for doc [{}], class [{}], nb [{}]", map,
+      LOGGER.debug("logCustomMappingLoadOutcome - for doc [{}], class [{}], nb [{}]",
           object.getDocumentReference(), object.getXClassReference(), object.getNumber());
       LOGGER.debug("logCustomMappingLoadOutcome - handled properties: {}", handledProps);
       if (LOGGER.isTraceEnabled()) {
-        LOGGER.trace("logCustomMappingLoadOutcome - custom mapping: {}", map);
+        LOGGER.trace("logCustomMappingLoadOutcome - custom mapping: {}", new HashMap<>(map));
         for (Object obj : object.getFieldList()) {
           BaseProperty prop = (BaseProperty) obj;
           LOGGER.trace("logCustomMappingLoadOutcome - added [{}] property [{}] with value: {}",
