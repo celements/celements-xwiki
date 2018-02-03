@@ -286,9 +286,7 @@ public class CelHibernateStoreCollectionPart {
       if (bTransaction) {
         store.endTransaction(context, false, false);
       }
-    } catch (
-
-    Exception e) {
+    } catch (Exception e) {
       Object[] args = { object.getName(), object.getClass(), Integer.valueOf(object.getNumber()
           + "") };
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
