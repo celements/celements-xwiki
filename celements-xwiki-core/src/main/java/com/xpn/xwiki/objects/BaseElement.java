@@ -71,9 +71,20 @@ public abstract class BaseElement implements ElementInterface, Serializable
     private EntityReferenceSerializer<String> localEntityReferenceSerializer =
         Utils.getComponent(EntityReferenceSerializer.class, "local");
 
-    // TODO remove idVersion init in [CELDEV-618] - BaseCollection get/setId as long
-    private IdVersion idVersion = IdVersion.XWIKI_2;
-    
+    private long id;
+
+    private IdVersion idVersion;
+
+    public long getId() {
+      return id;
+    }
+
+    public void setId(long id, IdVersion idVersion) {
+      this.id = id;
+      this.idVersion = idVersion;
+      verifyIdVersion();
+    }
+
     public boolean hasValidId() {
       return idVersion != null;
     }
@@ -82,7 +93,7 @@ public abstract class BaseElement implements ElementInterface, Serializable
       verifyIdVersion();
       return idVersion;
     }
-    
+
     private void verifyIdVersion() {
       if (!hasValidId()) {
         throw new IllegalStateException("no id version set");

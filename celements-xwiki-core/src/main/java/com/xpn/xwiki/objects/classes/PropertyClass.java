@@ -33,6 +33,7 @@ import org.xwiki.velocity.VelocityManager;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.objects.BaseCollection;
+import com.xpn.xwiki.objects.BaseElement;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
@@ -53,8 +54,6 @@ public class PropertyClass extends BaseCollection implements PropertyClassInterf
     Comparable<PropertyClass>
 {
     private BaseClass object;
-
-    private int id;
 
     private PropertyMetaClass pMetaClass;
 
@@ -105,18 +104,9 @@ public class PropertyClass extends BaseCollection implements PropertyClassInterf
     }
 
     @Override
-    public int getId()
-    {
-        if (getObject() == null) {
-            return this.id;
-        }
-        return getObject().getId();
-    }
-
-    @Override
-    public void setId(int id)
-    {
-        this.id = id;
+    public long getId() {
+      BaseElement element = getObject() != null ? getObject() : this;
+      return element.getId();
     }
 
     public String toString(BaseProperty property)

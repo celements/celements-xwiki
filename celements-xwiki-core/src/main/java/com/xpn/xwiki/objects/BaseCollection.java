@@ -126,11 +126,6 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
     private DocumentReferenceResolver<EntityReference> currentReferenceDocumentReferenceResolver =
         Utils.getComponent(DocumentReferenceResolver.class, "current/reference");
 
-    public int getId()
-    {
-        return hashCode();
-    }
-
     /**
      * {@inheritDoc}
      * 
@@ -140,10 +135,6 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
     public int hashCode()
     {
         return (getName() + getClassName()).hashCode();
-    }
-
-    public void setId(int id)
-    {
     }
 
     public int getNumber()

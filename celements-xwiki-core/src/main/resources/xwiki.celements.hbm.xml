@@ -215,7 +215,7 @@
   </class>
   <class name="com.xpn.xwiki.objects.classes.PropertyClass" table="xwikiclassesprop">
     <composite-id unsaved-value="undefined">
-      <key-property name="id" column="XWP_ID" type="integer" />
+      <key-property name="id" access="field" column="XWP_ID" type="long" />
       <key-property name="name" column="XWP_NAME" type="string" />
     </composite-id>
     <property name="prettyName" type="string">
@@ -346,7 +346,7 @@
     </joined-subclass>
   </class>
   <class name="com.xpn.xwiki.objects.classes.BaseClass" table="xwikiclasses">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWO_ID" not-null="true" />
       <generator class="assigned" />
     </id>
@@ -365,7 +365,7 @@
   </class>
   <class name="com.xpn.xwiki.objects.BaseProperty" table="xwikiproperties">
     <composite-id unsaved-value="undefined">
-      <key-property name="id" column="XWP_ID" type="integer" />
+      <key-property name="id" access="field" column="XWP_ID" type="long" />
       <key-property name="name" column="XWP_NAME" type="string" />
     </composite-id>
     <property name="classType" type="string">
@@ -459,7 +459,7 @@
     </joined-subclass>
   </class>
   <class name="com.xpn.xwiki.objects.BaseObject" table="xwikiobjects">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWO_ID" not-null="true" />
       <generator class="assigned" />
     </id>
@@ -484,7 +484,7 @@
     </property>
   </class>
   <class name="com.xpn.xwiki.stats.impl.DocumentStats" table="xwikistatsdoc">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWS_ID" not-null="true" />
       <generator class="assigned" />
     </id>
@@ -514,7 +514,7 @@
     </property>
   </class>
   <class name="com.xpn.xwiki.stats.impl.RefererStats" table="xwikistatsreferer">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWR_ID" not-null="true" />
       <generator class="assigned" />
     </id>
@@ -538,7 +538,7 @@
     </property>
   </class>
   <class name="com.xpn.xwiki.stats.impl.VisitStats" table="xwikistatsvisit">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWV_ID" not-null="true" />
       <generator class="assigned" />
     </id>

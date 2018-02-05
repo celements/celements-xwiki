@@ -274,7 +274,7 @@ public class CelHibernateStoreDocumentPart {
             newobject = BaseClass.newCustomClassInstance(classReference, context);
           }
           if (newobject != null) {
-            newobject.setId(object.getId());
+            newobject.setId(object.getId(), object.getIdVersion());
             newobject.setClassName(object.getClassName());
             newobject.setDocumentReference(object.getDocumentReference());
             newobject.setNumber(object.getNumber());

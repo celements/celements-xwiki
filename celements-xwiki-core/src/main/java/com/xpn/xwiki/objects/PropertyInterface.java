@@ -24,8 +24,7 @@ package com.xpn.xwiki.objects;
 import org.dom4j.Element;
 
 public interface PropertyInterface extends ElementInterface {
-    public int getId();
-    public void setId(int id);
+    public long getId();
     public BaseCollection getObject();
     public void setObject(BaseCollection object);
     public String toFormString();
