@@ -6,17 +6,21 @@ import static com.google.common.base.Verify.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.DocumentReference;
 
+import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.util.ModelUtils;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.base.VerifyException;
 import com.google.common.primitives.Longs;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
 
 @Component(UniqueHashIdComputer.NAME)
 public class UniqueHashIdComputer implements CelementsIdComputer {
@@ -29,6 +33,11 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   @Requirement
   private ModelUtils modelUtils;
+
+  @Override
+  public IdVersion getIdVersion() {
+    return IdVersion.CELEMENTS_3;
+  }
 
   @Override
   public long computeDocumentId(DocumentReference docRef, String lang)
@@ -46,6 +55,27 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   @Override
   public long computeDocumentId(XWikiDocument doc) throws IdComputationException {
     return computeId(doc, 0);
+  }
+
+  @Override
+  public long computeNextObjectId(XWikiDocument doc) throws IdComputationException {
+    Set<Long> existingObjIds = collectVersionedObjectIds(doc);
+    long nextObjectId;
+    int objectCount = 1;
+    do {
+      nextObjectId = computeId(doc, objectCount++);
+    } while (existingObjIds.contains(nextObjectId));
+    return nextObjectId;
+  }
+
+  private Set<Long> collectVersionedObjectIds(XWikiDocument doc) {
+    Set<Long> ids = new HashSet<>();
+    for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter()) {
+      if (obj.hasValidId() && (obj.getIdVersion() == getIdVersion())) {
+        ids.add(obj.getId());
+      }
+    }
+    return ids;
   }
 
   private long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {
