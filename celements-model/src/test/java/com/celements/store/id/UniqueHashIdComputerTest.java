@@ -139,7 +139,6 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
 
   @Test
   public void test_computeDocumentId() throws Exception {
-    System.out.println(Long.toHexString(idComputer.computeDocumentId(docRef, "")));
     assertEquals(0x30da7f3f8545d000L, idComputer.computeDocumentId(docRef, lang));
     assertEquals(0xb0da7f3f8545d000L, idComputer.computeDocumentId(docRef, lang, (byte) 0b10));
   }
@@ -191,10 +190,10 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     XWikiDocument doc = new XWikiDocument(docRef);
     doc.setLanguage(lang);
     long docId = 0x30da7f3f8545d000L;
-    assertEquals(docId + 1, addObj(doc).getId());
-    assertEquals(docId + 2, addObj(doc).getId());
-    assertEquals(docId + 3, addObj(doc).getId());
-    assertEquals(docId + 4, addObj(doc).getId());
+    assertEquals(docId + 1, addObjWithComputedId(doc).getId());
+    assertEquals(docId + 2, addObjWithComputedId(doc).getId());
+    assertEquals(docId + 3, addObjWithComputedId(doc).getId());
+    assertEquals(docId + 4, addObjWithComputedId(doc).getId());
   }
 
   @Test
@@ -203,12 +202,12 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     doc.setLanguage(lang);
     long docId = 0x30da7f3f8545d000L;
     BaseObject removeObj;
-    assertEquals(docId + 1, addObj(doc).getId());
-    assertEquals(docId + 2, (removeObj = addObj(doc)).getId());
-    assertEquals(docId + 3, addObj(doc).getId());
+    assertEquals(docId + 1, addObjWithComputedId(doc).getId());
+    assertEquals(docId + 2, (removeObj = addObjWithComputedId(doc)).getId());
+    assertEquals(docId + 3, addObjWithComputedId(doc).getId());
     doc.removeXObject(removeObj);
-    assertEquals(docId + 2, addObj(doc).getId());
-    assertEquals(docId + 4, addObj(doc).getId());
+    assertEquals(docId + 2, addObjWithComputedId(doc).getId());
+    assertEquals(docId + 4, addObjWithComputedId(doc).getId());
   }
 
   @Test
@@ -216,21 +215,22 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     XWikiDocument doc = new XWikiDocument(docRef);
     doc.setLanguage(lang);
     long docId = 0x30da7f3f8545d000L;
-    assertEquals(docId + 1, addObj(doc).getId());
-    assertEquals(docId + 2, addObj(doc, IdVersion.XWIKI_2).getId());
-    assertEquals(docId + 2, addObj(doc).getId());
-    assertEquals(docId + 3, addObj(doc).getId());
+    assertEquals(1, addObj(doc, 1, IdVersion.XWIKI_2).getId());
+    assertEquals(docId + 1, addObjWithComputedId(doc).getId());
+    assertEquals(2, addObj(doc, 2, IdVersion.XWIKI_2).getId());
+    assertEquals(docId + 2, addObjWithComputedId(doc).getId());
   }
 
-  private BaseObject addObj(XWikiDocument doc) throws IdComputationException {
-    return addObj(doc, idComputer.getIdVersion());
+  private BaseObject addObjWithComputedId(XWikiDocument doc) throws IdComputationException {
+    return addObj(doc, idComputer.computeNextObjectId(doc), idComputer.getIdVersion());
   }
 
-  private BaseObject addObj(XWikiDocument doc, IdVersion idVersion) throws IdComputationException {
+  private BaseObject addObj(XWikiDocument doc, long id, IdVersion idVersion)
+      throws IdComputationException {
     BaseObject obj = new BaseObject();
     obj.setXClassReference(docRef);
     doc.addXObject(obj);
-    obj.setId(idComputer.computeNextObjectId(doc), idVersion);
+    obj.setId(id, idVersion);
     return obj;
   }
 

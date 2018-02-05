@@ -59,18 +59,23 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   @Override
   public long computeNextObjectId(XWikiDocument doc) throws IdComputationException {
-    Set<Long> existingObjIds = new HashSet<>();
-    for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter()) {
-      if (obj.hasValidId() && (obj.getIdVersion() == getIdVersion())) {
-        existingObjIds.add(obj.getId());
-      }
-    }
+    Set<Long> existingObjIds = collectVersionedObjectIds(doc);
     long nextObjectId;
     int objectCount = 1;
     do {
       nextObjectId = computeId(doc, objectCount++);
     } while (existingObjIds.contains(nextObjectId));
     return nextObjectId;
+  }
+
+  private Set<Long> collectVersionedObjectIds(XWikiDocument doc) {
+    Set<Long> ids = new HashSet<>();
+    for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter()) {
+      if (obj.hasValidId() && (obj.getIdVersion() == getIdVersion())) {
+        ids.add(obj.getId());
+      }
+    }
+    return ids;
   }
 
   private long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {
