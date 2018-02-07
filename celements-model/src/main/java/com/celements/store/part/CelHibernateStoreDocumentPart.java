@@ -152,6 +152,10 @@ public class CelHibernateStoreDocumentPart {
               if (StringUtils.isEmpty(obj.getGuid())) {
                 obj.setGuid(UUID.randomUUID().toString());
               }
+              if (!obj.hasValidId()) {
+                long nextId = store.getIdComputer().computeNextObjectId(doc);
+                obj.setId(nextId, store.getIdComputer().getIdVersion());
+              }
               store.saveXWikiCollection(obj, context, false);
             }
           }
