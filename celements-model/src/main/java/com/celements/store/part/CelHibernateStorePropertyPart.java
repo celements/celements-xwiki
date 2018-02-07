@@ -52,7 +52,7 @@ public class CelHibernateStorePropertyPart {
         // Let's accept that there is no data in property tables
         // but log it
         LOGGER.error("No data for property " + property.getName() + " of object id "
-            + property.getId());
+            + property.getId(), e);
       }
 
       // TODO: understand why collections are lazy loaded
