@@ -16,13 +16,13 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.store.migration.XWikiDBVersion;
 
-@Component(BaseCollectionIdToLongMigration.NAME)
-public class BaseCollectionIdToLongMigration extends AbstractCelementsHibernateMigrator {
+@Component(BaseCollectionIdMigration.NAME)
+public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(
-      BaseCollectionIdToLongMigration.class);
+      BaseCollectionIdMigration.class);
 
-  public static final String NAME = "BaseCollectionIdToLongMigration";
+  public static final String NAME = "BaseCollectionIdMigration";
 
   private static final Map<String, String> TABLE_COL_MAP;
 

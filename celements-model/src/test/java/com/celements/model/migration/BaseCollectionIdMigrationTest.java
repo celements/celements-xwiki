@@ -13,16 +13,16 @@ import com.celements.query.IQueryExecutionServiceRole;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.web.Utils;
 
-public class BaseCollectionIdToLongMigrationTest extends AbstractComponentTest {
+public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
 
-  private BaseCollectionIdToLongMigration migration;
+  private BaseCollectionIdMigration migration;
   private IQueryExecutionServiceRole queryExecMock;
 
   @Before
   public void prepareTest() throws Exception {
     queryExecMock = registerComponentMock(IQueryExecutionServiceRole.class);
-    migration = (BaseCollectionIdToLongMigration) Utils.getComponent(ICelementsMigrator.class,
-        BaseCollectionIdToLongMigration.NAME);
+    migration = (BaseCollectionIdMigration) Utils.getComponent(ICelementsMigrator.class,
+        BaseCollectionIdMigration.NAME);
 
   }
 
