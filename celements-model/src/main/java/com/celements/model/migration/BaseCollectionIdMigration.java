@@ -19,8 +19,7 @@ import com.xpn.xwiki.store.migration.XWikiDBVersion;
 @Component(BaseCollectionIdMigration.NAME)
 public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      BaseCollectionIdMigration.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(BaseCollectionIdMigration.class);
 
   public static final String NAME = "BaseCollectionIdMigration";
 

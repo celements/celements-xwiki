@@ -23,7 +23,6 @@ public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
     queryExecMock = registerComponentMock(IQueryExecutionServiceRole.class);
     migration = (BaseCollectionIdMigration) Utils.getComponent(ICelementsMigrator.class,
         BaseCollectionIdMigration.NAME);
-
   }
 
   @Test
