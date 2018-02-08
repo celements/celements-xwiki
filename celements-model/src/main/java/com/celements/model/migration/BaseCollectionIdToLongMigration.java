@@ -53,11 +53,11 @@ public class BaseCollectionIdToLongMigration extends AbstractCelementsHibernateM
 
   /**
    * getVersion is using days since 1.1.2010 until the day of committing this migration
-   * 07.02.2018 -> 2959 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
+   * 08.02.2018 -> 2960 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
    */
   @Override
   public XWikiDBVersion getVersion() {
-    return new XWikiDBVersion(2959);
+    return new XWikiDBVersion(2960);
   }
 
   @Override
@@ -65,10 +65,13 @@ public class BaseCollectionIdToLongMigration extends AbstractCelementsHibernateM
       throws XWikiException {
     for (String table : TABLE_COL_MAP.keySet()) {
       String column = TABLE_COL_MAP.get(table);
-      String sql = "alter table " + table + " modify column " + column + " bigint not null";
-      int resultCount = queryExecutor.executeWriteSQL(sql);
+      int resultCount = queryExecutor.executeWriteSQL(createAlterSql(table, column));
       LOGGER.info("altered table {} with {} entries to bigint", table, resultCount);
     }
+  }
+
+  String createAlterSql(String table, String column) {
+    return "alter table " + table + " modify column " + column + " bigint not null";
   }
 
 }
