@@ -132,7 +132,7 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
   }
 
   public static void expectLoadProperties(Session sessionMock, final List<BaseObject> objList,
-      final Map<Integer, List<String[]>> propertiesMap) {
+      final Map<Long, List<String[]>> propertiesMap) {
     String hql = "select prop.name, prop.classType from BaseProperty as prop where prop.id.id = :id";
     Query queryProp = new TestHibernateQuery<String[]>(hql) {
 
