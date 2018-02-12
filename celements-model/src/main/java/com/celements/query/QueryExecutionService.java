@@ -4,6 +4,7 @@ import static com.google.common.base.MoreObjects.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +38,39 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
 
   @Requirement
   private ModelContext context;
+
+  @Override
+  public <T> List<List<T>> executeReadSql(Class<T> type, String sql) throws XWikiException {
+    Session session = null;
+    try {
+      session = getNewHibSession();
+      Iterator<?> queryIter = session.createSQLQuery(sql).iterate();
+      return parseToResultList(type, queryIter);
+    } catch (HibernateException hibExc) {
+      throw new XWikiException(0, 0, "error while executing sql", hibExc);
+    } finally {
+      if (session != null) {
+        session.close();
+      }
+    }
+  }
+
+  private <T> List<List<T>> parseToResultList(Class<T> type, Iterator<?> queryIter) {
+    List<List<T>> results = new ArrayList<>();
+    while (queryIter.hasNext()) {
+      List<T> resultRow = new ArrayList<>();
+      Object elem = queryIter.next();
+      if (type.isAssignableFrom(elem.getClass())) { // one column selected
+        resultRow.add(type.cast(elem));
+      } else if (elem.getClass().isArray()) { // multiple columns selected
+        for (Object col : ((Object[]) elem)) {
+          resultRow.add(type.cast(col));
+        }
+      }
+      results.add(resultRow);
+    }
+    return results;
+  }
 
   @Override
   public int executeWriteSQL(String sql) throws XWikiException {
