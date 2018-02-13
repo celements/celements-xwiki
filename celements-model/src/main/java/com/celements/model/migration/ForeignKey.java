@@ -36,13 +36,13 @@ class ForeignKey {
     return this;
   }
 
-  public String getAddForeignKeySql() {
+  public String getAddSql() {
     return "alter table " + table + " add constraint " + name + " foreign key (" + Joiner.on(
         ',').join(columns) + ")" + " references " + referencedTable + " (" + Joiner.on(',').join(
             referencedColumns) + ")";
   }
 
-  public String getDropForeignKeySql() {
+  public String getDropSql() {
     return "alter table " + table + " drop foreign key " + name;
   }
 

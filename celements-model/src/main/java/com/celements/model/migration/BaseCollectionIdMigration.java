@@ -105,7 +105,7 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
     for (ForeignKey fk : foreignKeys) {
       try {
         LOGGER.debug("adding {}", fk);
-        queryExecutor.executeWriteSQL(fk.getAddForeignKeySql());
+        queryExecutor.executeWriteSQL(fk.getAddSql());
       } catch (XWikiException xwe) {
         LOGGER.error("failed to add {}", fk, xwe);
       }
@@ -116,7 +116,7 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
       throws XWikiException {
     for (ForeignKey fk : loadForeignKeys(table)) {
       LOGGER.debug("dropping {}", fk);
-      queryExecutor.executeWriteSQL(fk.getDropForeignKeySql());
+      queryExecutor.executeWriteSQL(fk.getDropSql());
       droppedForeignKeys.add(fk);
     }
   }
