@@ -196,6 +196,7 @@ public class CelHibernateStoreDocumentPart {
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
+    LOGGER.debug("loadXWikiDoc - start: {}", doc.getDocumentReference());
     // To change body of implemented methods use Options | File Templates.
     boolean bTransaction = true;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
@@ -345,8 +346,7 @@ public class CelHibernateStoreDocumentPart {
       }
     }
 
-    LOGGER.debug("Loaded XWikiDocument: " + doc.getDocumentReference());
-
+    LOGGER.debug("loadXWikiDoc - end: {}", doc.getDocumentReference());
     return doc;
   }
 

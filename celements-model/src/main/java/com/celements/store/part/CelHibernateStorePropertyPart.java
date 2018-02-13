@@ -30,6 +30,7 @@ public class CelHibernateStorePropertyPart {
 
   public void loadXWikiProperty(PropertyInterface property, XWikiContext context,
       boolean bTransaction) throws XWikiException {
+    LOGGER.debug("loadXWikiProperty - start: {} {}", property.getId(), property.getName());
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -81,6 +82,7 @@ public class CelHibernateStorePropertyPart {
       } catch (Exception e) {
       }
     }
+    LOGGER.debug("loadXWikiProperty - end: {} {}", property.getId(), property.getName());
   }
 
   public void saveXWikiProperty(final PropertyInterface property, final XWikiContext context,

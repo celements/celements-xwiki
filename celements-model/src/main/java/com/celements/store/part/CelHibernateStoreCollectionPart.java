@@ -154,6 +154,8 @@ public class CelHibernateStoreCollectionPart {
 
   public void loadXWikiCollection(BaseCollection object1, XWikiDocument doc, XWikiContext context,
       boolean bTransaction, boolean alreadyLoaded) throws XWikiException {
+    LOGGER.debug("loadXWikiCollection - start: {} {}_{}", object1.getId(), object1.getClassName(),
+        object1.getNumber());
     BaseCollection object = object1;
     try {
       if (bTransaction) {
@@ -296,7 +298,8 @@ public class CelHibernateStoreCollectionPart {
       } catch (Exception e) {
       }
     }
-
+    LOGGER.debug("loadXWikiCollection - end: {} {}_{}", object1.getId(), object1.getClassName(),
+        object1.getNumber());
   }
 
   public void deleteXWikiCollection(BaseCollection object, XWikiContext context,
