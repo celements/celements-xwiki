@@ -81,11 +81,11 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
     try {
       dropReferencingForeignKeys(table, droppedForeignKeys);
       LOGGER.info("dropped {} FK for [{}]", droppedForeignKeys.size(), table);
-      int count = queryExecutor.executeWriteSQL(getModifyIdColumnSql(table));
-      LOGGER.info("updated [{}] id for {} rows", table, count);
       for (ForeignKey fk : droppedForeignKeys) {
         migrateTable(fk.getTable());
       }
+      int count = queryExecutor.executeWriteSQL(getModifyIdColumnSql(table));
+      LOGGER.info("updated [{}] id for {} rows", table, count);
     } finally {
       LOGGER.info("readd {} dropped FK for [{}]", droppedForeignKeys.size(), table);
       addForeignKeys(droppedForeignKeys);

@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.celements.common.test.AbstractComponentTest;
+import com.celements.common.test.ExceptionAsserter;
 import com.celements.migrations.celSubSystem.ICelementsMigrator;
 import com.celements.query.IQueryExecutionServiceRole;
 import com.google.common.collect.ImmutableList;
@@ -61,6 +62,25 @@ public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
     verifyDefault();
   }
 
+  @Test
+  public void test_migrate_fail() throws Exception {
+    expect(getWikiMock().Param("xwiki.db.prefix", "")).andReturn(PREFIX).anyTimes();
+    expectModify("xwikiclasses");
+    expectModify("xwikiclassesprop");
+    expectModify("xwikiobjects");
+    expectModifyFkPropertiesFail();
+    replayDefault();
+    new ExceptionAsserter<XWikiException>(XWikiException.class) {
+
+      @Override
+      protected void execute() throws Exception {
+        migration.migrate(null, getContext());
+      }
+
+    }.evaluate();
+    verifyDefault();
+  }
+
   private void expectModify(String table) throws XWikiException {
     List<List<String>> fks = new ArrayList<>();
     expect(queryExecMock.executeReadSql(String.class, migration.getLoadForeignKeysSql(table, PREFIX
@@ -86,15 +106,34 @@ public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
         + fkName1)).andReturn(1).once();
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable2 + " drop foreign key "
         + fkName2)).andReturn(1).once();
-    expect(queryExecMock.executeWriteSQL(migration.getModifyIdColumnSql(table))).andReturn(
-        1).once();
     expectModify(fkTable1);
     expectModifyFkLists();
+    expect(queryExecMock.executeWriteSQL(migration.getModifyIdColumnSql(table))).andReturn(
+        1).once();
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " add constraint " + fkName1
         + " foreign key (XWS_ID,XWS_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
             1).once();
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable2 + " add constraint " + fkName2
         + " foreign key (XWL_ID,XWL_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
+            1).once();
+  }
+
+  private void expectModifyFkPropertiesFail() throws XWikiException {
+    String table = "xwikiproperties";
+    String fkTable1 = "xwikistrings";
+    String fkName1 = "FK2780715A3433FD87";
+    Builder<List<String>> fks = ImmutableList.builder();
+    fks.add(Arrays.asList(fkName1, fkTable1, "XWS_ID", "XWP_ID"));
+    fks.add(Arrays.asList(fkName1, fkTable1, "XWS_NAME", "XWP_NAME"));
+    expect(queryExecMock.executeReadSql(String.class, migration.getLoadForeignKeysSql(table, PREFIX
+        + getContext().getDatabase()))).andReturn(fks.build()).once();
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " drop foreign key "
+        + fkName1)).andReturn(1).once();
+    expect(queryExecMock.executeReadSql(String.class, migration.getLoadForeignKeysSql(fkTable1,
+        PREFIX + getContext().getDatabase()))).andThrow(new XWikiException()).once();
+    // FK has to be readded, event after exception occured
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " add constraint " + fkName1
+        + " foreign key (XWS_ID,XWS_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
             1).once();
   }
 
