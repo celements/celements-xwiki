@@ -1,7 +1,5 @@
 package com.celements.model.migration;
 
-import static com.google.common.base.Preconditions.*;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,7 +15,6 @@ import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
 import com.celements.model.context.ModelContext;
 import com.celements.query.IQueryExecutionServiceRole;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -66,7 +63,6 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
   public void migrate(SubSystemHibernateMigrationManager manager, XWikiContext xwikiContext)
       throws XWikiException {
     try {
-      idColumns = loadIdColumnNames();
       for (String table : TABLES) {
         LOGGER.info("migrating id for [{}]", table);
         migrateTable(table);
@@ -74,6 +70,9 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
     } catch (Exception exc) {
       LOGGER.error("Failed to migrate database [{}]", context.getWikiRef(), exc);
       throw exc;
+    } finally {
+      // clear column cache
+      idColumns = ImmutableMap.of();
     }
   }
 
@@ -81,23 +80,36 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
     Collection<ForeignKey> droppedForeignKeys = new HashSet<>();
     try {
       dropReferencingForeignKeys(table, droppedForeignKeys);
-      modifyIdColumn(table);
+      LOGGER.info("dropped {} FK for [{}]", droppedForeignKeys.size(), table);
+      int count = queryExecutor.executeWriteSQL(getModifyIdColumnSql(table));
+      LOGGER.info("updated [{}] id for {} rows", table, count);
       for (ForeignKey fk : droppedForeignKeys) {
         migrateTable(fk.getTable());
       }
     } finally {
-      readdDroppedForeignKeys(droppedForeignKeys);
+      LOGGER.info("readd {} dropped FK for [{}]", droppedForeignKeys.size(), table);
+      addForeignKeys(droppedForeignKeys);
     }
   }
 
-  private void modifyIdColumn(String table) throws XWikiException {
-    int count = queryExecutor.executeWriteSQL(getModifyIdColumnSql(table));
-    LOGGER.debug("updated [{}] id for {} rows", table, count);
+  String getModifyIdColumnSql(String table) throws XWikiException {
+    if (getIdColumns().containsKey(table)) {
+      return "alter table " + table + " modify column " + getIdColumns().get(table)
+          + " bigint not null";
+    } else {
+      throw new XWikiException(0, 0, "no id column for table " + table);
+    }
   }
 
-  String getModifyIdColumnSql(String table) {
-    return "alter table " + table + " modify column " + checkNotNull(Strings.emptyToNull(
-        idColumns.get(table))) + " bigint not null";
+  private void addForeignKeys(Collection<ForeignKey> foreignKeys) {
+    for (ForeignKey fk : foreignKeys) {
+      try {
+        LOGGER.debug("adding {}", fk);
+        queryExecutor.executeWriteSQL(fk.getAddForeignKeySql());
+      } catch (XWikiException xwe) {
+        LOGGER.error("failed to add {}", fk, xwe);
+      }
+    }
   }
 
   private void dropReferencingForeignKeys(String table, Collection<ForeignKey> droppedForeignKeys)
@@ -109,15 +121,33 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
     }
   }
 
-  private void readdDroppedForeignKeys(Collection<ForeignKey> droppedForeignKeys) {
-    for (ForeignKey fk : droppedForeignKeys) {
-      try {
-        LOGGER.debug("adding {}", fk);
-        queryExecutor.executeWriteSQL(fk.getAddForeignKeySql());
-      } catch (XWikiException xwe) {
-        LOGGER.error("failed to readd {}", fk, xwe);
+  private Collection<ForeignKey> loadForeignKeys(String table) throws XWikiException {
+    String sql = getLoadForeignKeysSql(table, getDatabaseWithPrefix());
+    Map<String, ForeignKey> map = new HashMap<>();
+    for (List<String> row : queryExecutor.executeReadSql(String.class, sql)) {
+      String name = row.get(0);
+      ForeignKey fk = map.get(name);
+      if (fk == null) {
+        map.put(name, fk = new ForeignKey(name, row.get(1), table));
       }
+      fk.addColumn(row.get(2), row.get(3));
     }
+    LOGGER.trace("loaded {} FKs", map.size());
+    return map.values();
+  }
+
+  String getLoadForeignKeysSql(String table, String database) {
+    return "select CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_COLUMN_NAME "
+        + "from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_SCHEMA = '" + database
+        + "' and REFERENCED_TABLE_NAME = '" + table
+        + "' order by CONSTRAINT_NAME, ORDINAL_POSITION";
+  }
+
+  private Map<String, String> getIdColumns() throws XWikiException {
+    if (idColumns.isEmpty()) {
+      idColumns = loadIdColumnNames();
+    }
+    return idColumns;
   }
 
   private Map<String, String> loadIdColumnNames() throws XWikiException {
@@ -133,30 +163,6 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
     return "select TABLE_NAME, COLUMN_NAME from INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
         + "where TABLE_SCHEMA = '" + database + "' and CONSTRAINT_NAME = 'PRIMARY' "
         + "and COLUMN_NAME like '%_ID'";
-  }
-
-  private Collection<ForeignKey> loadForeignKeys(String table) throws XWikiException {
-    String sql = getLoadForeignKeysSql(table, getDatabaseWithPrefix());
-    LOGGER.trace("loadForeignKeys - {}", sql);
-    Map<String, ForeignKey> map = new HashMap<>();
-    for (List<String> row : queryExecutor.executeReadSql(String.class, sql)) {
-      LOGGER.trace("loadForeignKeys - row: {}", row);
-      String name = row.get(0);
-      ForeignKey fk = map.get(name);
-      if (fk == null) {
-        map.put(name, fk = new ForeignKey(name, row.get(1), table));
-      }
-      fk.addColumn(row.get(2), row.get(3));
-    }
-    LOGGER.trace("loadForeignKeys - {}", map.values());
-    return map.values();
-  }
-
-  String getLoadForeignKeysSql(String table, String database) {
-    return "select CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_COLUMN_NAME "
-        + "from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_SCHEMA = '" + database
-        + "' and REFERENCED_TABLE_NAME = '" + table
-        + "' order by CONSTRAINT_NAME, ORDINAL_POSITION";
   }
 
   private String getDatabaseWithPrefix() {

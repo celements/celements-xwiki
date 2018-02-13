@@ -26,13 +26,12 @@ public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
   private BaseCollectionIdMigration migration;
   private IQueryExecutionServiceRole queryExecMock;
 
-  private List<List<String>> tableIds;
-
   @Before
   public void prepareTest() throws Exception {
     queryExecMock = registerComponentMock(IQueryExecutionServiceRole.class);
     migration = (BaseCollectionIdMigration) Utils.getComponent(ICelementsMigrator.class,
         BaseCollectionIdMigration.NAME);
+
     Builder<List<String>> builder = ImmutableList.builder();
     builder.add(ImmutableList.of("xwikiclasses", "XWO_ID"));
     builder.add(ImmutableList.of("xwikiclassesprop", "XWP_ID"));
@@ -44,15 +43,12 @@ public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
     builder.add(ImmutableList.of("xwikistrings", "XWS_ID"));
     builder.add(ImmutableList.of("xwikilists", "XWL_ID"));
     builder.add(ImmutableList.of("xwikilistitems", "XWL_ID"));
-    tableIds = builder.build();
-    migration.injectIdColumns(tableIds);
+    migration.injectIdColumns(builder.build());
   }
 
   @Test
   public void test_migrate() throws Exception {
     expect(getWikiMock().Param("xwiki.db.prefix", "")).andReturn(PREFIX).anyTimes();
-    expect(queryExecMock.executeReadSql(String.class, migration.getLoadColumnsSql(PREFIX
-        + getContext().getDatabase()))).andReturn(tableIds).once();
     expectModify("xwikiclasses");
     expectModify("xwikiclassesprop");
     expectModify("xwikiobjects");
