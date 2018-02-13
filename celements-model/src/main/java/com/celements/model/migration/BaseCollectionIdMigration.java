@@ -128,8 +128,10 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
 
   private Collection<ForeignKey> loadForeignKeys(String table) throws XWikiException {
     String sql = getLoadForeignKeysSql(table, context.getWikiRef().getName());
+    LOGGER.trace("loadForeignKeys - {}", sql);
     Map<String, ForeignKey> map = new HashMap<>();
     for (List<String> row : queryExecutor.executeReadSql(String.class, sql)) {
+      LOGGER.trace("loadForeignKeys - row: {}", row);
       String name = row.get(0);
       ForeignKey fk = map.get(name);
       if (fk == null) {
@@ -137,6 +139,7 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
       }
       fk.addColumn(row.get(2), row.get(3));
     }
+    LOGGER.trace("loadForeignKeys - {}", map.values());
     return map.values();
   }
 
