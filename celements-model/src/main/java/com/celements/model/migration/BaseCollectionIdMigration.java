@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import org.xwiki.component.annotation.Requirement;
 
 import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
+import com.celements.model.context.ModelContext;
 import com.celements.query.IQueryExecutionServiceRole;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -52,6 +54,9 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
   @Requirement
   private IQueryExecutionServiceRole queryExecutor;
 
+  @Requirement
+  private ModelContext context;
+
   @Override
   public String getName() {
     return NAME;
@@ -72,30 +77,27 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
   }
 
   @Override
-  public void migrate(SubSystemHibernateMigrationManager manager, XWikiContext context)
+  public void migrate(SubSystemHibernateMigrationManager manager, XWikiContext xwikiContext)
       throws XWikiException {
     try {
       for (String table : TABLES) {
         LOGGER.info("migrating id for [{}]", table);
-        migrateTable(table, context);
+        migrateTable(table);
       }
     } catch (Exception exc) {
-      LOGGER.error("Failed to migrate database [{}]", context.getDatabase(), exc);
+      LOGGER.error("Failed to migrate database [{}]", context.getWikiRef(), exc);
       throw exc;
     }
   }
 
-  private void migrateTable(String table, XWikiContext context) throws XWikiException {
-    Collection<ForeignKey> foreignKeys = loadForeignKeys(table, context.getDatabase());
-    for (ForeignKey fk : foreignKeys) {
-      LOGGER.debug("adding {}", fk);
-      queryExecutor.executeWriteSQL(fk.getDropForeignKeySql());
-    }
-    int count = queryExecutor.executeWriteSQL(getModifyIdSql(table));
-    LOGGER.debug("updated [{}] id for {} rows", table, count);
-    for (ForeignKey fk : foreignKeys) {
-      LOGGER.debug("dropping {}", fk);
-      queryExecutor.executeWriteSQL(fk.getAddForeignKeySql());
+  private void migrateTable(String table) throws XWikiException {
+    Collection<ForeignKey> droppedForeignKeys = new HashSet<>();
+    try {
+      dropReferencingForeignKeys(table, droppedForeignKeys);
+      int count = queryExecutor.executeWriteSQL(getModifyIdSql(table));
+      LOGGER.debug("updated [{}] id for {} rows", table, count);
+    } finally {
+      readdDroppedForeignKeys(droppedForeignKeys);
     }
   }
 
@@ -104,9 +106,28 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
         + " bigint not null";
   }
 
-  private Collection<ForeignKey> loadForeignKeys(String table, String database)
+  private void dropReferencingForeignKeys(String table, Collection<ForeignKey> droppedForeignKeys)
       throws XWikiException {
-    String sql = getLoadForeignKeysSql(table, database);
+    for (ForeignKey fk : loadForeignKeys(table)) {
+      LOGGER.debug("dropping {}", fk);
+      queryExecutor.executeWriteSQL(fk.getDropForeignKeySql());
+      droppedForeignKeys.add(fk);
+    }
+  }
+
+  private void readdDroppedForeignKeys(Collection<ForeignKey> droppedForeignKeys) {
+    for (ForeignKey fk : droppedForeignKeys) {
+      try {
+        LOGGER.debug("adding {}", fk);
+        queryExecutor.executeWriteSQL(fk.getAddForeignKeySql());
+      } catch (XWikiException xwe) {
+        LOGGER.error("failed to readd {}", fk, xwe);
+      }
+    }
+  }
+
+  private Collection<ForeignKey> loadForeignKeys(String table) throws XWikiException {
+    String sql = getLoadForeignKeysSql(table, context.getWikiRef().getName());
     Map<String, ForeignKey> map = new HashMap<>();
     for (List<String> row : queryExecutor.executeReadSql(String.class, sql)) {
       String name = row.get(0);
@@ -158,6 +179,11 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
 
     private String validate(String str) {
       return checkNotNull(Strings.emptyToNull(str));
+    }
+
+    @Override
+    public int hashCode() {
+      return name.hashCode();
     }
 
     @Override
