@@ -127,7 +127,7 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
   }
 
   private Collection<ForeignKey> loadForeignKeys(String table) throws XWikiException {
-    String sql = getLoadForeignKeysSql(table, context.getWikiRef().getName());
+    String sql = getLoadForeignKeysSql(table, getDatabaseWithPrefix());
     LOGGER.trace("loadForeignKeys - {}", sql);
     Map<String, ForeignKey> map = new HashMap<>();
     for (List<String> row : queryExecutor.executeReadSql(String.class, sql)) {
@@ -148,6 +148,11 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
         + "from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_SCHEMA = '" + database
         + "' and REFERENCED_TABLE_NAME = '" + table
         + "' order by CONSTRAINT_NAME, ORDINAL_POSITION";
+  }
+
+  private String getDatabaseWithPrefix() {
+    String prefix = context.getXWikiContext().getWiki().Param("xwiki.db.prefix", "");
+    return prefix + context.getWikiRef().getName();
   }
 
   class ForeignKey {

@@ -19,6 +19,8 @@ import com.xpn.xwiki.web.Utils;
 
 public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
 
+  private static final String PREFIX = "cel_";
+
   private BaseCollectionIdMigration migration;
   private IQueryExecutionServiceRole queryExecMock;
 
@@ -31,6 +33,7 @@ public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
 
   @Test
   public void test_migrate() throws Exception {
+    expect(getWikiMock().Param("xwiki.db.prefix", "")).andReturn(PREFIX).anyTimes();
     expectModify("xwikiclasses");
     expectModify("xwikiclassesprop");
     expectModify("xwikiobjects");
@@ -45,8 +48,8 @@ public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
 
   private void expectModify(String table) throws XWikiException {
     List<List<String>> fks = new ArrayList<>();
-    expect(queryExecMock.executeReadSql(String.class, migration.getLoadForeignKeysSql(table,
-        getContext().getDatabase()))).andReturn(fks).once();
+    expect(queryExecMock.executeReadSql(String.class, migration.getLoadForeignKeysSql(table, PREFIX
+        + getContext().getDatabase()))).andReturn(fks).once();
     expect(queryExecMock.executeWriteSQL(migration.getModifyIdSql(table))).andReturn(1).once();
   }
 
@@ -56,8 +59,8 @@ public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
     fks.add(Arrays.asList("FK2780715A3433FD87", "xwikistrings", "XWS_NAME", "XWP_NAME"));
     fks.add(Arrays.asList("FKDF25AE4F283EE295", "xwikilongs", "XWL_ID", "XWP_ID"));
     fks.add(Arrays.asList("FKDF25AE4F283EE295", "xwikilongs", "XWL_NAME", "XWP_NAME"));
-    expect(queryExecMock.executeReadSql(String.class, migration.getLoadForeignKeysSql(table,
-        getContext().getDatabase()))).andReturn(fks).once();
+    expect(queryExecMock.executeReadSql(String.class, migration.getLoadForeignKeysSql(table, PREFIX
+        + getContext().getDatabase()))).andReturn(fks).once();
     expect(queryExecMock.executeWriteSQL("alter table xwikistrings "
         + "drop foreign key FK2780715A3433FD87")).andReturn(1).once();
     expect(queryExecMock.executeWriteSQL("alter table xwikilongs "
