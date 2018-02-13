@@ -2,7 +2,6 @@ package com.celements.model.migration;
 
 import static com.google.common.base.Preconditions.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,7 +17,6 @@ import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
 import com.celements.model.context.ModelContext;
 import com.celements.query.IQueryExecutionServiceRole;
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -36,20 +34,8 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
 
   private static final List<String> TABLES = ImmutableList.of("xwikiclasses", "xwikiclassesprop",
       "xwikiobjects", "xwikiproperties", "xwikistatsdoc", "xwikistatsreferer", "xwikistatsvisit");
-  private static final Map<String, String> TABLE_ID_MAP;
 
-  static {
-    Builder<String, String> builder = ImmutableMap.builder();
-    builder.put("xwikiclasses", "XWO_ID");
-    builder.put("xwikiclassesprop", "XWP_ID");
-    builder.put("xwikiobjects", "XWO_ID");
-    builder.put("xwikiproperties", "XWP_ID");
-    builder.put("xwikistatsdoc", "XWS_ID");
-    builder.put("xwikistatsreferer", "XWR_ID");
-    builder.put("xwikistatsvisit", "XWV_ID");
-    TABLE_ID_MAP = builder.build();
-    checkState(TABLE_ID_MAP.keySet().containsAll(TABLES));
-  }
+  private Map<String, String> idColumns = ImmutableMap.of();
 
   @Requirement
   private IQueryExecutionServiceRole queryExecutor;
@@ -80,6 +66,7 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
   public void migrate(SubSystemHibernateMigrationManager manager, XWikiContext xwikiContext)
       throws XWikiException {
     try {
+      idColumns = loadIdColumnNames();
       for (String table : TABLES) {
         LOGGER.info("migrating id for [{}]", table);
         migrateTable(table);
@@ -94,16 +81,23 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
     Collection<ForeignKey> droppedForeignKeys = new HashSet<>();
     try {
       dropReferencingForeignKeys(table, droppedForeignKeys);
-      int count = queryExecutor.executeWriteSQL(getModifyIdSql(table));
-      LOGGER.debug("updated [{}] id for {} rows", table, count);
+      modifyIdColumn(table);
+      for (ForeignKey fk : droppedForeignKeys) {
+        migrateTable(fk.getTable());
+      }
     } finally {
       readdDroppedForeignKeys(droppedForeignKeys);
     }
   }
 
-  String getModifyIdSql(String table) {
-    return "alter table " + table + " modify column " + TABLE_ID_MAP.get(table)
-        + " bigint not null";
+  private void modifyIdColumn(String table) throws XWikiException {
+    int count = queryExecutor.executeWriteSQL(getModifyIdColumnSql(table));
+    LOGGER.debug("updated [{}] id for {} rows", table, count);
+  }
+
+  String getModifyIdColumnSql(String table) {
+    return "alter table " + table + " modify column " + checkNotNull(Strings.emptyToNull(
+        idColumns.get(table))) + " bigint not null";
   }
 
   private void dropReferencingForeignKeys(String table, Collection<ForeignKey> droppedForeignKeys)
@@ -124,6 +118,21 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
         LOGGER.error("failed to readd {}", fk, xwe);
       }
     }
+  }
+
+  private Map<String, String> loadIdColumnNames() throws XWikiException {
+    String sql = getLoadColumnsSql(getDatabaseWithPrefix());
+    Builder<String, String> builder = ImmutableMap.builder();
+    for (List<String> row : queryExecutor.executeReadSql(String.class, sql)) {
+      builder.put(row.get(0), row.get(1));
+    }
+    return builder.build();
+  }
+
+  String getLoadColumnsSql(String database) {
+    return "select TABLE_NAME, COLUMN_NAME from INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
+        + "where TABLE_SCHEMA = '" + database + "' and CONSTRAINT_NAME = 'PRIMARY' "
+        + "and COLUMN_NAME like '%_ID'";
   }
 
   private Collection<ForeignKey> loadForeignKeys(String table) throws XWikiException {
@@ -155,52 +164,15 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
     return prefix + context.getWikiRef().getName();
   }
 
-  class ForeignKey {
-
-    private final String name;
-    private final String table;
-    private final String referencedTable;
-    private final List<String> columns = new ArrayList<>();
-    private final List<String> referencedColumns = new ArrayList<>();
-
-    ForeignKey(String name, String table, String referencedTable) {
-      this.name = validate(name);
-      this.table = validate(table);
-      this.referencedTable = validate(referencedTable);
+  /**
+   * for test purposes only
+   */
+  void injectIdColumns(List<List<String>> tableIds) {
+    Builder<String, String> builder = ImmutableMap.builder();
+    for (List<String> row : tableIds) {
+      builder.put(row.get(0), row.get(1));
     }
-
-    public ForeignKey addColumn(String column, String referencedColumn) {
-      columns.add(validate(column));
-      referencedColumns.add(validate(referencedColumn));
-      return this;
-    }
-
-    public String getAddForeignKeySql() {
-      return "alter table " + table + " add constraint " + name + " foreign key (" + Joiner.on(
-          ',').join(columns) + ")" + " references " + referencedTable + " (" + Joiner.on(',').join(
-              referencedColumns) + ")";
-    }
-
-    public String getDropForeignKeySql() {
-      return "alter table " + table + " drop foreign key " + name;
-    }
-
-    private String validate(String str) {
-      return checkNotNull(Strings.emptyToNull(str));
-    }
-
-    @Override
-    public int hashCode() {
-      return name.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return "ForeignKey [name=" + name + ", table=" + table + ", referencedTable="
-          + referencedTable + ", columns=" + columns + ", referencedColumns=" + referencedColumns
-          + "]";
-    }
-
+    idColumns = builder.build();
   }
 
 }
