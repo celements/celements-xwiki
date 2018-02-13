@@ -167,9 +167,11 @@ public class CelHibernateStoreCollectionPart {
       if (!alreadyLoaded) {
         try {
           session.load(object, new Long(object1.getId()));
-        } catch (ObjectNotFoundException e) {
+        } catch (ObjectNotFoundException exc) {
           // There is no object data saved
           object = null;
+          LOGGER.warn("loadXWikiCollection - no data for object: {} {}_{}", object1.getId(),
+              object1.getClassName(), object1.getNumber(), exc);
           return;
         }
       }
