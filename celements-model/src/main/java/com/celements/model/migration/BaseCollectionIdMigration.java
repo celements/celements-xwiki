@@ -77,21 +77,25 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
     try {
       for (String table : TABLES) {
         LOGGER.info("migrating id for [{}]", table);
-        Collection<ForeignKey> foreignKeys = loadForeignKeys(table, context.getDatabase());
-        for (ForeignKey fk : foreignKeys) {
-          LOGGER.debug("adding {}", fk);
-          queryExecutor.executeWriteSQL(fk.getDropForeignKeySql());
-        }
-        int count = queryExecutor.executeWriteSQL(getModifyIdSql(table));
-        LOGGER.info("updated [{}] id for {} rows", table, count);
-        for (ForeignKey fk : foreignKeys) {
-          LOGGER.debug("dropping {}", fk);
-          queryExecutor.executeWriteSQL(fk.getAddForeignKeySql());
-        }
+        migrateTable(table, context);
       }
     } catch (Exception exc) {
       LOGGER.error("Failed to migrate database [{}]", context.getDatabase(), exc);
       throw exc;
+    }
+  }
+
+  private void migrateTable(String table, XWikiContext context) throws XWikiException {
+    Collection<ForeignKey> foreignKeys = loadForeignKeys(table, context.getDatabase());
+    for (ForeignKey fk : foreignKeys) {
+      LOGGER.debug("adding {}", fk);
+      queryExecutor.executeWriteSQL(fk.getDropForeignKeySql());
+    }
+    int count = queryExecutor.executeWriteSQL(getModifyIdSql(table));
+    LOGGER.debug("updated [{}] id for {} rows", table, count);
+    for (ForeignKey fk : foreignKeys) {
+      LOGGER.debug("dropping {}", fk);
+      queryExecutor.executeWriteSQL(fk.getAddForeignKeySql());
     }
   }
 
