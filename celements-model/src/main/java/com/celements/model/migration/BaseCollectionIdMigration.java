@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.mutabilitydetector.internal.com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
@@ -17,6 +16,7 @@ import org.xwiki.component.annotation.Requirement;
 import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
 import com.celements.query.IQueryExecutionServiceRole;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
