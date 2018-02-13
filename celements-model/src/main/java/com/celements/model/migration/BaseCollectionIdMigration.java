@@ -62,13 +62,14 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
   @Override
   public void migrate(SubSystemHibernateMigrationManager manager, XWikiContext xwikiContext)
       throws XWikiException {
+    LOGGER.info("migrating ids for database [{}]", getDatabaseWithPrefix());
     try {
       for (String table : TABLES) {
-        LOGGER.info("migrating id for [{}]", table);
+        LOGGER.info("migrating id for table [{}]", table);
         migrateTable(table);
       }
     } catch (Exception exc) {
-      LOGGER.error("Failed to migrate database [{}]", context.getWikiRef(), exc);
+      LOGGER.error("Failed to migrate database [{}]", getDatabaseWithPrefix(), exc);
       throw exc;
     } finally {
       // clear column cache
@@ -166,8 +167,8 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
   }
 
   private String getDatabaseWithPrefix() {
-    String prefix = context.getXWikiContext().getWiki().Param("xwiki.db.prefix", "");
-    return prefix + context.getWikiRef().getName();
+    return context.getXWikiContext().getWiki().Param("xwiki.db.prefix", "")
+        + context.getWikiRef().getName();
   }
 
   /**
