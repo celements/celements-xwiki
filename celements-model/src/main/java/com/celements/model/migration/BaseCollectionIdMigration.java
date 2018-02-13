@@ -74,19 +74,24 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
   @Override
   public void migrate(SubSystemHibernateMigrationManager manager, XWikiContext context)
       throws XWikiException {
-    for (String table : TABLES) {
-      LOGGER.info("migrating id for {}", table);
-      Collection<ForeignKey> foreignKeys = loadForeignKeys(table, context.getDatabase());
-      for (ForeignKey fk : foreignKeys) {
-        LOGGER.debug("adding {}", fk);
-        queryExecutor.executeWriteSQL(fk.getDropForeignKeySql());
+    try {
+      for (String table : TABLES) {
+        LOGGER.info("migrating id for [{}]", table);
+        Collection<ForeignKey> foreignKeys = loadForeignKeys(table, context.getDatabase());
+        for (ForeignKey fk : foreignKeys) {
+          LOGGER.debug("adding {}", fk);
+          queryExecutor.executeWriteSQL(fk.getDropForeignKeySql());
+        }
+        int count = queryExecutor.executeWriteSQL(getModifyIdSql(table));
+        LOGGER.info("updated [{}] id for {} rows", table, count);
+        for (ForeignKey fk : foreignKeys) {
+          LOGGER.debug("dropping {}", fk);
+          queryExecutor.executeWriteSQL(fk.getAddForeignKeySql());
+        }
       }
-      int count = queryExecutor.executeWriteSQL(getModifyIdSql(table));
-      LOGGER.info("updated {} id for {} rows", table, count);
-      for (ForeignKey fk : foreignKeys) {
-        LOGGER.debug("dropping {}", fk);
-        queryExecutor.executeWriteSQL(fk.getAddForeignKeySql());
-      }
+    } catch (Exception exc) {
+      LOGGER.error("Failed to migrate database [{}]", context.getDatabase(), exc);
+      throw exc;
     }
   }
 
