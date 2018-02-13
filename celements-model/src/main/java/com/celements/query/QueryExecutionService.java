@@ -4,7 +4,6 @@ import static com.google.common.base.MoreObjects.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -44,8 +43,8 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
     Session session = null;
     try {
       session = getNewHibSession();
-      Iterator<?> queryIter = session.createSQLQuery(sql).iterate();
-      return parseToResultList(type, queryIter);
+      List<?> result = session.createSQLQuery(sql).list();
+      return harmoniseResult(type, result);
     } catch (HibernateException hibExc) {
       throw new XWikiException(0, 0, "error while executing sql", hibExc);
     } finally {
@@ -55,11 +54,10 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
     }
   }
 
-  private <T> List<List<T>> parseToResultList(Class<T> type, Iterator<?> queryIter) {
-    List<List<T>> results = new ArrayList<>();
-    while (queryIter.hasNext()) {
+  private <T> List<List<T>> harmoniseResult(Class<T> type, List<?> result) {
+    List<List<T>> ret = new ArrayList<>();
+    for (Object elem : result) {
       List<T> resultRow = new ArrayList<>();
-      Object elem = queryIter.next();
       if (type.isAssignableFrom(elem.getClass())) { // one column selected
         resultRow.add(type.cast(elem));
       } else if (elem.getClass().isArray()) { // multiple columns selected
@@ -67,9 +65,9 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
           resultRow.add(type.cast(col));
         }
       }
-      results.add(resultRow);
+      ret.add(resultRow);
     }
-    return results;
+    return ret;
   }
 
   @Override
