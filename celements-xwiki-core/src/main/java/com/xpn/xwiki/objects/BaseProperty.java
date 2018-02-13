@@ -32,6 +32,7 @@ import org.dom4j.dom.DOMElement;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 
+import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.web.Utils;
 
 /**
@@ -93,6 +94,11 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
     public long getId() {
       BaseElement element = getObject() != null ? getObject() : this;
       return element.getId();
+    }
+    
+    // needed for properties because access=field not possible (composite id)
+    public void setId(long id) {
+      setId(id, IdVersion.CELEMENTS_3);
     }
 
     /**

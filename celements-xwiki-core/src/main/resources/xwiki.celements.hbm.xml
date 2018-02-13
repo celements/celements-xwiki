@@ -215,7 +215,7 @@
   </class>
   <class name="com.xpn.xwiki.objects.classes.PropertyClass" table="xwikiclassesprop">
     <composite-id unsaved-value="undefined">
-      <key-property name="id" access="field" column="XWP_ID" type="long" />
+      <key-property name="id" column="XWP_ID" type="long" />
       <key-property name="name" column="XWP_NAME" type="string" />
     </composite-id>
     <property name="prettyName" type="string">
@@ -365,7 +365,7 @@
   </class>
   <class name="com.xpn.xwiki.objects.BaseProperty" table="xwikiproperties">
     <composite-id unsaved-value="undefined">
-      <key-property name="id" access="field" column="XWP_ID" type="long" />
+      <key-property name="id" column="XWP_ID" type="long" />
       <key-property name="name" column="XWP_NAME" type="string" />
     </composite-id>
     <property name="classType" type="string">

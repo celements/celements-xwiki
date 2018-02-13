@@ -1,5 +1,7 @@
 package com.celements.store.part;
 
+import java.io.Serializable;
+
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -37,7 +39,7 @@ public class CelHibernateStorePropertyPart {
       Session session = store.getSession(context);
 
       try {
-        session.load(property, new Long(property.getId()));
+        session.load(property, (Serializable) property);
         // In Oracle, empty string are converted to NULL. Since an undefined property is not found
         // at all, it is safe to assume that a retrieved NULL value should actually be an empty
         // string.

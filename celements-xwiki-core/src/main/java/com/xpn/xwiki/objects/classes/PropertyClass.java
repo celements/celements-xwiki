@@ -30,6 +30,7 @@ import org.dom4j.dom.DOMElement;
 import org.hibernate.mapping.Property;
 import org.xwiki.velocity.VelocityManager;
 
+import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.objects.BaseCollection;
@@ -107,6 +108,11 @@ public class PropertyClass extends BaseCollection implements PropertyClassInterf
     public long getId() {
       BaseElement element = getObject() != null ? getObject() : this;
       return element.getId();
+    }
+    
+    // needed for properties because access=field not possible (composite id)
+    public void setId(long id) {
+      setId(id, IdVersion.CELEMENTS_3);
     }
 
     public String toString(BaseProperty property)
