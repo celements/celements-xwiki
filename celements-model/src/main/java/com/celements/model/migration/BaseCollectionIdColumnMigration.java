@@ -99,8 +99,6 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
       if (isMappingWithLongPrimaryKey(mapping)) {
         LOGGER.info("migrating id column for mapped entity [{}]", mapping.getEntityName());
         migrateTable(mapping.getTable().getName());
-      } else {
-        LOGGER.debug("skip id column for mapped entity [{}]", mapping.getEntityName());
       }
     }
   }
@@ -124,7 +122,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
       int count = queryExecutor.executeWriteSQL(sql);
       LOGGER.info("updated [{}] id column for {} rows", table, count);
     } catch (IllegalArgumentException iae) {
-      LOGGER.warn("failed to update [{}] id column", table, iae);
+      LOGGER.warn(iae.getMessage(), iae);
     } finally {
       addForeignKeys(table, droppedForeignKeys);
     }
@@ -204,7 +202,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
       if (map.containsKey(table)) {
         return map.get(table);
       } else {
-        throw new IllegalArgumentException("no integer id column for table " + table);
+        throw new IllegalArgumentException("no integer id column for table [" + table + "]");
       }
     }
 
