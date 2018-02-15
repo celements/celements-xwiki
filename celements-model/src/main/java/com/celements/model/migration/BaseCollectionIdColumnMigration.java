@@ -87,7 +87,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   private void migrateXWikiTables() throws XWikiException {
     for (String table : XWIKI_TABLES) {
-      LOGGER.info("migrating id column for xwiki table [{}]", table);
+      LOGGER.info("try id column migration for xwiki table [{}]", table);
       migrateTable(table);
     }
   }
@@ -96,9 +96,12 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
   private void migrateMappedTables() throws XWikiException {
     for (Iterator<PersistentClass> iter = getHibConfig().getClassMappings(); iter.hasNext();) {
       PersistentClass mapping = iter.next();
+      String table = mapping.getTable().getName();
+      LOGGER.info("try id column migration for mapped table [{}]", table);
       if (isMappingWithLongPrimaryKey(mapping)) {
-        LOGGER.info("migrating id column for mapped entity [{}]", mapping.getEntityName());
-        migrateTable(mapping.getTable().getName());
+        migrateTable(table);
+      } else {
+        LOGGER.info("skip table [{}], id isn't mapped as long", table);
       }
     }
   }
@@ -122,7 +125,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
       int count = queryExecutor.executeWriteSQL(sql);
       LOGGER.info("updated [{}] id column for {} rows", table, count);
     } catch (IllegalArgumentException iae) {
-      LOGGER.warn(iae.getMessage(), iae);
+      LOGGER.info("skip table [{}], id column isn't int", iae);
     } finally {
       addForeignKeys(table, droppedForeignKeys);
     }
