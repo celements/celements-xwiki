@@ -3,9 +3,14 @@ package com.celements.model.migration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.cfg.Configuration;
+import org.hibernate.mapping.PersistentClass;
+import org.hibernate.mapping.SimpleValue;
+import org.hibernate.type.LongType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
@@ -20,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 import com.xpn.xwiki.store.migration.XWikiDBVersion;
 
 @Component(BaseCollectionIdMigration.NAME)
@@ -29,10 +35,13 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
 
   public static final String NAME = "BaseCollectionIdMigration";
 
-  private static final List<String> TABLES = ImmutableList.of("xwikiclasses", "xwikiclassesprop",
+  static final List<String> XWIKI_TABLES = ImmutableList.of("xwikiclasses", "xwikiclassesprop",
       "xwikiobjects", "xwikiproperties", "xwikistatsdoc", "xwikistatsreferer", "xwikistatsvisit");
 
-  private Map<String, String> idColumns = ImmutableMap.of();
+  IdColumnLoader idColumns = new IdColumnLoader();
+
+  @Requirement
+  private HibernateSessionFactory sessionFactory;
 
   @Requirement
   private IQueryExecutionServiceRole queryExecutor;
@@ -47,7 +56,7 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
 
   @Override
   public String getDescription() {
-    return "changes id columns for BaseCollections from int to bigint";
+    return "migrates id columns for BaseCollections from int to bigint";
   }
 
   /**
@@ -62,47 +71,70 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
   @Override
   public void migrate(SubSystemHibernateMigrationManager manager, XWikiContext xwikiContext)
       throws XWikiException {
-    LOGGER.info("migrating ids for database [{}]", getDatabaseWithPrefix());
+    LOGGER.info("migrating id columns for database [{}]", getDatabaseWithPrefix());
     try {
-      for (String table : TABLES) {
-        LOGGER.info("migrating id for table [{}]", table);
-        migrateTable(table);
-      }
+      idColumns.load();
+      migrateXWikiTables();
+      migrateMappedTables();
     } catch (Exception exc) {
-      LOGGER.error("Failed to migrate database [{}]", getDatabaseWithPrefix(), exc);
+      LOGGER.error("Failed to migrate id columns for database [{}]", getDatabaseWithPrefix(), exc);
       throw exc;
     } finally {
-      // clear column cache
-      idColumns = ImmutableMap.of();
+      idColumns.clear();
+    }
+  }
+
+  private void migrateXWikiTables() throws XWikiException {
+    for (String table : XWIKI_TABLES) {
+      LOGGER.info("migrating id column for xwiki table [{}]", table);
+      migrateTable(table);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void migrateMappedTables() throws XWikiException {
+    for (Iterator<PersistentClass> iter = getHibConfig().getClassMappings(); iter.hasNext();) {
+      PersistentClass mapping = iter.next();
+      if (isMappingWithLongPrimaryKey(mapping)) {
+        LOGGER.info("migrating id column for mapped entity [{}]", mapping.getEntityName());
+        migrateTable(mapping.getTable().getName());
+      }
+    }
+  }
+
+  private boolean isMappingWithLongPrimaryKey(PersistentClass mapping) {
+    try {
+      return (((SimpleValue) mapping.getIdentifier()).getType().getClass() == LongType.class);
+    } catch (ClassCastException | NullPointerException exc) {
+      return false;
     }
   }
 
   private void migrateTable(String table) throws XWikiException {
     Collection<ForeignKey> droppedForeignKeys = new HashSet<>();
     try {
+      String sql = getModifyIdColumnSql(table);
       dropReferencingForeignKeys(table, droppedForeignKeys);
-      LOGGER.info("dropped {} FK for [{}]", droppedForeignKeys.size(), table);
       for (ForeignKey fk : droppedForeignKeys) {
         migrateTable(fk.getTable());
       }
-      int count = queryExecutor.executeWriteSQL(getModifyIdColumnSql(table));
-      LOGGER.info("updated [{}] id for {} rows", table, count);
+      int count = queryExecutor.executeWriteSQL(sql);
+      LOGGER.info("updated [{}] id column for {} rows", table, count);
+    } catch (IllegalArgumentException iae) {
+      LOGGER.warn("failed to update [{}] id column", table, iae);
     } finally {
-      LOGGER.info("readd {} dropped FK for [{}]", droppedForeignKeys.size(), table);
-      addForeignKeys(droppedForeignKeys);
+      addForeignKeys(table, droppedForeignKeys);
     }
   }
 
-  String getModifyIdColumnSql(String table) throws XWikiException {
-    if (getIdColumns().containsKey(table)) {
-      return "alter table " + table + " modify column " + getIdColumns().get(table)
-          + " bigint not null";
-    } else {
-      throw new XWikiException(0, 0, "no id column for table " + table);
-    }
+  String getModifyIdColumnSql(String table) throws IllegalArgumentException {
+    return "alter table " + table + " modify column " + idColumns.get(table) + " bigint not null";
   }
 
-  private void addForeignKeys(Collection<ForeignKey> foreignKeys) {
+  private void addForeignKeys(String table, Collection<ForeignKey> foreignKeys) {
+    if (foreignKeys.size() > 0) {
+      LOGGER.info("add {} FKs for [{}]", foreignKeys.size(), table);
+    }
     for (ForeignKey fk : foreignKeys) {
       try {
         LOGGER.debug("adding {}", fk);
@@ -120,6 +152,9 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
       queryExecutor.executeWriteSQL(fk.getDropSql());
       droppedForeignKeys.add(fk);
     }
+    if (droppedForeignKeys.size() > 0) {
+      LOGGER.info("dropped {} FKs for [{}]", droppedForeignKeys.size(), table);
+    }
   }
 
   private Collection<ForeignKey> loadForeignKeys(String table) throws XWikiException {
@@ -133,53 +168,71 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
       }
       fk.addColumn(row.get(2), row.get(3));
     }
-    LOGGER.trace("loaded {} FKs", map.size());
+    if (map.size() > 0) {
+      LOGGER.trace("loaded {} FKs for [{}]", map.size(), table);
+    }
     return map.values();
   }
 
-  String getLoadForeignKeysSql(String table, String database) {
+  static String getLoadForeignKeysSql(String table, String database) {
     return "select CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_COLUMN_NAME "
         + "from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_SCHEMA = '" + database
         + "' and REFERENCED_TABLE_NAME = '" + table
         + "' order by CONSTRAINT_NAME, ORDINAL_POSITION";
   }
 
-  private Map<String, String> getIdColumns() throws XWikiException {
-    if (idColumns.isEmpty()) {
-      idColumns = loadIdColumnNames();
-    }
-    return idColumns;
-  }
-
-  private Map<String, String> loadIdColumnNames() throws XWikiException {
-    String sql = getLoadColumnsSql(getDatabaseWithPrefix());
-    Builder<String, String> builder = ImmutableMap.builder();
-    for (List<String> row : queryExecutor.executeReadSql(String.class, sql)) {
-      builder.put(row.get(0), row.get(1));
-    }
-    return builder.build();
-  }
-
-  String getLoadColumnsSql(String database) {
-    return "select TABLE_NAME, COLUMN_NAME from INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
-        + "where TABLE_SCHEMA = '" + database + "' and CONSTRAINT_NAME = 'PRIMARY' "
-        + "and COLUMN_NAME like '%_ID'";
-  }
-
-  private String getDatabaseWithPrefix() {
+  String getDatabaseWithPrefix() {
     return context.getXWikiContext().getWiki().Param("xwiki.db.prefix", "")
         + context.getWikiRef().getName();
   }
 
+  private Configuration getHibConfig() {
+    return sessionFactory.getConfiguration();
+  }
+
   /**
-   * for test purposes only
+   * loads all id columns of type 'int' for current database
    */
-  void injectIdColumns(List<List<String>> tableIds) {
-    Builder<String, String> builder = ImmutableMap.builder();
-    for (List<String> row : tableIds) {
-      builder.put(row.get(0), row.get(1));
+  class IdColumnLoader {
+
+    private Map<String, String> map = ImmutableMap.of();
+
+    public String get(String table) throws IllegalArgumentException {
+      if (map.containsKey(table)) {
+        return map.get(table);
+      } else {
+        throw new IllegalArgumentException("no integer id column for table " + table);
+      }
     }
-    idColumns = builder.build();
+
+    public void load() throws XWikiException {
+      map = loadIdColumnNames();
+    }
+
+    public void clear() {
+      map = ImmutableMap.of();
+    }
+
+    private Map<String, String> loadIdColumnNames() throws XWikiException {
+      String sql = getLoadColumnsSql(getDatabaseWithPrefix());
+      Builder<String, String> builder = ImmutableMap.builder();
+      for (List<String> row : queryExecutor.executeReadSql(String.class, sql)) {
+        builder.put(row.get(0), row.get(1));
+      }
+      return builder.build();
+    }
+
+  }
+
+  static String getLoadColumnsSql(String database) {
+    String select = "select k.TABLE_NAME, k.COLUMN_NAME";
+    String from = " from INFORMATION_SCHEMA.KEY_COLUMN_USAGE as k, INFORMATION_SCHEMA.COLUMNS as c";
+    String where = " where k.TABLE_SCHEMA = '" + database + "' and k.CONSTRAINT_NAME = 'PRIMARY'"
+        + " and k.COLUMN_NAME like '%_ID' and c.DATA_TYPE = 'int'";
+    String whereJoin = " and k.TABLE_SCHEMA = c.TABLE_SCHEMA and k.TABLE_NAME = c.TABLE_NAME"
+        + " and k.COLUMN_NAME = c.COLUMN_NAME";
+    String groupBy = " group by k.TABLE_NAME";
+    return select + from + where + whereJoin + groupBy;
   }
 
 }
