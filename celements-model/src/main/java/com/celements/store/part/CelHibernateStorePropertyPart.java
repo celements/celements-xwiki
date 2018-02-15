@@ -30,7 +30,7 @@ public class CelHibernateStorePropertyPart {
 
   public void loadXWikiProperty(PropertyInterface property, XWikiContext context,
       boolean bTransaction) throws XWikiException {
-    LOGGER.debug("loadXWikiProperty - start: {} {}", property.getId(), property.getName());
+    logXProperty("loadXProperty - start", property);
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -80,11 +80,12 @@ public class CelHibernateStorePropertyPart {
       } catch (Exception e) {
       }
     }
-    LOGGER.debug("loadXWikiProperty - end: {} {}", property.getId(), property.getName());
+    logXProperty("loadXProperty - end", property);
   }
 
   public void saveXWikiProperty(final PropertyInterface property, final XWikiContext context,
       final boolean runInOwnTransaction) throws XWikiException {
+    logXProperty("saveXProperty - start", property);
     // Clone runInOwnTransaction so the value passed is not altered.
     boolean bTransaction = runInOwnTransaction;
     try {
@@ -128,6 +129,16 @@ public class CelHibernateStorePropertyPart {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
           "Exception while saving property {1} of object {0}", e, args);
+    }
+    logXProperty("saveXProperty - end", property);
+  }
+
+  private void logXProperty(String msg, PropertyInterface property) {
+    if (LOGGER.isTraceEnabled()) {
+      BaseCollection obj = property.getObject();
+      LOGGER.trace(msg + ": {} {}_{}_{}_{}", property.getId(), store.getModelUtils().serializeRef(
+          obj.getDocumentReference()), store.getModelUtils().serializeRefLocal(
+              obj.getXClassReference()), obj.getNumber(), property.getName());
     }
   }
 

@@ -46,6 +46,7 @@ public class CelHibernateStoreCollectionPart {
       if (object == null) {
         return;
       }
+      logXObject("saveXObject - start", object);
       // We need a slightly different behavior here
       boolean stats = (object instanceof XWikiStats);
 
@@ -150,12 +151,12 @@ public class CelHibernateStoreCollectionPart {
       } catch (Exception e) {
       }
     }
+    logXObject("saveXObject - end", object);
   }
 
   public void loadXWikiCollection(BaseCollection object1, XWikiDocument doc, XWikiContext context,
       boolean bTransaction, boolean alreadyLoaded) throws XWikiException {
-    LOGGER.debug("loadXWikiCollection - start: {} {}_{}", object1.getId(), object1.getClassName(),
-        object1.getNumber());
+    logXObject("loadXObject - start", object1);
     BaseCollection object = object1;
     try {
       if (bTransaction) {
@@ -300,8 +301,7 @@ public class CelHibernateStoreCollectionPart {
       } catch (Exception e) {
       }
     }
-    LOGGER.debug("loadXWikiCollection - end: {} {}_{}", object1.getId(), object1.getClassName(),
-        object1.getNumber());
+    logXObject("loadXObject - end", object);
   }
 
   public void deleteXWikiCollection(BaseCollection object, XWikiContext context,
@@ -309,6 +309,7 @@ public class CelHibernateStoreCollectionPart {
     if (object == null) {
       return;
     }
+    logXObject("deleteXObject - start", object);
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -383,5 +384,15 @@ public class CelHibernateStoreCollectionPart {
       } catch (Exception e) {
       }
     }
+    logXObject("deleteXObject - end", object);
   }
+
+  private void logXObject(String msg, BaseCollection object) {
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(msg + ": {} {}_{}_{}", object.getId(), store.getModelUtils().serializeRef(
+          object.getDocumentReference()), store.getModelUtils().serializeRefLocal(
+              object.getXClassReference()), object.getNumber());
+    }
+  }
+
 }

@@ -43,6 +43,7 @@ public class CelHibernateStoreDocumentPart {
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
       throws XWikiException {
+    logXWikiDoc("saveXWikiDoc - start", doc);
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
       // Start monitoring timer
@@ -193,10 +194,12 @@ public class CelHibernateStoreDocumentPart {
         monitor.endTimer("hibernate");
       }
     }
+
+    logXWikiDoc("saveXWikiDoc - end", doc);
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
-    LOGGER.debug("loadXWikiDoc - start: {}", doc.getDocumentReference());
+    logXWikiDoc("loadXWikiDoc - start", doc);
     // To change body of implemented methods use Options | File Templates.
     boolean bTransaction = true;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
@@ -346,11 +349,12 @@ public class CelHibernateStoreDocumentPart {
       }
     }
 
-    LOGGER.debug("loadXWikiDoc - end: {}", doc.getDocumentReference());
+    logXWikiDoc("loadXWikiDoc - end", doc);
     return doc;
   }
 
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
+    logXWikiDoc("deleteXWikiDoc - start", doc);
     boolean bTransaction = true;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
@@ -429,6 +433,14 @@ public class CelHibernateStoreDocumentPart {
       if (monitor != null) {
         monitor.endTimer("hibernate");
       }
+    }
+    logXWikiDoc("deleteXWikiDoc - end", doc);
+  }
+
+  private void logXWikiDoc(String msg, XWikiDocument doc) {
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info(msg + ": {} {}", doc.getId(), store.getModelUtils().serializeRef(
+          doc.getDocumentReference()));
     }
   }
 
