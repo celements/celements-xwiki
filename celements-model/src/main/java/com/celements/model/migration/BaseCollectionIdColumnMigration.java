@@ -87,7 +87,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   private void migrateXWikiTables() throws XWikiException {
     for (String table : XWIKI_TABLES) {
-      LOGGER.info("try id column migration for xwiki table [{}]", table);
+      LOGGER.info("[{}] try id column migration for xwiki table", table);
       migrateTable(table);
     }
   }
@@ -97,11 +97,11 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     for (Iterator<PersistentClass> iter = getHibConfig().getClassMappings(); iter.hasNext();) {
       PersistentClass mapping = iter.next();
       String table = mapping.getTable().getName();
-      LOGGER.info("try id column migration for mapped table [{}]", table);
+      LOGGER.info("[{}] try id column migration for mapped table", table);
       if (isMappingWithLongPrimaryKey(mapping)) {
         migrateTable(table);
       } else {
-        LOGGER.info("skip table [{}], id isn't mapped as long", table);
+        LOGGER.info("[{}] skip table, id isn't mapped as long", table);
       }
     }
   }
@@ -123,9 +123,9 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
         migrateTable(fk.getTable());
       }
       int count = queryExecutor.executeWriteSQL(sql);
-      LOGGER.info("updated [{}] id column for {} rows", table, count);
+      LOGGER.info("[{}] updated id column for {} rows", table, count);
     } catch (IllegalArgumentException iae) {
-      LOGGER.info("skip table [{}], id column isn't int", iae);
+      LOGGER.info("[{}] skip table, id column isn't int", table, iae);
     } finally {
       addForeignKeys(table, droppedForeignKeys);
     }
@@ -137,14 +137,14 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   private void addForeignKeys(String table, Collection<ForeignKey> foreignKeys) {
     if (foreignKeys.size() > 0) {
-      LOGGER.info("add {} FKs for [{}]", foreignKeys.size(), table);
+      LOGGER.info("[{}] add {} FKs", table, foreignKeys.size());
     }
     for (ForeignKey fk : foreignKeys) {
       try {
-        LOGGER.debug("adding {}", fk);
+        LOGGER.debug("[{}] adding {}", table, fk);
         queryExecutor.executeWriteSQL(fk.getAddSql());
       } catch (XWikiException xwe) {
-        LOGGER.error("failed to add {}", fk, xwe);
+        LOGGER.error("[{}] failed to add {}", table, fk, xwe);
       }
     }
   }
@@ -152,12 +152,12 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
   private void dropReferencingForeignKeys(String table, Collection<ForeignKey> droppedForeignKeys)
       throws XWikiException {
     for (ForeignKey fk : loadForeignKeys(table)) {
-      LOGGER.debug("dropping {}", fk);
+      LOGGER.debug("[{}] dropping {}", table, fk);
       queryExecutor.executeWriteSQL(fk.getDropSql());
       droppedForeignKeys.add(fk);
     }
     if (droppedForeignKeys.size() > 0) {
-      LOGGER.info("dropped {} FKs for [{}]", droppedForeignKeys.size(), table);
+      LOGGER.info("[{}] dropped {} FKs", table, droppedForeignKeys.size());
     }
   }
 
@@ -173,7 +173,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
       fk.addColumn(row.get(2), row.get(3));
     }
     if (map.size() > 0) {
-      LOGGER.trace("loaded {} FKs for [{}]", map.size(), table);
+      LOGGER.trace("[{}] loaded {} FKs", table, map.size());
     }
     return map.values();
   }
