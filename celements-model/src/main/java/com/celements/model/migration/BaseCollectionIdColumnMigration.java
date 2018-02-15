@@ -28,12 +28,13 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 import com.xpn.xwiki.store.migration.XWikiDBVersion;
 
-@Component(BaseCollectionIdMigration.NAME)
-public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrator {
+@Component(BaseCollectionIdColumnMigration.NAME)
+public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateMigrator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BaseCollectionIdMigration.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      BaseCollectionIdColumnMigration.class);
 
-  public static final String NAME = "BaseCollectionIdMigration";
+  public static final String NAME = "BaseCollectionIdColumnMigration";
 
   static final List<String> XWIKI_TABLES = ImmutableList.of("xwikiclasses", "xwikiclassesprop",
       "xwikiobjects", "xwikiproperties", "xwikistatsdoc", "xwikistatsreferer", "xwikistatsvisit");
@@ -61,11 +62,11 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
 
   /**
    * getVersion is using days since 1.1.2010 until the day of committing this migration
-   * 13.02.2018 -> 2965 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
+   * 14.02.2018 -> 2966 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
    */
   @Override
   public XWikiDBVersion getVersion() {
-    return new XWikiDBVersion(2965);
+    return new XWikiDBVersion(2966);
   }
 
   @Override
@@ -98,6 +99,8 @@ public class BaseCollectionIdMigration extends AbstractCelementsHibernateMigrato
       if (isMappingWithLongPrimaryKey(mapping)) {
         LOGGER.info("migrating id column for mapped entity [{}]", mapping.getEntityName());
         migrateTable(mapping.getTable().getName());
+      } else {
+        LOGGER.debug("skip id column for mapped entity [{}]", mapping.getEntityName());
       }
     }
   }

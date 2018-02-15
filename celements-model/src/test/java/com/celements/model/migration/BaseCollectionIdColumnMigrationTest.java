@@ -1,7 +1,7 @@
 package com.celements.model.migration;
 
 import static com.celements.common.test.CelementsTestUtils.*;
-import static com.celements.model.migration.BaseCollectionIdMigration.*;
+import static com.celements.model.migration.BaseCollectionIdColumnMigration.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
@@ -32,11 +32,11 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
 import com.xpn.xwiki.web.Utils;
 
-public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
+public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
 
   private static final String PREFIX = "cel_";
 
-  private BaseCollectionIdMigration migration;
+  private BaseCollectionIdColumnMigration migration;
   private IQueryExecutionServiceRole queryExecMock;
   private Configuration hibCfgMock;
   private Builder<List<String>> idColumnBuilder;
@@ -48,7 +48,7 @@ public class BaseCollectionIdMigrationTest extends AbstractComponentTest {
     hibCfgMock = createMockAndAddToDefault(Configuration.class);
     expect(registerComponentMock(HibernateSessionFactory.class).getConfiguration()).andReturn(
         hibCfgMock).anyTimes();
-    migration = (BaseCollectionIdMigration) Utils.getComponent(ICelementsMigrator.class, NAME);
+    migration = (BaseCollectionIdColumnMigration) Utils.getComponent(ICelementsMigrator.class, NAME);
     idColumnBuilder = ImmutableList.builder();
   }
 
