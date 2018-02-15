@@ -581,7 +581,7 @@
   </class>
   <!-- XWikiPreferences custom mapping -->
   <class entity-name="XWiki.XWikiPreferences" table="xwikipreferences">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" type="long" unsaved-value="undefined">
       <column name="XWP_ID" not-null="true" />
       <generator class="assigned" />
     </id>
@@ -717,7 +717,7 @@
   </class>
   <!-- XWikiComments custom mapping -->
   <class entity-name="XWiki.XWikiComments" table="xwikicomments">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" type="long" unsaved-value="undefined">
       <column name="XWC_ID" not-null="true" />
       <generator class="assigned" />
     </id>
