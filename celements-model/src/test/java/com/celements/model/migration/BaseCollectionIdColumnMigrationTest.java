@@ -2,11 +2,11 @@ package com.celements.model.migration;
 
 import static com.celements.common.test.CelementsTestUtils.*;
 import static com.celements.model.migration.BaseCollectionIdColumnMigration.*;
+import static com.celements.model.migration.InformationSchema.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.easymock.IExpectationSetters;
@@ -40,6 +40,7 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
   private IQueryExecutionServiceRole queryExecMock;
   private Configuration hibCfgMock;
   private Builder<List<String>> idColumnBuilder;
+  private Builder<List<String>> foreignKeyBuilder;
 
   @Before
   public void prepareTest() throws Exception {
@@ -48,8 +49,10 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     hibCfgMock = createMockAndAddToDefault(Configuration.class);
     expect(registerComponentMock(HibernateSessionFactory.class).getConfiguration()).andReturn(
         hibCfgMock).anyTimes();
-    migration = (BaseCollectionIdColumnMigration) Utils.getComponent(ICelementsMigrator.class, NAME);
+    migration = (BaseCollectionIdColumnMigration) Utils.getComponent(ICelementsMigrator.class,
+        NAME);
     idColumnBuilder = ImmutableList.builder();
+    foreignKeyBuilder = ImmutableList.builder();
   }
 
   @Test
@@ -62,7 +65,7 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     expectModifyIdColumn("xwikistatsreferer");
     expectModifyIdColumn("xwikistatsvisit");
     expect(hibCfgMock.getClassMappings()).andReturn(ImmutableList.of().iterator()).once();
-    expectIdColumnLoad();
+    expectInformationSchemaLoad();
     replayDefault();
     migration.migrate(null, getContext());
     verifyDefault();
@@ -74,7 +77,7 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     expectModifyIdColumn("xwikiclassesprop");
     expectModifyIdColumn("xwikiobjects");
     expectModifyFkPropertiesFail();
-    expectIdColumnLoad();
+    expectInformationSchemaLoad();
     replayDefault();
     new ExceptionAsserter<XWikiException>(XWikiException.class) {
 
@@ -93,12 +96,11 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     String fkName1 = "FK2780715A3433FD87";
     String fkTable2 = "xwikilists";
     String fkName2 = "FKDF25AE4F283EE295";
-    Builder<List<String>> fks = ImmutableList.builder();
-    fks.add(Arrays.asList(fkName1, fkTable1, "XWS_ID", "XWP_ID"));
-    fks.add(Arrays.asList(fkName1, fkTable1, "XWS_NAME", "XWP_NAME"));
-    fks.add(Arrays.asList(fkName2, fkTable2, "XWL_ID", "XWP_ID"));
-    fks.add(Arrays.asList(fkName2, fkTable2, "XWL_NAME", "XWP_NAME"));
-    expectModifyIdColumn(table, fks.build(), 1);
+    addForeignKey(fkName1, fkTable1, "XWS_ID", table, "XWP_ID");
+    addForeignKey(fkName1, fkTable1, "XWS_NAME", table, "XWP_NAME");
+    addForeignKey(fkName2, fkTable2, "XWL_ID", table, "XWP_ID");
+    addForeignKey(fkName2, fkTable2, "XWL_NAME", table, "XWP_NAME");
+    expectModifyIdColumn(table, 1);
     expectModifyIdColumn(fkTable1);
     expectModifyFkLists();
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " drop foreign key "
@@ -117,10 +119,9 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     String table = "xwikilists";
     String fkTable = "xwikilistitems";
     String fkName = "FKC0862BA3FB72A11";
-    Builder<List<String>> fks = ImmutableList.builder();
-    fks.add(Arrays.asList(fkName, fkTable, "XWL_ID", "XWL_ID"));
-    fks.add(Arrays.asList(fkName, fkTable, "XWL_NAME", "XWL_NAME"));
-    expectModifyIdColumn(table, fks.build(), 1);
+    addForeignKey(fkName, fkTable, "XWL_ID", table, "XWL_ID");
+    addForeignKey(fkName, fkTable, "XWL_NAME", table, "XWL_NAME");
+    expectModifyIdColumn(table, 1);
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable + " drop foreign key "
         + fkName)).andReturn(1).once();
     expectModifyIdColumn("xwikilistitems");
@@ -133,10 +134,9 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     String table = "xwikiproperties";
     String fkTable1 = "xwikistrings";
     String fkName1 = "FK2780715A3433FD87";
-    Builder<List<String>> fks = ImmutableList.builder();
-    fks.add(Arrays.asList(fkName1, fkTable1, "XWS_ID", "XWP_ID"));
-    fks.add(Arrays.asList(fkName1, fkTable1, "XWS_NAME", "XWP_NAME"));
-    expectModifyIdColumn(table, fks.build(), new XWikiException());
+    addForeignKey(fkName1, fkTable1, "XWS_ID", table, "XWP_ID");
+    addForeignKey(fkName1, fkTable1, "XWS_NAME", table, "XWP_NAME");
+    expectModifyIdColumn(table, new XWikiException());
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " drop foreign key "
         + fkName1)).andReturn(1).once();
     // FK has to be readded, even after exception occured
@@ -158,7 +158,7 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     builder.add(createMapping("entity_None", table + "_none", null));
     expectModifyIdColumn(table);
     expect(hibCfgMock.getClassMappings()).andReturn(builder.build().iterator()).once();
-    expectIdColumnLoad();
+    expectInformationSchemaLoad();
     replayDefault();
     migration.migrate(null, getContext());
     verifyDefault();
@@ -179,16 +179,13 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
   }
 
   private void expectModifyIdColumn(String table) throws XWikiException {
-    expectModifyIdColumn(table, Collections.<List<String>>emptyList(), 1);
+    expectModifyIdColumn(table, 1);
   }
 
-  private void expectModifyIdColumn(String table, List<List<String>> fks, Object ret)
-      throws XWikiException {
+  private void expectModifyIdColumn(String table, Object ret) throws XWikiException {
     addColumn(table);
-    expect(queryExecMock.executeReadSql(String.class, getLoadForeignKeysSql(table, PREFIX
-        + getContext().getDatabase()))).andReturn(fks).once();
-    IExpectationSetters<Integer> exp = expect(queryExecMock.executeWriteSQL(
-        getExpectedModifyIdColumnSql(table)));
+    IExpectationSetters<Integer> exp = expect(queryExecMock.executeWriteSQL(getModifyIdColumnSql(
+        table, createIdColumnName(table))));
     if (ret instanceof Integer) {
       exp.andReturn((Integer) ret).once();
     } else if (ret instanceof Throwable) {
@@ -196,51 +193,54 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     }
   }
 
-  @Test
-  public void test_getModifyIdColumnSql() throws Exception {
-    String table = "xwikiobjects";
-    addColumn(table);
-    expectIdColumnLoad();
-
-    replayDefault();
-    migration.idColumns.load();
-    assertEquals(getExpectedModifyIdColumnSql(table), migration.getModifyIdColumnSql(table));
-    verifyDefault();
+  private void addColumn(String table) {
+    idColumnBuilder.add(ImmutableList.of(table, createIdColumnName(table), "int"));
   }
 
-  private String getExpectedModifyIdColumnSql(String table) {
-    return "alter table " + table + " modify column " + createIdColumnName(table)
-        + " bigint not null";
+  private void addForeignKey(String name, String table, String col, String referencedTable,
+      String referencedCol) {
+    foreignKeyBuilder.add(Arrays.asList(name, table, col, referencedTable, referencedCol));
+  }
+
+  private void expectInformationSchemaLoad() throws XWikiException {
+    expect(queryExecMock.executeReadSql(String.class, getLoadColumnsSql(getTestDb()))).andReturn(
+        idColumnBuilder.build()).anyTimes();
+    expect(queryExecMock.executeReadSql(String.class, getLoadForeignKeysSql(
+        getTestDb()))).andReturn(foreignKeyBuilder.build()).anyTimes();
+  }
+
+  @Test
+  public void test_getModifyIdColumnSql() throws Exception {
+    replayDefault();
+    assertEquals("alter table tbl modify column TBL_ID bigint not null", getModifyIdColumnSql("tbl",
+        createIdColumnName("tbl")));
+    verifyDefault();
   }
 
   @Test
   public void test_getLoadForeignKeysSql() throws Exception {
-    assertEquals("select CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_COLUMN_NAME "
-        + "from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_SCHEMA = 'db' and "
-        + "REFERENCED_TABLE_NAME = 'xwikiproperties' order by CONSTRAINT_NAME, ORDINAL_POSITION",
-        getLoadForeignKeysSql("xwikiproperties", "db"));
+    assertEquals("select CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, "
+        + "REFERENCED_COLUMN_NAME from INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
+        + "where TABLE_SCHEMA = 'db' and REFERENCED_TABLE_NAME is not null "
+        + "order by REFERENCED_TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION",
+        getLoadForeignKeysSql("db"));
   }
 
   @Test
   public void test_getLoadColumnsSql() throws Exception {
-    assertEquals("select k.TABLE_NAME, k.COLUMN_NAME from INFORMATION_SCHEMA.KEY_COLUMN_USAGE as k,"
-        + " INFORMATION_SCHEMA.COLUMNS as c where k.TABLE_SCHEMA = 'db' and"
-        + " k.CONSTRAINT_NAME = 'PRIMARY' and k.COLUMN_NAME like '%_ID' and c.DATA_TYPE = 'int' and"
-        + " k.TABLE_SCHEMA = c.TABLE_SCHEMA and k.TABLE_NAME = c.TABLE_NAME and"
-        + " k.COLUMN_NAME = c.COLUMN_NAME group by k.TABLE_NAME", getLoadColumnsSql("db"));
-  }
-
-  private void expectIdColumnLoad() throws XWikiException {
-    expect(queryExecMock.executeReadSql(String.class, getLoadColumnsSql(PREFIX
-        + getContext().getDatabase()))).andReturn(idColumnBuilder.build()).once();
-  }
-
-  private void addColumn(String table) {
-    idColumnBuilder.add(ImmutableList.of(table, createIdColumnName(table)));
+    assertEquals("select k.TABLE_NAME, k.COLUMN_NAME, c.DATA_TYPE "
+        + "from INFORMATION_SCHEMA.KEY_COLUMN_USAGE as k, INFORMATION_SCHEMA.COLUMNS as c "
+        + "where k.TABLE_SCHEMA = 'db' and k.CONSTRAINT_NAME = 'PRIMARY' and k.COLUMN_NAME "
+        + "like '%_ID' and k.TABLE_SCHEMA = c.TABLE_SCHEMA and k.TABLE_NAME = c.TABLE_NAME and "
+        + "k.COLUMN_NAME = c.COLUMN_NAME group by k.TABLE_NAME", getLoadColumnsSql("db"));
   }
 
   private String createIdColumnName(String table) {
     return table.toUpperCase() + "_ID";
+  }
+
+  private String getTestDb() {
+    return PREFIX + getContext().getDatabase();
   }
 
 }
