@@ -20,6 +20,7 @@
  */
 package com.celements.store;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,12 +61,16 @@ import com.celements.model.metadata.ImmutableDocumentMetaData;
 import com.celements.model.util.ModelUtils;
 import com.celements.model.util.References;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.doc.XWikiLink;
 import com.xpn.xwiki.doc.XWikiLock;
+import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.store.XWikiCacheStoreInterface;
 import com.xpn.xwiki.store.XWikiStoreInterface;
@@ -248,6 +253,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   @Override
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
       throws XWikiException {
+    logXWikiDoc("saveXWikiDoc - cache", doc);
     getBackingStore().saveXWikiDoc(doc, context, bTransaction);
     doc.setStore(this.store);
     removeDocFromCache(doc, true);
@@ -369,6 +375,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
     LOGGER.trace("Cache: begin for docRef '{}' in cache", doc.getDocumentReference());
     DocumentReference contextDocRef = getDocRefContextDb(doc);
+    XWikiDocument ret;
     String key = getKey(contextDocRef);
     String keyWithLang = getKeyWithLang(doc);
     if (doesNotExistsForKey(key) || doesNotExistsForKey(keyWithLang)) {
@@ -378,7 +385,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
       // Make sure to always return a document with an original version, even for one that does
       // not exist. This allows to write more generic code.
       doc.setOriginalDocument(new XWikiDocument(contextDocRef));
-      return doc;
+      ret = doc;
     } else {
       LOGGER.debug("Cache: Trying to get doc '{}' from cache", keyWithLang);
       XWikiDocument cachedoc = getDocFromCache(keyWithLang);
@@ -388,8 +395,25 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
         cachedoc = getDocumentLoader(keyWithLang).loadDocument(keyWithLang, doc, context);
       }
       LOGGER.trace("Cache: end for doc '{}' in cache", keyWithLang);
-      return cachedoc;
+      ret = cachedoc;
     }
+    logXWikiDoc("loadXWikiDoc - cache", doc);
+    return ret;
+  }
+
+  // TODO remove again after debugging
+  private void logXWikiDoc(String msg, XWikiDocument doc) {
+    List<String> objects = new ArrayList<>();
+    for (BaseObject obj : FluentIterable.from(Iterables.concat(doc.getXObjects().values())).filter(
+        Predicates.notNull())) {
+      if (obj.hasValidId()) {
+        objects.add(obj.getIdVersion() + "_" + obj.getId());
+      } else {
+        objects.add(obj.getId() + " " + obj.getGuid());
+      }
+    }
+    LOGGER.error(msg + ": {} {} {}", doc.getId(), modelUtils.serializeRef(
+        doc.getDocumentReference()), objects);
   }
 
   private DocumentReference getDocRefContextDb(XWikiDocument doc) {
