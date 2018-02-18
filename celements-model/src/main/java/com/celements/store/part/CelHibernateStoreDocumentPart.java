@@ -21,6 +21,8 @@ import org.xwiki.model.reference.WikiReference;
 
 import com.celements.store.CelHibernateStore;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicates;
+import com.google.common.collect.FluentIterable;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -440,8 +442,17 @@ public class CelHibernateStoreDocumentPart {
 
   private void logXWikiDoc(String msg, XWikiDocument doc) {
     if (LOGGER.isInfoEnabled()) {
-      LOGGER.info(msg + ": {} {}", doc.getId(), store.getModelUtils().serializeRef(
-          doc.getDocumentReference()));
+      msg += ": {} {}";
+      List<String> objects = new ArrayList<>();
+      if (LOGGER.isTraceEnabled()) {
+        for (BaseObject obj : FluentIterable.concat(doc.getXObjects().values()).filter(
+            Predicates.notNull())) {
+          objects.add(obj.getIdVersion() + "_" + obj.getId());
+        }
+        msg += " {}";
+      }
+      LOGGER.info(msg, doc.getId(), store.getModelUtils().serializeRef(doc.getDocumentReference()),
+          objects);
     }
   }
 

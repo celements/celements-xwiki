@@ -389,7 +389,7 @@ public class CelHibernateStoreCollectionPart {
 
   private void logXObject(String msg, BaseCollection obj) {
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(msg + ": {} [{}] {}_{}_{}", obj.getId(), obj.getIdVersion(),
+      LOGGER.debug(msg + ": {}_{} {}_{}_{}", obj.getId(), obj.getIdVersion(),
           store.getModelUtils().serializeRef(obj.getDocumentReference()),
           store.getModelUtils().serializeRefLocal(obj.getXClassReference()), obj.getNumber());
     }
