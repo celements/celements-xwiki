@@ -36,8 +36,6 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
   static final List<String> XWIKI_TABLES = ImmutableList.of("xwikiclasses", "xwikiclassesprop",
       "xwikiobjects", "xwikiproperties", "xwikistatsdoc", "xwikistatsreferer", "xwikistatsvisit");
 
-  private InformationSchema informationSchema;
-
   @Requirement
   private HibernateSessionFactory sessionFactory;
 
@@ -46,6 +44,8 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   @Requirement
   private ModelContext context;
+
+  private InformationSchema informationSchema;
 
   @Override
   public String getName() {
@@ -84,7 +84,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   private void migrateXWikiTables() throws XWikiException {
     for (String table : XWIKI_TABLES) {
-      LOGGER.info("[{}] try id column migration for xwiki table", table);
+      LOGGER.debug("[{}] try id column migration for xwiki table", table);
       migrateTable(table);
     }
   }
@@ -94,11 +94,11 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     for (Iterator<PersistentClass> iter = getHibConfig().getClassMappings(); iter.hasNext();) {
       PersistentClass mapping = iter.next();
       String table = mapping.getTable().getName();
-      LOGGER.info("[{}] try id column migration for mapped table", table);
+      LOGGER.debug("[{}] try id column migration for mapped table", table);
       if (isMappingWithLongPrimaryKey(mapping)) {
         migrateTable(table);
       } else {
-        LOGGER.info("[{}] skip table, id isn't mapped as long", table);
+        LOGGER.debug("[{}] skip table, id isn't mapped as long", table);
       }
     }
   }
@@ -135,7 +135,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
       if ("int".equals(data.getPkDataType())) {
         validated = true;
       } else {
-        LOGGER.info("[{}] skip table, id column type is [{}]", table, data.getPkDataType());
+        LOGGER.debug("[{}] skip table, id column type is [{}]", table, data.getPkDataType());
       }
     } catch (IllegalArgumentException iae) {
       LOGGER.warn("[{}] skip table, no TableSchemaData", table, iae);
@@ -149,11 +149,11 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   private void addForeignKeys(String table, Collection<ForeignKey> foreignKeys) {
     if (foreignKeys.size() > 0) {
-      LOGGER.info("[{}] add {} FKs", table, foreignKeys.size());
+      LOGGER.debug("[{}] add {} FKs", table, foreignKeys.size());
     }
     for (ForeignKey fk : foreignKeys) {
       try {
-        LOGGER.debug("[{}] adding {}", table, fk);
+        LOGGER.trace("[{}] adding {}", table, fk);
         queryExecutor.executeWriteSQL(fk.getAddSql());
       } catch (XWikiException xwe) {
         LOGGER.error("[{}] failed to add {}", table, fk, xwe);
