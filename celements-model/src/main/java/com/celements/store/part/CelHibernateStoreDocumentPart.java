@@ -448,7 +448,11 @@ public class CelHibernateStoreDocumentPart {
       if (LOGGER.isTraceEnabled()) {
         for (BaseObject obj : FluentIterable.from(Iterables.concat(
             doc.getXObjects().values())).filter(Predicates.notNull())) {
-          objects.add(obj.getIdVersion() + "_" + obj.getId());
+          if (obj.hasValidId()) {
+            objects.add(obj.getIdVersion() + "_" + obj.getId());
+          } else {
+            objects.add(obj.getId() + " " + obj.getGuid());
+          }
         }
         msg += " {}";
       }
