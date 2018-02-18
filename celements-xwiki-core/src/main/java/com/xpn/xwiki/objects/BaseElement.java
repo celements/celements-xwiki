@@ -273,6 +273,10 @@ public abstract class BaseElement implements ElementInterface, Serializable
         try {
             element = getClass().newInstance();
 
+            if (element.hasValidId()) {
+              element.setId(getId(), getIdVersion());
+            }
+
             // Make sure we clone either the reference or the name depending on which one is used.
             if (this.reference != null) {
                 element.setDocumentReference(getDocumentReference());
