@@ -23,6 +23,7 @@ import com.celements.store.CelHibernateStore;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -445,8 +446,8 @@ public class CelHibernateStoreDocumentPart {
       msg += ": {} {}";
       List<String> objects = new ArrayList<>();
       if (LOGGER.isTraceEnabled()) {
-        for (BaseObject obj : FluentIterable.concat(doc.getXObjects().values()).filter(
-            Predicates.notNull())) {
+        for (BaseObject obj : FluentIterable.from(Iterables.concat(
+            doc.getXObjects().values())).filter(Predicates.notNull())) {
           objects.add(obj.getIdVersion() + "_" + obj.getId());
         }
         msg += " {}";
