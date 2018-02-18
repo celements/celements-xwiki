@@ -156,8 +156,8 @@ public class CelHibernateStoreCollectionPart {
 
   public void loadXWikiCollection(BaseCollection object1, XWikiDocument doc, XWikiContext context,
       boolean bTransaction, boolean alreadyLoaded) throws XWikiException {
-    logXObject("loadXObject - start", object1);
     BaseCollection object = object1;
+    logXObject("loadXObject - start", object);
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -387,11 +387,11 @@ public class CelHibernateStoreCollectionPart {
     logXObject("deleteXObject - end", object);
   }
 
-  private void logXObject(String msg, BaseCollection object) {
+  private void logXObject(String msg, BaseCollection obj) {
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(msg + ": {} {}_{}_{}", object.getId(), store.getModelUtils().serializeRef(
-          object.getDocumentReference()), store.getModelUtils().serializeRefLocal(
-              object.getXClassReference()), object.getNumber());
+      LOGGER.debug(msg + ": {} [{}] {}_{}_{}", obj.getId(), obj.getIdVersion(),
+          store.getModelUtils().serializeRef(obj.getDocumentReference()),
+          store.getModelUtils().serializeRefLocal(obj.getXClassReference()), obj.getNumber());
     }
   }
 

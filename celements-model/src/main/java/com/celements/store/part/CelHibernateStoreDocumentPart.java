@@ -154,6 +154,7 @@ public class CelHibernateStoreDocumentPart {
                 obj.setGuid(UUID.randomUUID().toString());
               }
               if (!obj.hasValidId()) {
+                LOGGER.trace("obj [{}] has invalid id [{}]", obj.getId(), obj.getIdVersion());
                 long nextId = store.getIdComputer().computeNextObjectId(doc);
                 obj.setId(nextId, store.getIdComputer().getIdVersion());
               }
