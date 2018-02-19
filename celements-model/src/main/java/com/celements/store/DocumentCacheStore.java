@@ -397,7 +397,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
       LOGGER.trace("Cache: end for doc '{}' in cache", keyWithLang);
       ret = cachedoc;
     }
-    logXWikiDoc("loadXWikiDoc - cache", doc);
+    logXWikiDoc("loadXWikiDoc - cache", ret);
     return ret;
   }
 
