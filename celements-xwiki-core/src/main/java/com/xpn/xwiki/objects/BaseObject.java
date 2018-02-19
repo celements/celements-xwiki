@@ -171,18 +171,17 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
         return displayEdit(name, "", context);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseCollection#clone()
-     */
     @Override
-    public Object clone()
-    {
-        BaseObject object = (BaseObject) super.clone();
-        object.setGuid(getGuid());
+    public Object clone() {
+        return clone(true);
+    }
 
-        return object;
+    protected BaseObject clone(boolean keepsIdentity) {
+        BaseObject clone = (BaseObject) super.clone(keepsIdentity);
+        if (keepsIdentity) {
+          clone.setGuid(getGuid());
+        }
+        return clone;
     }
 
     /**
@@ -191,13 +190,8 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
      *
      * @since 2.2.3
      */
-    public BaseObject duplicate()
-    {
-        BaseObject object = (BaseObject) clone();
-        // Set a new GUID for the duplicate
-        object.setGuid(UUID.randomUUID().toString());
-
-        return object;
+    public BaseObject duplicate() {
+        return clone(false);
     }
 
     /**

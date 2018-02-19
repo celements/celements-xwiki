@@ -616,28 +616,25 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseElement#clone()
-     */
     @Override
-    public Object clone()
-    {
-        BaseCollection collection = (BaseCollection) super.clone();
-        collection.setXClassReference(getRelativeXClassReference());
-        collection.setNumber(getNumber());
+    public Object clone() {
+        return clone(true);
+    }
+
+    protected BaseCollection clone(boolean keepsIdentity) {
+        BaseCollection clone = (BaseCollection) super.clone(keepsIdentity);
+        clone.setXClassReference(getRelativeXClassReference());
+        clone.setNumber(getNumber());
         Map fields = getFields();
         Map cfields = new HashMap();
         for (Object objEntry : fields.entrySet()) {
             Map.Entry entry = (Map.Entry) objEntry;
             PropertyInterface prop = (PropertyInterface) ((BaseElement) entry.getValue()).clone();
-            prop.setObject(collection);
+            prop.setObject(clone);
             cfields.put(entry.getKey(), prop);
         }
-        collection.setFields(cfields);
-
-        return collection;
+        clone.setFields(cfields);
+        return clone;
     }
 
     public void merge(BaseObject object)

@@ -20,6 +20,7 @@
  */
 package com.xpn.xwiki.objects;
 
+import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.test.AbstractBridgedComponentTestCase;
 import org.junit.Assert;
 import org.junit.Test;
@@ -117,5 +118,27 @@ public class BaseObjectTest extends AbstractBridgedComponentTestCase
         Assert.assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
         Assert.assertEquals("otherspace", baseObject.getDocumentReference().getLastSpaceReference().getName());
         Assert.assertEquals("otherpage", baseObject.getDocumentReference().getName());
+    }
+
+    @Test
+    public void test_clone() {
+      BaseObject obj = new BaseObject();
+      obj.setId(5, IdVersion.XWIKI_2);
+      BaseObject clone = (BaseObject) obj.clone();
+      Assert.assertEquals(obj.getGuid(), clone.getGuid());
+      Assert.assertTrue(clone.hasValidId());
+      Assert.assertEquals(obj.getId(), clone.getId());
+      Assert.assertEquals(obj.getIdVersion(), clone.getIdVersion());
+    }
+
+    @Test
+    public void test_duplicate() {
+      BaseObject obj = new BaseObject();
+      obj.setId(5, IdVersion.XWIKI_2);
+      BaseObject duplicate = obj.duplicate();
+      Assert.assertNotNull(duplicate.getGuid());
+      Assert.assertNotEquals(obj.getGuid(), duplicate.getGuid());
+      Assert.assertFalse(duplicate.hasValidId());
+      Assert.assertEquals(0, duplicate.getId());
     }
 }
