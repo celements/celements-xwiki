@@ -89,12 +89,14 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     verifyCount(collisionCount, BITS_COLLISION_COUNT);
     verifyCount(objectCount, BITS_OBJECT_COUNT);
     long docId = hashMD5(serializeLocalUid(docRef, lang));
-    long center = andifyLeft(andifyRight(docId, BITS_OBJECT_COUNT), BITS_COLLISION_COUNT);
-    byte bitsRight = 64 - BITS_COLLISION_COUNT;
-    long left = andifyRight(((long) collisionCount) << bitsRight, bitsRight);
-    byte bitsLeft = 64 - BITS_OBJECT_COUNT;
-    long right = andifyLeft(objectCount, bitsLeft);
-    return left & center & right;
+    long left = andifyRight(docId, (byte) (BITS_COLLISION_COUNT + BITS_OBJECT_COUNT));
+    long right = andifyLeft(collisionCount, inverseCount(BITS_COLLISION_COUNT));
+    right = (right << BITS_OBJECT_COUNT) + objectCount;
+    return left & right;
+  }
+
+  private byte inverseCount(byte count) {
+    return (byte) (64 - count);
   }
 
   long andifyLeft(long base, byte bits) {
