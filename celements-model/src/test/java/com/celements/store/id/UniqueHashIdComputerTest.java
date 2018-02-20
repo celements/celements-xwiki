@@ -170,6 +170,11 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_computeMaxDocumentId() throws Exception {
+    assertEquals(0xf0da7f3f8545f000L, idComputer.computeMaxDocumentId(docRef, lang));
+  }
+
+  @Test
   public void test_computeDocumentId_doc() throws Exception {
     XWikiDocument doc = new XWikiDocument(docRef);
     doc.setLanguage(lang);

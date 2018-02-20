@@ -42,8 +42,13 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   @Override
   public long computeDocumentId(DocumentReference docRef, String lang)
       throws IdComputationException {
-    byte collisionCount = 0;
-    return computeDocumentId(docRef, lang, collisionCount);
+    return computeDocumentId(docRef, lang, (byte) 0);
+  }
+
+  @Override
+  public long computeMaxDocumentId(DocumentReference docRef, String lang)
+      throws IdComputationException {
+    return computeDocumentId(docRef, lang, getMaxCollisionCount());
   }
 
   @Override
@@ -81,7 +86,18 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   private long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {
     checkNotNull(doc);
     byte collisionCount = 0;
+    if (doc.hasValidId() && (doc.getIdVersion() == getIdVersion())) {
+      collisionCount = extractCollisionCount(doc.getId());
+    }
     return computeId(doc.getDocumentReference(), doc.getLanguage(), collisionCount, objectCount);
+  }
+
+  private byte extractCollisionCount(long id) {
+    return (byte) ((id >> BITS_OBJECT_COUNT) & getMaxCollisionCount());
+  }
+
+  private byte getMaxCollisionCount() {
+    return ~(-1 << BITS_COLLISION_COUNT);
   }
 
   long computeId(DocumentReference docRef, String lang, byte collisionCount, int objectCount)
