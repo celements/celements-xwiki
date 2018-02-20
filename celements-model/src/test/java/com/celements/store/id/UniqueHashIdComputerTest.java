@@ -157,13 +157,16 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     replayDefault();
     for (int i = 0; i < illegalIds.size(); i++) {
       final int objCount = i;
-      new ExceptionAsserter<IdComputationException>(IdComputationException.class) {
+      Throwable cause = new ExceptionAsserter<IdComputationException>(
+          IdComputationException.class) {
 
         @Override
         protected void execute() throws IdComputationException {
           idComputer.computeId(docRef, lang, (byte) 0, objCount);
         }
-      }.evaluate().getMessage().contains(IdVersion.XWIKI_2.name());
+      }.evaluate().getCause();
+      assertSame(VerifyException.class, cause.getClass());
+      assertTrue(cause.getMessage().contains(IdVersion.XWIKI_2.name()));
     }
     verifyDefault();
   }
