@@ -34,6 +34,11 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   @Requirement
   private ModelUtils modelUtils;
 
+  /**
+   * intended for test purposes only
+   */
+  MessageDigest injectedDigest;
+
   @Override
   public IdVersion getIdVersion() {
     return IdVersion.CELEMENTS_3;
@@ -108,7 +113,12 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     long left = andifyRight(docId, (byte) (BITS_COLLISION_COUNT + BITS_OBJECT_COUNT));
     long right = andifyLeft(collisionCount, inverseCount(BITS_COLLISION_COUNT));
     right = (right << BITS_OBJECT_COUNT) + objectCount;
-    return left & right;
+    long id = left & right;
+    if ((id > Integer.MAX_VALUE) || (id < Integer.MIN_VALUE)) {
+      return id;
+    } else {
+      throw new IdComputationException("generated id may collide with " + IdVersion.XWIKI_2);
+    }
   }
 
   private byte inverseCount(byte count) {
@@ -136,12 +146,20 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
    * @return first 8 bytes of MD5 hash from given string
    */
   long hashMD5(String str) throws IdComputationException {
+    MessageDigest digest = getMessageDigest();
+    digest.update(str.getBytes(StandardCharsets.UTF_8));
+    return Longs.fromByteArray(digest.digest());
+  }
+
+  private MessageDigest getMessageDigest() throws IdComputationException {
     try {
-      MessageDigest digest = MessageDigest.getInstance(HASH_ALGO);
-      digest.update(str.getBytes(StandardCharsets.UTF_8));
-      return Longs.fromByteArray(digest.digest());
+      if (injectedDigest == null) {
+        return MessageDigest.getInstance(HASH_ALGO);
+      } else {
+        return injectedDigest;
+      }
     } catch (NoSuchAlgorithmException exc) {
-      throw new IdComputationException("failed calculating hash", exc);
+      throw new IdComputationException("illegal hash algorithm", exc);
     }
   }
 

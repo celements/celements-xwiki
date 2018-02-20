@@ -1,6 +1,12 @@
 package com.celements.store.id;
 
+import static com.celements.common.test.CelementsTestUtils.*;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+
+import java.security.MessageDigest;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +16,7 @@ import com.celements.common.test.AbstractComponentTest;
 import com.celements.common.test.ExceptionAsserter;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
 import com.google.common.base.VerifyException;
+import com.google.common.primitives.Longs;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.web.Utils;
@@ -135,6 +142,30 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     }.evaluate().getCause();
     assertSame(VerifyException.class, cause.getClass());
     assertTrue(cause.getMessage().contains("outside of defined range"));
+  }
+
+  @Test
+  public void test_computeId_illegalId_XWIKI_2() throws Exception {
+    List<Integer> illegalIds = Arrays.asList(0, Integer.MAX_VALUE, -1, Integer.MIN_VALUE);
+    MessageDigest digestMock = createMockAndAddToDefault(MessageDigest.class);
+    idComputer.injectedDigest = digestMock;
+    digestMock.update(isA(byte[].class));
+    expectLastCall().times(illegalIds.size());
+    for (Integer id : illegalIds) {
+      expect(digestMock.digest()).andReturn(Longs.toByteArray(id)).once();
+    }
+    replayDefault();
+    for (int i = 0; i < illegalIds.size(); i++) {
+      final int objCount = i;
+      new ExceptionAsserter<IdComputationException>(IdComputationException.class) {
+
+        @Override
+        protected void execute() throws IdComputationException {
+          idComputer.computeId(docRef, lang, (byte) 0, objCount);
+        }
+      }.evaluate().getMessage().contains(IdVersion.XWIKI_2.name());
+    }
+    verifyDefault();
   }
 
   @Test
