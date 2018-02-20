@@ -23,6 +23,15 @@ public interface CelementsIdComputer {
       throws IdComputationException;
 
   /**
+   * @return computes the maximum id (regarding collision detection) for the given document and
+   *         language
+   * @throws IdComputationException
+   *           if unable to compute an id
+   */
+  long computeMaxDocumentId(@NotNull DocumentReference docRef, @Nullable String lang)
+      throws IdComputationException;
+
+  /**
    * @return computes the id for the given document, language and collision count
    * @throws IdComputationException
    *           if unable to compute an id

@@ -42,8 +42,13 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   @Override
   public long computeDocumentId(DocumentReference docRef, String lang)
       throws IdComputationException {
-    byte collisionCount = 0;
-    return computeDocumentId(docRef, lang, collisionCount);
+    return computeDocumentId(docRef, lang, (byte) 0);
+  }
+
+  @Override
+  public long computeMaxDocumentId(DocumentReference docRef, String lang)
+      throws IdComputationException {
+    return computeDocumentId(docRef, lang, getMaxCollisionCount());
   }
 
   @Override
@@ -81,7 +86,18 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   private long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {
     checkNotNull(doc);
     byte collisionCount = 0;
+    if (doc.hasValidId() && (doc.getIdVersion() == getIdVersion())) {
+      collisionCount = extractCollisionCount(doc.getId());
+    }
     return computeId(doc.getDocumentReference(), doc.getLanguage(), collisionCount, objectCount);
+  }
+
+  private byte extractCollisionCount(long id) {
+    return (byte) ((id >> BITS_OBJECT_COUNT) & getMaxCollisionCount());
+  }
+
+  private byte getMaxCollisionCount() {
+    return ~(-1 << BITS_COLLISION_COUNT);
   }
 
   long computeId(DocumentReference docRef, String lang, byte collisionCount, int objectCount)
@@ -89,12 +105,14 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     verifyCount(collisionCount, BITS_COLLISION_COUNT);
     verifyCount(objectCount, BITS_OBJECT_COUNT);
     long docId = hashMD5(serializeLocalUid(docRef, lang));
-    long center = andifyLeft(andifyRight(docId, BITS_OBJECT_COUNT), BITS_COLLISION_COUNT);
-    byte bitsRight = 64 - BITS_COLLISION_COUNT;
-    long left = andifyRight(((long) collisionCount) << bitsRight, bitsRight);
-    byte bitsLeft = 64 - BITS_OBJECT_COUNT;
-    long right = andifyLeft(objectCount, bitsLeft);
-    return left & center & right;
+    long left = andifyRight(docId, (byte) (BITS_COLLISION_COUNT + BITS_OBJECT_COUNT));
+    long right = andifyLeft(collisionCount, inverseCount(BITS_COLLISION_COUNT));
+    right = (right << BITS_OBJECT_COUNT) + objectCount;
+    return left & right;
+  }
+
+  private byte inverseCount(byte count) {
+    return (byte) (64 - count);
   }
 
   long andifyLeft(long base, byte bits) {
