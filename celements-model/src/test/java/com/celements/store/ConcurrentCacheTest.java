@@ -38,7 +38,6 @@ import org.xwiki.context.Execution;
 import org.xwiki.context.ExecutionContext;
 import org.xwiki.context.ExecutionContextException;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.WikiReference;
 
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.store.DocumentCacheStore.InvalidateState;
@@ -76,7 +75,6 @@ public class ConcurrentCacheTest extends AbstractComponentTest {
   private final static AtomicBoolean fastFail = new AtomicBoolean();
 
   private final String wikiName = "testWiki";
-  private final WikiReference wikiRef = new WikiReference(wikiName);
   private final String testFullName = "TestSpace.TestDoc";
   private XWikiConfig configMock;
   private SessionFactory sessionFactoryMock;
