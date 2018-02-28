@@ -170,15 +170,13 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
   }
 
   @Override
-  public boolean existsConstraint(String database, String table, String name)
-      throws XWikiException {
+  public boolean existsIndex(String database, String table, String name) throws XWikiException {
     return executeReadSql(String.class, checkIfIndexExists(database, table, name)).size() > 0;
   }
 
   private String checkIfIndexExists(String database, String table, String name) {
-    return "select CONSTRAINT_NAME from INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
-        + "where TABLE_SCHEMA = '" + database + "' " + "and TABLE_NAME = '" + table + "' "
-        + "and CONSTRAINT_NAME = '" + name + "';";
+    return "select INDEX_NAME from INFORMATION_SCHEMA.STATISTICS where TABLE_SCHEMA = '" + database
+        + "' " + "and TABLE_NAME = '" + table + "' " + "and INDEX_NAME = '" + name + "';";
   }
 
 }
