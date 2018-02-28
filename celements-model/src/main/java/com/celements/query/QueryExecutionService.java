@@ -1,8 +1,9 @@
 package com.celements.query;
 
+import static com.google.common.base.MoreObjects.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,6 @@ import org.xwiki.query.QueryException;
 import com.celements.model.access.ContextExecutor;
 import com.celements.model.context.ModelContext;
 import com.celements.model.util.ModelUtils;
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
@@ -39,49 +39,83 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
   private ModelContext context;
 
   @Override
+  public <T> List<List<T>> executeReadSql(Class<T> type, String sql) throws XWikiException {
+    Session session = null;
+    try {
+      session = getNewHibSession();
+      List<?> result = session.createSQLQuery(sql).list();
+      return harmoniseResult(type, result);
+    } catch (HibernateException hibExc) {
+      throw new XWikiException(0, 0, "error while executing sql", hibExc);
+    } finally {
+      if (session != null) {
+        session.close();
+      }
+    }
+  }
+
+  private <T> List<List<T>> harmoniseResult(Class<T> type, List<?> result) {
+    List<List<T>> ret = new ArrayList<>();
+    for (Object elem : result) {
+      List<T> resultRow = new ArrayList<>();
+      if (type.isAssignableFrom(elem.getClass())) { // one column selected
+        resultRow.add(type.cast(elem));
+      } else if (elem.getClass().isArray()) { // multiple columns selected
+        for (Object col : ((Object[]) elem)) {
+          resultRow.add(type.cast(col));
+        }
+      }
+      ret.add(resultRow);
+    }
+    return ret;
+  }
+
+  @Override
   public int executeWriteSQL(String sql) throws XWikiException {
     return executeWriteSQLs(Arrays.asList(sql)).get(0);
   }
 
   @Override
   public List<Integer> executeWriteSQLs(List<String> sqls) throws XWikiException {
-    List<Integer> results = new ArrayList<>();
     Session session = null;
     try {
       session = getNewHibSession();
-      for (String sql : sqls) {
-        results.add(executeWriteSQL(session, sql));
-      }
+      return executeWriteSqlInTransaction(session, sqls);
+    } catch (HibernateException hibExc) {
+      throw new XWikiException(0, 0, "error while executing sql", hibExc);
     } finally {
       if (session != null) {
         session.close();
       }
     }
-    return Collections.unmodifiableList(results);
   }
 
-  private Session getNewHibSession() throws XWikiException {
-    Session session = getHibStore().getSessionFactory().openSession();
-    getHibStore().setDatabase(session, context.getXWikiContext());
-    return session;
-  }
-
-  private int executeWriteSQL(Session session, String sql) {
-    int result = -1;
+  private List<Integer> executeWriteSqlInTransaction(Session session, List<String> sqls)
+      throws HibernateException {
+    List<Integer> results = new ArrayList<>();
     Transaction transaction = session.beginTransaction();
+    boolean success = false;
     try {
-      result = session.createSQLQuery(sql).executeUpdate();
-    } catch (HibernateException hibExc) {
-      LOGGER.debug("error while executing sql '{}'", sql, hibExc);
+      for (String sql : sqls) {
+        results.add(session.createSQLQuery(sql).executeUpdate());
+        LOGGER.info("executed sql '{}' for db '{}' returned '{}'", sql, context.getWikiRef(),
+            results.get(results.size() - 1));
+      }
+      success = true;
     } finally {
-      if (result > -1) {
+      if (success) {
         transaction.commit();
       } else {
         transaction.rollback();
       }
     }
-    LOGGER.info("executing sql '{}' for db '{}' returned '{}'", sql, context.getWikiRef(), result);
-    return result;
+    return results;
+  }
+
+  private Session getNewHibSession() throws XWikiException, HibernateException {
+    Session session = getHibStore().getSessionFactory().openSession();
+    getHibStore().setDatabase(session, context.getXWikiContext());
+    return session;
   }
 
   @Override
@@ -99,7 +133,7 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
         HibernateCallback<Integer> callback = new ExecuteWriteCallback(hql, binds);
         return getHibStore().executeWrite(context.getXWikiContext(), true, callback);
       }
-    }.inWiki(Objects.firstNonNull(wikiRef, context.getWikiRef())).execute();
+    }.inWiki(firstNonNull(wikiRef, context.getWikiRef())).execute();
   }
 
   @Override
@@ -133,6 +167,16 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
 
   private XWikiHibernateStore getHibStore() {
     return context.getXWikiContext().getWiki().getHibernateStore();
+  }
+
+  @Override
+  public boolean existsIndex(String database, String table, String name) throws XWikiException {
+    return executeReadSql(String.class, checkIfIndexExists(database, table, name)).size() > 0;
+  }
+
+  private String checkIfIndexExists(String database, String table, String name) {
+    return "select INDEX_NAME from INFORMATION_SCHEMA.STATISTICS where TABLE_SCHEMA = '" + database
+        + "' " + "and TABLE_NAME = '" + table + "' " + "and INDEX_NAME = '" + name + "';";
   }
 
 }

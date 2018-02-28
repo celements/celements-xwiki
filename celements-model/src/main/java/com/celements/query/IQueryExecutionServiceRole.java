@@ -3,6 +3,8 @@ package com.celements.query;
 import java.util.List;
 import java.util.Map;
 
+import javax.validation.constraints.NotNull;
+
 import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
@@ -13,6 +15,10 @@ import com.xpn.xwiki.XWikiException;
 
 @ComponentRole
 public interface IQueryExecutionServiceRole {
+
+  @NotNull
+  public <T> List<List<T>> executeReadSql(@NotNull Class<T> type, @NotNull String sql)
+      throws XWikiException;
 
   public int executeWriteSQL(String sql) throws XWikiException;
 
@@ -26,5 +32,7 @@ public interface IQueryExecutionServiceRole {
   public DocumentReference executeAndGetDocRef(Query query) throws QueryException;
 
   public List<DocumentReference> executeAndGetDocRefs(Query query) throws QueryException;
+
+  public boolean existsIndex(String database, String table, String name) throws XWikiException;
 
 }
