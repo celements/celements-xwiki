@@ -33,4 +33,6 @@ public interface IQueryExecutionServiceRole {
 
   public List<DocumentReference> executeAndGetDocRefs(Query query) throws QueryException;
 
+  public boolean existsIndex(String database, String table, String name) throws XWikiException;
+
 }
