@@ -30,6 +30,7 @@ public class CelHibernateStorePropertyPart {
 
   public void loadXWikiProperty(PropertyInterface property, XWikiContext context,
       boolean bTransaction) throws XWikiException {
+    logXProperty("loadXProperty - start", property);
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -40,19 +41,17 @@ public class CelHibernateStorePropertyPart {
       try {
         session.load(property, (Serializable) property);
         // In Oracle, empty string are converted to NULL. Since an undefined property is not found
-        // at all, it is
-        // safe to assume that a retrieved NULL value should actually be an empty string.
+        // at all, it is safe to assume that a retrieved NULL value should actually be an empty
+        // string.
         if (property instanceof BaseStringProperty) {
           BaseStringProperty stringProperty = (BaseStringProperty) property;
           if (stringProperty.getValue() == null) {
             stringProperty.setValue("");
           }
         }
-      } catch (ObjectNotFoundException e) {
-        // Let's accept that there is no data in property tables
-        // but log it
-        LOGGER.error("No data for property " + property.getName() + " of object id "
-            + property.getId());
+      } catch (ObjectNotFoundException exc) {
+        LOGGER.warn("loadXWikiProperty - no data for property: {} {}", property.getId(),
+            property.getName(), exc);
       }
 
       // TODO: understand why collections are lazy loaded
@@ -81,10 +80,12 @@ public class CelHibernateStorePropertyPart {
       } catch (Exception e) {
       }
     }
+    logXProperty("loadXProperty - end", property);
   }
 
   public void saveXWikiProperty(final PropertyInterface property, final XWikiContext context,
       final boolean runInOwnTransaction) throws XWikiException {
+    logXProperty("saveXProperty - start", property);
     // Clone runInOwnTransaction so the value passed is not altered.
     boolean bTransaction = runInOwnTransaction;
     try {
@@ -97,7 +98,7 @@ public class CelHibernateStorePropertyPart {
 
       final Query query = session.createQuery(
           "select prop.name from BaseProperty as prop where prop.id.id = :id and prop.id.name= :name");
-      query.setInteger("id", property.getId());
+      query.setLong("id", property.getId());
       query.setString("name", property.getName());
 
       if (query.uniqueResult() == null) {
@@ -128,6 +129,16 @@ public class CelHibernateStorePropertyPart {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
           "Exception while saving property {1} of object {0}", e, args);
+    }
+    logXProperty("saveXProperty - end", property);
+  }
+
+  private void logXProperty(String msg, PropertyInterface property) {
+    if (LOGGER.isTraceEnabled()) {
+      BaseCollection obj = property.getObject();
+      LOGGER.trace(msg + ": {} {}_{}_{}_{}", property.getId(), store.getModelUtils().serializeRef(
+          obj.getDocumentReference()), store.getModelUtils().serializeRefLocal(
+              obj.getXClassReference()), obj.getNumber(), property.getName());
     }
   }
 

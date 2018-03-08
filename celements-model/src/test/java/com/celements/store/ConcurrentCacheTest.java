@@ -38,10 +38,10 @@ import org.xwiki.context.Execution;
 import org.xwiki.context.ExecutionContext;
 import org.xwiki.context.ExecutionContextException;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.WikiReference;
 
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.store.DocumentCacheStore.InvalidateState;
+import com.celements.store.id.IdVersion;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.xpn.xwiki.XWiki;
@@ -68,14 +68,13 @@ public class ConcurrentCacheTest extends AbstractComponentTest {
   private volatile XWikiCacheStore theCacheStore;
   private volatile DocumentCacheStore theCacheStoreFixed;
   private volatile Map<DocumentReference, List<BaseObject>> baseObjMap;
-  private volatile Map<Integer, List<String[]>> propertiesMap;
+  private volatile Map<Long, List<String[]>> propertiesMap;
   private volatile DocumentReference testDocRef;
   private static volatile Collection<Object> defaultMocks;
   private static volatile XWikiContext defaultContext;
   private final static AtomicBoolean fastFail = new AtomicBoolean();
 
   private final String wikiName = "testWiki";
-  private final WikiReference wikiRef = new WikiReference(wikiName);
   private final String testFullName = "TestSpace.TestDoc";
   private XWikiConfig configMock;
   private SessionFactory sessionFactoryMock;
@@ -445,7 +444,7 @@ public class ConcurrentCacheTest extends AbstractComponentTest {
   }
 
   private void createPropertiesMap() {
-    Map<Integer, List<String[]>> propertiesMap = new HashMap<>();
+    Map<Long, List<String[]>> propertiesMap = new HashMap<>();
     for (BaseObject templBaseObject : baseObjMap.get(testDocRef)) {
       List<String[]> propList = new ArrayList<>();
       for (Object theObj : templBaseObject.getFieldList()) {
@@ -689,6 +688,7 @@ public class ConcurrentCacheTest extends AbstractComponentTest {
     BaseObject bObj = new BaseObject();
     bObj.setXClassReference(new DocumentReference(classRef.clone()));
     bObj.setNumber(num);
+    bObj.setId(bObj.hashCode(), IdVersion.XWIKI_2);
     return bObj;
   }
 

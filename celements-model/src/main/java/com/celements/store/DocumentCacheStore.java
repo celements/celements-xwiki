@@ -369,6 +369,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
     LOGGER.trace("Cache: begin for docRef '{}' in cache", doc.getDocumentReference());
     DocumentReference contextDocRef = getDocRefContextDb(doc);
+    XWikiDocument ret;
     String key = getKey(contextDocRef);
     String keyWithLang = getKeyWithLang(doc);
     if (doesNotExistsForKey(key) || doesNotExistsForKey(keyWithLang)) {
@@ -378,7 +379,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
       // Make sure to always return a document with an original version, even for one that does
       // not exist. This allows to write more generic code.
       doc.setOriginalDocument(new XWikiDocument(contextDocRef));
-      return doc;
+      ret = doc;
     } else {
       LOGGER.debug("Cache: Trying to get doc '{}' from cache", keyWithLang);
       XWikiDocument cachedoc = getDocFromCache(keyWithLang);
@@ -388,8 +389,9 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
         cachedoc = getDocumentLoader(keyWithLang).loadDocument(keyWithLang, doc, context);
       }
       LOGGER.trace("Cache: end for doc '{}' in cache", keyWithLang);
-      return cachedoc;
+      ret = cachedoc;
     }
+    return ret;
   }
 
   private DocumentReference getDocRefContextDb(XWikiDocument doc) {

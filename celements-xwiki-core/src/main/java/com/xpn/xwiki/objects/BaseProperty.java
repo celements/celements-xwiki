@@ -32,6 +32,7 @@ import org.dom4j.dom.DOMElement;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 
+import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.web.Utils;
 
 /**
@@ -42,8 +43,6 @@ import com.xpn.xwiki.web.Utils;
 public class BaseProperty extends BaseElement implements PropertyInterface, Serializable, Cloneable
 {
     private BaseCollection object;
-
-    private int id;
 
     /**
      * {@inheritDoc}
@@ -91,27 +90,15 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
         return (getId() == ((BaseProperty) el).getId());
     }
 
-    public int getId()
-    {
-        // I hate this.. needed for hibernate to find the object
-        // when loading the collections..
-        if (this.object == null) {
-            return this.id;
-        } else {
-            return getObject().getId();
-        }
+    @Override
+    public long getId() {
+      BaseElement element = getObject() != null ? getObject() : this;
+      return element.getId();
     }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.PropertyInterface#setId(int)
-     */
-    public void setId(int id)
-    {
-        // I hate this.. needed for hibernate to find the object
-        // when loading the collections..
-        this.id = id;
+    
+    // needed for properties because access=field not possible (composite id)
+    public void setId(long id) {
+      setId(id, IdVersion.CELEMENTS_3);
     }
 
     /**

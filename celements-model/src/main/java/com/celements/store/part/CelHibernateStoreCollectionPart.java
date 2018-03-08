@@ -46,6 +46,7 @@ public class CelHibernateStoreCollectionPart {
       if (object == null) {
         return;
       }
+      logXObject("saveXObject - start", object);
       // We need a slightly different behavior here
       boolean stats = (object instanceof XWikiStats);
 
@@ -63,7 +64,7 @@ public class CelHibernateStoreCollectionPart {
       } else {
         query = session.createQuery("select obj.id from BaseObject as obj where obj.id = :id");
       }
-      query.setInteger("id", object.getId());
+      query.setLong("id", object.getId());
       if (query.uniqueResult() == null) {
         if (stats) {
           session.save(object);
@@ -91,7 +92,7 @@ public class CelHibernateStoreCollectionPart {
         Session dynamicSession = session.getSession(EntityMode.MAP);
         query = session.createQuery("select obj.id from " + bclass.getName()
             + " as obj where obj.id = :id");
-        query.setInteger("id", object.getId());
+        query.setLong("id", object.getId());
         if (query.uniqueResult() == null) {
           dynamicSession.save(bclass.getName(), objmap);
         } else {
@@ -150,11 +151,13 @@ public class CelHibernateStoreCollectionPart {
       } catch (Exception e) {
       }
     }
+    logXObject("saveXObject - end", object);
   }
 
   public void loadXWikiCollection(BaseCollection object1, XWikiDocument doc, XWikiContext context,
       boolean bTransaction, boolean alreadyLoaded) throws XWikiException {
     BaseCollection object = object1;
+    logXObject("loadXObject - start", object);
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -164,10 +167,12 @@ public class CelHibernateStoreCollectionPart {
 
       if (!alreadyLoaded) {
         try {
-          session.load(object, new Integer(object1.getId()));
-        } catch (ObjectNotFoundException e) {
+          session.load(object, new Long(object1.getId()));
+        } catch (ObjectNotFoundException exc) {
           // There is no object data saved
           object = null;
+          LOGGER.warn("loadXWikiCollection - no data for object: {} {}_{}", object1.getId(),
+              object1.getClassName(), object1.getNumber(), exc);
           return;
         }
       }
@@ -194,7 +199,7 @@ public class CelHibernateStoreCollectionPart {
           if ((bclass != null) && (bclass.hasCustomMapping())
               && context.getWiki().hasCustomMappings()) {
             Session dynamicSession = session.getSession(EntityMode.MAP);
-            Map<String, ?> map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Integer(
+            Map<String, ?> map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Long(
                 object.getId()));
             // Let's make sure to look for null fields in the dynamic mapping
             bclass.fromValueMap(map, object);
@@ -213,7 +218,7 @@ public class CelHibernateStoreCollectionPart {
 
         Query query = session.createQuery(
             "select prop.name, prop.classType from BaseProperty as prop where prop.id.id = :id");
-        query.setInteger("id", object.getId());
+        query.setLong("id", object.getId());
         List<?> list = query.list();
         Iterator<?> it = list.iterator();
         while (it.hasNext()) {
@@ -296,7 +301,7 @@ public class CelHibernateStoreCollectionPart {
       } catch (Exception e) {
       }
     }
-
+    logXObject("loadXObject - end", object);
   }
 
   public void deleteXWikiCollection(BaseCollection object, XWikiContext context,
@@ -304,6 +309,7 @@ public class CelHibernateStoreCollectionPart {
     if (object == null) {
       return;
     }
+    logXObject("deleteXObject - start", object);
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -318,7 +324,7 @@ public class CelHibernateStoreCollectionPart {
           && context.getWiki().hasCustomMappings()) {
         handledProps = bclass.getCustomMappingPropertyList(context);
         Session dynamicSession = session.getSession(EntityMode.MAP);
-        Object map = dynamicSession.get(bclass.getName(), new Integer(object.getId()));
+        Object map = dynamicSession.get(bclass.getName(), new Long(object.getId()));
         if (map != null) {
           if (evict) {
             dynamicSession.evict(map);
@@ -350,7 +356,7 @@ public class CelHibernateStoreCollectionPart {
         if (object instanceof BaseObject) {
           cobject.setGuid(((BaseObject) object).getGuid());
         }
-        cobject.setId(object.getId());
+        cobject.setId(object.getId(), object.getIdVersion());
         if (evict) {
           session.evict(cobject);
         }
@@ -378,5 +384,15 @@ public class CelHibernateStoreCollectionPart {
       } catch (Exception e) {
       }
     }
+    logXObject("deleteXObject - end", object);
   }
+
+  private void logXObject(String msg, BaseCollection obj) {
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(msg + ": {}_{} {}_{}_{}", obj.getId(), obj.getIdVersion(),
+          store.getModelUtils().serializeRef(obj.getDocumentReference()),
+          store.getModelUtils().serializeRefLocal(obj.getXClassReference()), obj.getNumber());
+    }
+  }
+
 }

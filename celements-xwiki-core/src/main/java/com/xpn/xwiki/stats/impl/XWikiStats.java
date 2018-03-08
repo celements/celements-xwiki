@@ -156,16 +156,6 @@ public class XWikiStats extends BaseCollection
     /**
      * {@inheritDoc}
      * 
-     * @see com.xpn.xwiki.objects.BaseCollection#setId(int)
-     */
-    @Override
-    public void setId(int id)
-    {
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
      * @see com.xpn.xwiki.objects.BaseCollection#clone()
      */
     @Override

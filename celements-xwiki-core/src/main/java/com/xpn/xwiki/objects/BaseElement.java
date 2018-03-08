@@ -21,6 +21,7 @@
 
 package com.xpn.xwiki.objects;
 
+import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -69,6 +70,35 @@ public abstract class BaseElement implements ElementInterface, Serializable
      */
     private EntityReferenceSerializer<String> localEntityReferenceSerializer =
         Utils.getComponent(EntityReferenceSerializer.class, "local");
+
+    private long id;
+
+    private IdVersion idVersion;
+
+    public long getId() {
+      return id;
+    }
+
+    public void setId(long id, IdVersion idVersion) {
+      this.id = id;
+      this.idVersion = idVersion;
+      verifyIdVersion();
+    }
+
+    public boolean hasValidId() {
+      return idVersion != null;
+    }
+
+    public IdVersion getIdVersion() {
+      verifyIdVersion();
+      return idVersion;
+    }
+
+    private void verifyIdVersion() {
+      if (!hasValidId()) {
+        throw new IllegalStateException("no id version set");
+      }
+    }
 
     /**
      * {@inheritDoc}
@@ -231,32 +261,30 @@ public abstract class BaseElement implements ElementInterface, Serializable
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#clone()
-     */
     @Override
-    public Object clone()
-    {
-        BaseElement element;
-        try {
-            element = getClass().newInstance();
+    public Object clone() {
+        return clone(true);
+    }
 
+    protected BaseElement clone(boolean keepsIdentity) {
+        BaseElement clone;
+        try {
+            clone = getClass().newInstance();
+            if (keepsIdentity && hasValidId()) {
+              clone.setId(getId(), getIdVersion());
+            }
             // Make sure we clone either the reference or the name depending on which one is used.
             if (this.reference != null) {
-                element.setDocumentReference(getDocumentReference());
+                clone.setDocumentReference(getDocumentReference());
             } else if (this.name != null) {
-                element.setName(getName());
+                clone.setName(getName());
             }
-
-            element.setPrettyName(getPrettyName());
-        } catch (Exception e) {
-            // This should not happen
-            element = null;
+            clone.setPrettyName(getPrettyName());
+        } catch (Exception exc) {
+            LOG.error("should not happen", exc);
+            clone = null;
         }
-
-        return element;
+        return clone;
     }
 
     /**

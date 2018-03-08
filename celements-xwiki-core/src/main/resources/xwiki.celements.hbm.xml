@@ -2,13 +2,20 @@
 <!DOCTYPE hibernate-mapping PUBLIC
 	"-//Hibernate/Hibernate Mapping DTD//EN"
 	"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
-<hibernate-mapping auto-import="true" schema="dbo">
+<hibernate-mapping auto-import="true">
   <!-- com.xpn.xwiki.doc.XWikiDocument root -->
   <class name="com.xpn.xwiki.doc.XWikiDocument" table="xwikidoc">
     <id name="id" type="long" unsaved-value="undefined">
       <column name="XWD_ID" not-null="true" />
       <generator class="assigned" />
     </id>
+    <property name="idVersion" access="field">
+      <column name="XWD_ID_VERSION" not-null="true" default="0" />
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.celements.store.id.IdVersion</param>
+        <param name="useNamed">false</param>
+      </type>
+    </property>
     <property name="fullName" type="string">
       <column name="XWD_FULLNAME" length="255" not-null="true" />
     </property>
@@ -52,7 +59,7 @@
     <property name="space" type="string">
       <column name="XWD_WEB" length="255" not-null="true" />
     </property>
-    <property name="content" type="text">
+    <property name="content" type="string">
       <column name="XWD_CONTENT" length="200000" not-null="true" />
     </property>
     <property name="version" type="string">
@@ -64,7 +71,7 @@
     <property name="parent" type="string">
       <column name="XWD_PARENT" length="255" not-null="true" />
     </property>
-    <property name="xWikiClassXML" type="text">
+    <property name="xWikiClassXML" type="string">
       <column name="XWD_CLASS_XML" length="40000" not-null="false" />
     </property>
     <property name="elements" type="integer" not-null="true">
@@ -138,9 +145,7 @@
     </natural-id>
     <property name="docName" column="XDA_DOC_NAME" type="string" length="255" />
     <property name="deleter" type="string" column="XDA_DELETER" index="deleter" />
-    <property name="xml" type="text">
-      <column name="XDA_XML" sql-type="varchar(max)" not-null="true" />
-    </property>
+    <property name="xml" type="text" column="XDA_XML" not-null="true" length="1000000000" />
   </class>
   <class name="com.xpn.xwiki.doc.XWikiLock" table="xwikilock">
     <id name="docId" type="long" unsaved-value="undefined">
@@ -210,7 +215,7 @@
   </class>
   <class name="com.xpn.xwiki.objects.classes.PropertyClass" table="xwikiclassesprop">
     <composite-id unsaved-value="undefined">
-      <key-property name="id" column="XWP_ID" type="integer" />
+      <key-property name="id" column="XWP_ID" type="long" />
       <key-property name="name" column="XWP_NAME" type="string" />
     </composite-id>
     <property name="prettyName" type="string">
@@ -225,7 +230,7 @@
     <property name="number" type="integer">
       <column name="XWP_NUMBER" />
     </property>
-    <property name="customDisplay" type="text">
+    <property name="customDisplay" type="string">
       <column name="XWP_CUSTOMDISPLAY" length="60000" />
     </property>
     <property name="validationRegExp" type="string">
@@ -341,14 +346,14 @@
     </joined-subclass>
   </class>
   <class name="com.xpn.xwiki.objects.classes.BaseClass" table="xwikiclasses">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWO_ID" not-null="true" />
       <generator class="assigned" />
     </id>
     <property name="name" type="string">
       <column name="XWO_NAME" not-null="true" length="255" />
     </property>
-    <property name="customMapping" type="text">
+    <property name="customMapping" type="string">
       <column name="XWO_CUSTOM_MAPPING" length="60000" />
     </property>
     <property name="customClass" type="string">
@@ -360,7 +365,7 @@
   </class>
   <class name="com.xpn.xwiki.objects.BaseProperty" table="xwikiproperties">
     <composite-id unsaved-value="undefined">
-      <key-property name="id" column="XWP_ID" type="integer" />
+      <key-property name="id" column="XWP_ID" type="long" />
       <key-property name="name" column="XWP_NAME" type="string" />
     </composite-id>
     <property name="classType" type="string">
@@ -425,7 +430,7 @@
         <column name="XWL_ID" />
         <column name="XWL_NAME" />
       </key>
-      <property name="value" type="text">
+      <property name="value" type="string">
         <column name="XWL_VALUE" length="60000" />
       </property>
     </joined-subclass>
@@ -434,7 +439,7 @@
         <column name="XWL_ID" />
         <column name="XWL_NAME" />
       </key>
-      <property name="textValue" type="text">
+      <property name="textValue" type="string">
         <column name="XWL_VALUE" length="60000" />
       </property>
     </joined-subclass>
@@ -454,10 +459,17 @@
     </joined-subclass>
   </class>
   <class name="com.xpn.xwiki.objects.BaseObject" table="xwikiobjects">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWO_ID" not-null="true" />
       <generator class="assigned" />
     </id>
+    <property name="idVersion" access="field">
+      <column name="XWO_ID_VERSION" not-null="true" default="0" />
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.celements.store.id.IdVersion</param>
+        <param name="useNamed">false</param>
+      </type>
+    </property>
     <property name="number" type="integer">
       <column name="XWO_NUMBER" not-null="false" />
     </property>
@@ -472,7 +484,7 @@
     </property>
   </class>
   <class name="com.xpn.xwiki.stats.impl.DocumentStats" table="xwikistatsdoc">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWS_ID" not-null="true" />
       <generator class="assigned" />
     </id>
@@ -502,7 +514,7 @@
     </property>
   </class>
   <class name="com.xpn.xwiki.stats.impl.RefererStats" table="xwikistatsreferer">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWR_ID" not-null="true" />
       <generator class="assigned" />
     </id>
@@ -515,7 +527,7 @@
     <property name="className" type="string">
       <column name="XWR_CLASSNAME" not-null="true" length="255" />
     </property>
-    <property name="referer" type="text">
+    <property name="referer" type="string">
       <column name="XWR_REFERER" not-null="true" length="8192" />
     </property>
     <property name="pageViews" type="integer">
@@ -526,7 +538,7 @@
     </property>
   </class>
   <class name="com.xpn.xwiki.stats.impl.VisitStats" table="xwikistatsvisit">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" access="field" type="long" unsaved-value="undefined">
       <column name="XWV_ID" not-null="true" />
       <generator class="assigned" />
     </id>
@@ -542,10 +554,10 @@
     <property name="IP" type="string">
       <column name="XWV_IP" not-null="true" length="255" />
     </property>
-    <property name="userAgent" type="text">
+    <property name="userAgent" type="string">
       <column name="XWV_USER_AGENT" not-null="true" length="8192" />
     </property>
-    <property name="cookie" type="text">
+    <property name="cookie" type="string">
       <column name="XWV_COOKIE" not-null="true" length="8192" />
     </property>
     <property name="uniqueID" type="string">
@@ -569,7 +581,7 @@
   </class>
   <!-- XWikiPreferences custom mapping -->
   <class entity-name="XWiki.XWikiPreferences" table="xwikipreferences">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" type="long" unsaved-value="undefined">
       <column name="XWP_ID" not-null="true" />
       <generator class="assigned" />
     </id>
@@ -621,10 +633,10 @@
     <property name="version" type="string">
       <column name="XWP_VERSION" length="255" />
     </property>
-    <property name="menu" type="text">
+    <property name="menu" type="string">
       <column name="XWP_MENU" length="60000" />
     </property>
-    <property name="meta" type="text">
+    <property name="meta" type="string">
       <column name="XWP_META" length="60000" />
     </property>
     <property name="use_email_verification" type="integer">
@@ -636,13 +648,13 @@
     <property name="admin_email" type="string">
       <column name="XWP_ADMIN_EMAIL" length="255" />
     </property>
-    <property name="validation_email_content" type="text">
+    <property name="validation_email_content" type="string">
       <column name="XWP_VALIDATION_EMAIL_CONTENT" length="60000" />
     </property>
-    <property name="confirmation_email_content" type="text">
+    <property name="confirmation_email_content" type="string">
       <column name="XWP_CONFIRMATION_EMAIL_CONTENT" length="60000" />
     </property>
-    <property name="invitation_email_content" type="text">
+    <property name="invitation_email_content" type="string">
       <column name="XWP_INVITATION_EMAIL_CONTENT" length="60000" />
     </property>
     <property name="macros_languages" type="string">
@@ -657,7 +669,7 @@
     <property name="macros_wiki2" type="string">
       <column name="XWP_MACROS_WIKI2" length="255" />
     </property>
-    <property name="macros_mapping" type="text">
+    <property name="macros_mapping" type="string">
       <column name="XWP_MACROS_MAPPING" length="60000" />
     </property>
     <property name="notification_pages" type="string">
@@ -700,22 +712,22 @@
       <column name="XWP_COMMENT_REGISTERED" length="255" />
     </property>
     <property name="documentBundles" type="string">
-      <column name="XWP_DOCUMENT_BUNDLES" length="255" />
+      <column name="XWP_DOCUMENT_BUNDLES" length="2000" />
     </property>
   </class>
   <!-- XWikiComments custom mapping -->
   <class entity-name="XWiki.XWikiComments" table="xwikicomments">
-    <id name="id" type="integer" unsaved-value="undefined">
+    <id name="id" type="long" unsaved-value="undefined">
       <column name="XWC_ID" not-null="true" />
       <generator class="assigned" />
     </id>
     <property name="author" type="string">
       <column name="XWC_AUTHOR" length="255" />
     </property>
-    <property name="highlight" type="text">
+    <property name="highlight" type="string">
       <column name="XWC_HIGHLIGHT" length="60000" />
     </property>
-    <property name="comment" type="text">
+    <property name="comment" type="string">
       <column name="XWC_COMMENT" length="60000" />
     </property>
     <property name="replyto" type="integer">

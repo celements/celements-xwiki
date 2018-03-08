@@ -11,12 +11,24 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @ComponentRole
 public interface CelementsIdComputer {
 
+  @NotNull
+  IdVersion getIdVersion();
+
   /**
    * @return computes the id for the given document and language
    * @throws IdComputationException
    *           if unable to compute an id
    */
   long computeDocumentId(@NotNull DocumentReference docRef, @Nullable String lang)
+      throws IdComputationException;
+
+  /**
+   * @return computes the maximum id (regarding collision detection) for the given document and
+   *         language
+   * @throws IdComputationException
+   *           if unable to compute an id
+   */
+  long computeMaxDocumentId(@NotNull DocumentReference docRef, @Nullable String lang)
       throws IdComputationException;
 
   /**
@@ -33,6 +45,13 @@ public interface CelementsIdComputer {
    *           if unable to compute an id
    */
   long computeDocumentId(@NotNull XWikiDocument doc) throws IdComputationException;
+
+  /**
+   * @return computes the next object id for the given document
+   * @throws IdComputationException
+   *           if unable to compute an id
+   */
+  long computeNextObjectId(@NotNull XWikiDocument doc) throws IdComputationException;
 
   public class IdComputationException extends Exception {
 

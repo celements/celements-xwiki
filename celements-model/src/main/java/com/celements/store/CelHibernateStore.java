@@ -5,9 +5,13 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.ImmutableDocumentReference;
 
+import com.celements.model.util.ModelUtils;
+import com.celements.store.id.CelementsIdComputer;
+import com.celements.store.id.UniqueHashIdComputer;
 import com.celements.store.part.CelHibernateStoreCollectionPart;
 import com.celements.store.part.CelHibernateStoreDocumentPart;
 import com.celements.store.part.CelHibernateStorePropertyPart;
@@ -27,6 +31,12 @@ import com.xpn.xwiki.store.XWikiHibernateStore;
 public class CelHibernateStore extends XWikiHibernateStore {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CelHibernateStore.class);
+
+  @Requirement(UniqueHashIdComputer.NAME)
+  private CelementsIdComputer idComputer;
+
+  @Requirement
+  private ModelUtils modelUtils;
 
   private final CelHibernateStoreDocumentPart documentStorePart;
   private final CelHibernateStoreCollectionPart collectionStorePart;
@@ -53,6 +63,10 @@ public class CelHibernateStore extends XWikiHibernateStore {
       }
     };
     exec.execute(doc);
+  }
+
+  public CelementsIdComputer getIdComputer() {
+    return idComputer;
   }
 
   // TODO CELDEV-625 - CelHibernateStore reference mutation
@@ -154,6 +168,10 @@ public class CelHibernateStore extends XWikiHibernateStore {
   public void saveXWikiClassProperty(PropertyClass property, XWikiContext context,
       boolean bTransaction) throws XWikiException {
     throw new UnsupportedOperationException("Celements doesn't support class tables");
+  }
+
+  public ModelUtils getModelUtils() {
+    return modelUtils;
   }
 
   /**

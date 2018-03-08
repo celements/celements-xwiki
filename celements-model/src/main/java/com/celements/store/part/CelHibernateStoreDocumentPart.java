@@ -21,6 +21,9 @@ import org.xwiki.model.reference.WikiReference;
 
 import com.celements.store.CelHibernateStore;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicates;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -43,6 +46,7 @@ public class CelHibernateStoreDocumentPart {
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
       throws XWikiException {
+    logXWikiDoc("saveXWikiDoc - start", doc);
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
       // Start monitoring timer
@@ -152,6 +156,11 @@ public class CelHibernateStoreDocumentPart {
               if (StringUtils.isEmpty(obj.getGuid())) {
                 obj.setGuid(UUID.randomUUID().toString());
               }
+              if (!obj.hasValidId()) {
+                LOGGER.trace("obj [{}] has invalid id", obj.getId());
+                long nextId = store.getIdComputer().computeNextObjectId(doc);
+                obj.setId(nextId, store.getIdComputer().getIdVersion());
+              }
               store.saveXWikiCollection(obj, context, false);
             }
           }
@@ -189,9 +198,12 @@ public class CelHibernateStoreDocumentPart {
         monitor.endTimer("hibernate");
       }
     }
+
+    logXWikiDoc("saveXWikiDoc - end", doc);
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
+    logXWikiDoc("loadXWikiDoc - start", doc);
     // To change body of implemented methods use Options | File Templates.
     boolean bTransaction = true;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
@@ -274,7 +286,7 @@ public class CelHibernateStoreDocumentPart {
             newobject = BaseClass.newCustomClassInstance(classReference, context);
           }
           if (newobject != null) {
-            newobject.setId(object.getId());
+            newobject.setId(object.getId(), object.getIdVersion());
             newobject.setClassName(object.getClassName());
             newobject.setDocumentReference(object.getDocumentReference());
             newobject.setNumber(object.getNumber());
@@ -341,12 +353,12 @@ public class CelHibernateStoreDocumentPart {
       }
     }
 
-    LOGGER.debug("Loaded XWikiDocument: " + doc.getDocumentReference());
-
+    logXWikiDoc("loadXWikiDoc - end", doc);
     return doc;
   }
 
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
+    logXWikiDoc("deleteXWikiDoc - start", doc);
     boolean bTransaction = true;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
@@ -425,6 +437,27 @@ public class CelHibernateStoreDocumentPart {
       if (monitor != null) {
         monitor.endTimer("hibernate");
       }
+    }
+    logXWikiDoc("deleteXWikiDoc - end", doc);
+  }
+
+  private void logXWikiDoc(String msg, XWikiDocument doc) {
+    if (LOGGER.isInfoEnabled()) {
+      msg += ": {} {}";
+      List<String> objects = new ArrayList<>();
+      if (LOGGER.isTraceEnabled()) {
+        for (BaseObject obj : FluentIterable.from(Iterables.concat(
+            doc.getXObjects().values())).filter(Predicates.notNull())) {
+          if (obj.hasValidId()) {
+            objects.add(obj.getIdVersion() + "_" + obj.getId());
+          } else {
+            objects.add(obj.getId() + " " + obj.getGuid());
+          }
+        }
+        msg += " {}";
+      }
+      LOGGER.info(msg, doc.getId(), store.getModelUtils().serializeRef(doc.getDocumentReference()),
+          objects);
     }
   }
 
