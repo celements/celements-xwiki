@@ -92,8 +92,11 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
 
     @Override
     public long getId() {
-      BaseElement element = getObject() != null ? getObject() : this;
-      return element.getId();
+      if (getObject() != null) {
+        return getObject().getId();
+      } else {
+        throw new IllegalStateException("no base collection set");
+      }
     }
     
     // needed for properties because access=field not possible (composite id)
