@@ -45,6 +45,25 @@ public abstract class BaseElement implements ElementInterface, Serializable
     private static final Log LOG = LogFactory.getLog(BaseElement.class);
 
     /**
+     * Used to convert a Document Reference to string (compact form without the wiki part if it matches the current
+     * wiki).
+     */
+    protected final EntityReferenceSerializer<String> compactWikiEntityReferenceSerializer =
+        Utils.getComponent(EntityReferenceSerializer.class, "compactwiki");
+
+    /**
+     * Used to convert a proper Document Reference to a string but without the wiki name.
+     */
+    protected final EntityReferenceSerializer<String> localEntityReferenceSerializer =
+        Utils.getComponent(EntityReferenceSerializer.class, "local");
+
+    /**
+     * Used to convert a proper Document Reference to a string but with the wiki name.
+     */
+    protected final EntityReferenceSerializer<String> entityReferenceSerializer =
+        Utils.getComponent(EntityReferenceSerializer.class);
+
+    /**
      * Reference to the document in which this element is defined (for elements where this make sense, for example
      * for an XClass or a XObject).
      */
@@ -57,19 +76,6 @@ public abstract class BaseElement implements ElementInterface, Serializable
     private String name;
 
     private String prettyName;
-
-    /**
-     * Used to convert a Document Reference to string (compact form without the wiki part if it matches the current
-     * wiki).
-     */
-    private EntityReferenceSerializer<String> compactWikiEntityReferenceSerializer =
-        Utils.getComponent(EntityReferenceSerializer.class, "compactwiki");
-
-    /**
-     * Used to convert a proper Document Reference to a string but without the wiki name.
-     */
-    private EntityReferenceSerializer<String> localEntityReferenceSerializer =
-        Utils.getComponent(EntityReferenceSerializer.class, "local");
 
     private long id;
 
@@ -321,4 +327,28 @@ public abstract class BaseElement implements ElementInterface, Serializable
 
         return syntaxId;
     }
+
+    @Override
+    public String toString() {
+      return toString(true);
+    }
+
+    public String toString(boolean withDefinition) {
+      StringBuilder ret = new StringBuilder();
+      if (withDefinition) {
+        ret.append(getClass().getSimpleName()).append(" ");
+        if (hasValidId()) {
+          ret.append(getId()).append(" ");
+        }
+      }
+      if (reference != null) {
+        ret.append(entityReferenceSerializer.serialize(reference));
+      } else if ((name != null) && !name.isEmpty()) {
+        ret.append(name);
+      } else {
+        ret.append("?");
+      }
+      return ret.toString();
+    }
+
 }

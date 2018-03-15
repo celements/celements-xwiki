@@ -100,6 +100,16 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
       setId(id, IdVersion.CELEMENTS_3);
     }
 
+    @Override
+    public boolean hasValidId() {
+      return getObject() != null ? getObject().hasValidId() : super.hasValidId();
+    }
+
+    @Override
+    public IdVersion getIdVersion() {
+      return getObject() != null ? getObject().getIdVersion() : super.getIdVersion();
+    }
+
     /**
      * {@inheritDoc}
      * 
@@ -193,15 +203,13 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
-    public String toString()
-    {
-        return toXMLString();
+    public String toString(boolean withDefinition) {
+      String ret = super.toString(withDefinition);
+      if (getObject() != null) {
+        ret += " " + getObject().toString(false);
+      }
+      return ret;
     }
 
     public Object getCustomMappingValue()
