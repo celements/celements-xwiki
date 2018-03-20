@@ -33,11 +33,11 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   public static final String NAME = "BaseCollectionIdColumnMigration";
 
-  static final List<String> XWIKI_TABLES = ImmutableList.of("xwikiclasses", "xwikiclassesprop",
+  static final List<String> XWIKI_TABLES = ImmutableList.of("xwikiobjects", "xwikiproperties",
+      "xwikiintegers", "xwikilongs", "xwikifloats", "xwikidoubles", "xwikistrings", "xwikidates",
+      "xwikilargestrings", "xwikilists", "xwikilistitems", "xwikiclasses", "xwikiclassesprop",
       "xwikinumberclasses", "xwikibooleanclasses", "xwikistringclasses", "xwikidateclasses",
-      "xwikislistclasses", "xwikidblistclasses", "xwikiobjects", "xwikiproperties", "xwikiintegers",
-      "xwikilongs", "xwikifloats", "xwikidoubles", "xwikistrings", "xwikidates",
-      "xwikilargestrings", "xwikilists", "xwikilistitems", "xwikistatsdoc", "xwikistatsreferer",
+      "xwikislistclasses", "xwikidblistclasses", "xwikistatsdoc", "xwikistatsreferer",
       "xwikistatsvisit");
 
   @Requirement
@@ -63,11 +63,11 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   /**
    * getVersion is using days since 1.1.2010 until the day of committing this migration
-   * 14.02.2018 -> 2966 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
+   * 20.03.2018 -> 3000 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
    */
   @Override
   public XWikiDBVersion getVersion() {
-    return new XWikiDBVersion(2966);
+    return new XWikiDBVersion(3000);
   }
 
   @Override
@@ -75,14 +75,13 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
       throws XWikiException {
     LOGGER.info("migrating id columns for database [{}]", getDatabaseWithPrefix());
     try {
-      informationSchema = new InformationSchema(getDatabaseWithPrefix());
       migrateXWikiTables();
       migrateMappedTables();
     } catch (Exception exc) {
       LOGGER.error("Failed to migrate id columns for database [{}]", getDatabaseWithPrefix(), exc);
       throw exc;
     } finally {
-      informationSchema = null;
+      clearInformationSchema();
     }
   }
 
@@ -123,7 +122,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
         for (ForeignKey fk : droppedForeignKeys) {
           migrateTable(fk.getTable());
         }
-        String column = informationSchema.get(table).getPkColumnName();
+        String column = getInformationSchema().get(table).getPkColumnName();
         int count = queryExecutor.executeWriteSQL(getModifyIdColumnSql(table, column));
         LOGGER.info("[{}] updated id column for {} rows", table, count);
       } finally {
@@ -132,10 +131,10 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     }
   }
 
-  private boolean validateSchemaDataForTable(String table) {
+  private boolean validateSchemaDataForTable(String table) throws XWikiException {
     boolean validated = false;
     try {
-      TableSchemaData data = informationSchema.get(table);
+      TableSchemaData data = getInformationSchema().get(table);
       if ("int".equals(data.getPkDataType())) {
         validated = true;
       } else {
@@ -167,7 +166,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   private void dropReferencingForeignKeys(String table, Collection<ForeignKey> droppedForeignKeys)
       throws XWikiException {
-    for (ForeignKey fk : informationSchema.get(table).getForeignKeys()) {
+    for (ForeignKey fk : getInformationSchema().get(table).getForeignKeys()) {
       LOGGER.debug("[{}] dropping {}", table, fk);
       queryExecutor.executeWriteSQL(fk.getDropSql());
       droppedForeignKeys.add(fk);
@@ -175,6 +174,17 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     if (droppedForeignKeys.size() > 0) {
       LOGGER.info("[{}] dropped {} FKs", table, droppedForeignKeys.size());
     }
+  }
+
+  private InformationSchema getInformationSchema() throws XWikiException {
+    if (informationSchema == null) {
+      informationSchema = new InformationSchema(getDatabaseWithPrefix());
+    }
+    return informationSchema;
+  }
+
+  private void clearInformationSchema() {
+    informationSchema = null;
   }
 
   String getDatabaseWithPrefix() {
