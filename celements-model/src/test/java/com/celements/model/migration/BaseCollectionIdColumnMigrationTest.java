@@ -57,27 +57,84 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
 
   @Test
   public void test_migrate_xwikitables() throws Exception {
-    expectModifyIdColumn("xwikiclasses");
-    expectModifyIdColumn("xwikiclassesprop");
-    expectModifyIdColumn("xwikiobjects");
-    expectModifyFkProperties();
-    expectModifyIdColumn("xwikistatsdoc");
-    expectModifyIdColumn("xwikistatsreferer");
-    expectModifyIdColumn("xwikistatsvisit");
-    expect(hibCfgMock.getClassMappings()).andReturn(ImmutableList.of().iterator()).once();
+    for (String table : XWIKI_TABLES) {
+      expectModifyIdColumn(table);
+    }
+    expectMappings(ImmutableList.of());
     expectInformationSchemaLoad();
+
     replayDefault();
     migration.migrate(null, getContext());
     verifyDefault();
   }
 
   @Test
-  public void test_migrate_xwikitables_fail() throws Exception {
-    expectModifyIdColumn("xwikiclasses");
-    expectModifyIdColumn("xwikiclassesprop");
-    expectModifyIdColumn("xwikiobjects");
-    expectModifyFkPropertiesFail();
+  public void test_migrate_xwikitables_withFK() throws Exception {
+    expectModifyFkProperties();
+    expectMappings(ImmutableList.of());
     expectInformationSchemaLoad();
+
+    replayDefault();
+    migration.migrate(null, getContext());
+    verifyDefault();
+  }
+
+  private void expectModifyFkProperties() throws XWikiException {
+    String table = "xwikiproperties";
+    String fkTable1 = "xwikiintegers";
+    String fkName1 = "FK2780715A3433FD87";
+    String fkTable2 = "xwikilists";
+    String fkName2 = "FKDF25AE4F283EE295";
+    addForeignKey(fkName1, fkTable1, "XWI_ID", table, "XWP_ID");
+    addForeignKey(fkName1, fkTable1, "XWI_NAME", table, "XWP_NAME");
+    addForeignKey(fkName2, fkTable2, "XWL_ID", table, "XWP_ID");
+    addForeignKey(fkName2, fkTable2, "XWL_NAME", table, "XWP_NAME");
+    expectModifyIdColumn(table, 1);
+    expectModifyIdColumn(fkTable1);
+    expectModifyFkLists();
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " drop foreign key "
+        + fkName1)).andReturn(1).atLeastOnce();
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable2 + " drop foreign key "
+        + fkName2)).andReturn(1).atLeastOnce();
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " add constraint " + fkName1
+        + " foreign key (XWI_ID,XWI_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
+            1).atLeastOnce();
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable2 + " add constraint " + fkName2
+        + " foreign key (XWL_ID,XWL_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
+            1).atLeastOnce();
+  }
+
+  private void expectModifyFkLists() throws XWikiException {
+    String table = "xwikilists";
+    String fkTable = "xwikilistitems";
+    String fkName = "FKC0862BA3FB72A11";
+    addForeignKey(fkName, fkTable, "XWL_ID", table, "XWL_ID");
+    addForeignKey(fkName, fkTable, "XWL_NAME", table, "XWL_NAME");
+    expectModifyIdColumn(table, 1);
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable + " drop foreign key "
+        + fkName)).andReturn(1).atLeastOnce();
+    expectModifyIdColumn("xwikilistitems");
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable + " add constraint " + fkName
+        + " foreign key (XWL_ID,XWL_NAME) references " + table + " (XWL_ID,XWL_NAME)")).andReturn(
+            1).atLeastOnce();
+  }
+
+  @Test
+  public void test_migrate_xwikitables_fail() throws Exception {
+    String table = "xwikiproperties";
+    String fkTable1 = "xwikiintegers";
+    String fkName1 = "FK2780715A3433FD87";
+    addForeignKey(fkName1, fkTable1, "XWI_ID", table, "XWP_ID");
+    addForeignKey(fkName1, fkTable1, "XWI_NAME", table, "XWP_NAME");
+    expectModifyIdColumn(table, new XWikiException());
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " drop foreign key "
+        + fkName1)).andReturn(1).atLeastOnce();
+    // FK has to be readded, even after exception occured
+    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " add constraint " + fkName1
+        + " foreign key (XWI_ID,XWI_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
+            1).atLeastOnce();
+    expectInformationSchemaLoad();
+
     replayDefault();
     new ExceptionAsserter<XWikiException>(XWikiException.class) {
 
@@ -90,66 +147,8 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     verifyDefault();
   }
 
-  private void expectModifyFkProperties() throws XWikiException {
-    String table = "xwikiproperties";
-    String fkTable1 = "xwikistrings";
-    String fkName1 = "FK2780715A3433FD87";
-    String fkTable2 = "xwikilists";
-    String fkName2 = "FKDF25AE4F283EE295";
-    addForeignKey(fkName1, fkTable1, "XWS_ID", table, "XWP_ID");
-    addForeignKey(fkName1, fkTable1, "XWS_NAME", table, "XWP_NAME");
-    addForeignKey(fkName2, fkTable2, "XWL_ID", table, "XWP_ID");
-    addForeignKey(fkName2, fkTable2, "XWL_NAME", table, "XWP_NAME");
-    expectModifyIdColumn(table, 1);
-    expectModifyIdColumn(fkTable1);
-    expectModifyFkLists();
-    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " drop foreign key "
-        + fkName1)).andReturn(1).once();
-    expect(queryExecMock.executeWriteSQL("alter table " + fkTable2 + " drop foreign key "
-        + fkName2)).andReturn(1).once();
-    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " add constraint " + fkName1
-        + " foreign key (XWS_ID,XWS_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
-            1).once();
-    expect(queryExecMock.executeWriteSQL("alter table " + fkTable2 + " add constraint " + fkName2
-        + " foreign key (XWL_ID,XWL_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
-            1).once();
-  }
-
-  private void expectModifyFkLists() throws XWikiException {
-    String table = "xwikilists";
-    String fkTable = "xwikilistitems";
-    String fkName = "FKC0862BA3FB72A11";
-    addForeignKey(fkName, fkTable, "XWL_ID", table, "XWL_ID");
-    addForeignKey(fkName, fkTable, "XWL_NAME", table, "XWL_NAME");
-    expectModifyIdColumn(table, 1);
-    expect(queryExecMock.executeWriteSQL("alter table " + fkTable + " drop foreign key "
-        + fkName)).andReturn(1).once();
-    expectModifyIdColumn("xwikilistitems");
-    expect(queryExecMock.executeWriteSQL("alter table " + fkTable + " add constraint " + fkName
-        + " foreign key (XWL_ID,XWL_NAME) references " + table + " (XWL_ID,XWL_NAME)")).andReturn(
-            1).once();
-  }
-
-  private void expectModifyFkPropertiesFail() throws XWikiException {
-    String table = "xwikiproperties";
-    String fkTable1 = "xwikistrings";
-    String fkName1 = "FK2780715A3433FD87";
-    addForeignKey(fkName1, fkTable1, "XWS_ID", table, "XWP_ID");
-    addForeignKey(fkName1, fkTable1, "XWS_NAME", table, "XWP_NAME");
-    expectModifyIdColumn(table, new XWikiException());
-    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " drop foreign key "
-        + fkName1)).andReturn(1).once();
-    // FK has to be readded, even after exception occured
-    expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " add constraint " + fkName1
-        + " foreign key (XWS_ID,XWS_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
-            1).once();
-  }
-
   @Test
   public void test_migrate_mappedtables() throws Exception {
-    for (String table : XWIKI_TABLES) {
-      expectModifyIdColumn(table);
-    }
     String table = "table_mapped";
     Builder<PersistentClass> builder = ImmutableList.builder();
     builder.add(createMapping("entity", table, LongType.class));
@@ -157,8 +156,9 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     builder.add(createMapping("entity_String", table + "_str", StringType.class));
     builder.add(createMapping("entity_None", table + "_none", null));
     expectModifyIdColumn(table);
-    expect(hibCfgMock.getClassMappings()).andReturn(builder.build().iterator()).once();
+    expectMappings(builder.build());
     expectInformationSchemaLoad();
+
     replayDefault();
     migration.migrate(null, getContext());
     verifyDefault();
@@ -178,6 +178,10 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     return mapping;
   }
 
+  private void expectMappings(Iterable<?> iterable) {
+    expect(hibCfgMock.getClassMappings()).andReturn(iterable.iterator()).once();
+  }
+
   private void expectModifyIdColumn(String table) throws XWikiException {
     expectModifyIdColumn(table, 1);
   }
@@ -187,9 +191,9 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     IExpectationSetters<Integer> exp = expect(queryExecMock.executeWriteSQL(getModifyIdColumnSql(
         table, createIdColumnName(table))));
     if (ret instanceof Integer) {
-      exp.andReturn((Integer) ret).once();
+      exp.andReturn((Integer) ret).atLeastOnce();
     } else if (ret instanceof Throwable) {
-      exp.andThrow((Throwable) ret).once();
+      exp.andThrow((Throwable) ret).atLeastOnce();
     }
   }
 
@@ -204,9 +208,9 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
 
   private void expectInformationSchemaLoad() throws XWikiException {
     expect(queryExecMock.executeReadSql(String.class, getLoadColumnsSql(getTestDb()))).andReturn(
-        idColumnBuilder.build()).anyTimes();
+        idColumnBuilder.build()).once();
     expect(queryExecMock.executeReadSql(String.class, getLoadForeignKeysSql(
-        getTestDb()))).andReturn(foreignKeyBuilder.build()).anyTimes();
+        getTestDb()))).andReturn(foreignKeyBuilder.build()).once();
   }
 
   @Test
