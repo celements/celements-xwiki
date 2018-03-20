@@ -35,10 +35,10 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   static final List<String> XWIKI_TABLES = ImmutableList.of("xwikiobjects", "xwikiproperties",
       "xwikiintegers", "xwikilongs", "xwikifloats", "xwikidoubles", "xwikistrings", "xwikidates",
-      "xwikilargestrings", "xwikilists", "xwikilistitems", "xwikiclasses", "xwikiclassesprop",
-      "xwikinumberclasses", "xwikibooleanclasses", "xwikistringclasses", "xwikidateclasses",
-      "xwikislistclasses", "xwikidblistclasses", "xwikistatsdoc", "xwikistatsreferer",
-      "xwikistatsvisit");
+      "xwikilargestrings", "xwikilists", "xwikilistitems", "xwikistatsdoc", "xwikistatsreferer",
+      "xwikistatsvisit", "xwikiclasses", "xwikiclassesprop", "xwikinumberclasses",
+      "xwikibooleanclasses", "xwikistringclasses", "xwikidateclasses", "xwikislistclasses",
+      "xwikidblistclasses");
 
   @Requirement
   private HibernateSessionFactory sessionFactory;
