@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.cfg.Configuration;
 import org.hibernate.mapping.PersistentClass;
@@ -17,7 +18,6 @@ import org.xwiki.component.annotation.Requirement;
 import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
 import com.celements.model.context.ModelContext;
-import com.celements.model.migration.InformationSchema.TableSchemaData;
 import com.celements.query.IQueryExecutionServiceRole;
 import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.XWikiContext;
@@ -51,6 +51,8 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   private InformationSchema informationSchema;
 
+  private Set<String> migratedTables = new HashSet<>();
+
   @Override
   public String getName() {
     return NAME;
@@ -81,7 +83,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
       LOGGER.error("Failed to migrate id columns for database [{}]", getDatabaseWithPrefix(), exc);
       throw exc;
     } finally {
-      clearInformationSchema();
+      clearMigrationData();
     }
   }
 
@@ -115,7 +117,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
   }
 
   private void migrateTable(String table) throws XWikiException {
-    if (validateSchemaDataForTable(table)) {
+    if (validateTableForMigration(table)) {
       Collection<ForeignKey> droppedForeignKeys = new HashSet<>();
       try {
         dropReferencingForeignKeys(table, droppedForeignKeys);
@@ -124,6 +126,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
         }
         String column = getInformationSchema().get(table).getPkColumnName();
         int count = queryExecutor.executeWriteSQL(getModifyIdColumnSql(table, column));
+        migratedTables.add(table);
         LOGGER.info("[{}] updated id column for {} rows", table, count);
       } finally {
         addForeignKeys(table, droppedForeignKeys);
@@ -131,14 +134,16 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     }
   }
 
-  private boolean validateSchemaDataForTable(String table) throws XWikiException {
+  private boolean validateTableForMigration(String table) throws XWikiException {
     boolean validated = false;
     try {
-      TableSchemaData data = getInformationSchema().get(table);
-      if ("int".equals(data.getPkDataType())) {
-        validated = true;
+      if (migratedTables.contains(table)) {
+        LOGGER.trace("[{}] skip table, already migrated", table);
+      } else if (!"int".equals(getInformationSchema().get(table).getPkDataType())) {
+        LOGGER.debug("[{}] skip table, id column type isn't [int] but [{}]", table,
+            getInformationSchema().get(table).getPkDataType());
       } else {
-        LOGGER.debug("[{}] skip table, id column type is [{}]", table, data.getPkDataType());
+        validated = true;
       }
     } catch (IllegalArgumentException iae) {
       LOGGER.warn("[{}] skip table, no TableSchemaData", table, iae);
@@ -176,15 +181,16 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     }
   }
 
+  private void clearMigrationData() {
+    informationSchema = null;
+    migratedTables = new HashSet<>();
+  }
+
   private InformationSchema getInformationSchema() throws XWikiException {
     if (informationSchema == null) {
       informationSchema = new InformationSchema(getDatabaseWithPrefix());
     }
     return informationSchema;
-  }
-
-  private void clearInformationSchema() {
-    informationSchema = null;
   }
 
   String getDatabaseWithPrefix() {

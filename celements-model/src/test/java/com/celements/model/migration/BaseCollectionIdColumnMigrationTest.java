@@ -93,15 +93,15 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     expectModifyIdColumn(fkTable1);
     expectModifyFkLists();
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " drop foreign key "
-        + fkName1)).andReturn(1).atLeastOnce();
+        + fkName1)).andReturn(1).once();
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable2 + " drop foreign key "
-        + fkName2)).andReturn(1).atLeastOnce();
+        + fkName2)).andReturn(1).once();
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " add constraint " + fkName1
         + " foreign key (XWI_ID,XWI_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
-            1).atLeastOnce();
+            1).once();
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable2 + " add constraint " + fkName2
         + " foreign key (XWL_ID,XWL_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
-            1).atLeastOnce();
+            1).once();
   }
 
   private void expectModifyFkLists() throws XWikiException {
@@ -112,11 +112,11 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     addForeignKey(fkName, fkTable, "XWL_NAME", table, "XWL_NAME");
     expectModifyIdColumn(table, 1);
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable + " drop foreign key "
-        + fkName)).andReturn(1).atLeastOnce();
+        + fkName)).andReturn(1).once();
     expectModifyIdColumn("xwikilistitems");
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable + " add constraint " + fkName
         + " foreign key (XWL_ID,XWL_NAME) references " + table + " (XWL_ID,XWL_NAME)")).andReturn(
-            1).atLeastOnce();
+            1).once();
   }
 
   @Test
@@ -128,11 +128,11 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     addForeignKey(fkName1, fkTable1, "XWI_NAME", table, "XWP_NAME");
     expectModifyIdColumn(table, new XWikiException());
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " drop foreign key "
-        + fkName1)).andReturn(1).atLeastOnce();
+        + fkName1)).andReturn(1).once();
     // FK has to be readded, even after exception occured
     expect(queryExecMock.executeWriteSQL("alter table " + fkTable1 + " add constraint " + fkName1
         + " foreign key (XWI_ID,XWI_NAME) references " + table + " (XWP_ID,XWP_NAME)")).andReturn(
-            1).atLeastOnce();
+            1).once();
     expectInformationSchemaLoad();
 
     replayDefault();
@@ -191,9 +191,9 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     IExpectationSetters<Integer> exp = expect(queryExecMock.executeWriteSQL(getModifyIdColumnSql(
         table, createIdColumnName(table))));
     if (ret instanceof Integer) {
-      exp.andReturn((Integer) ret).atLeastOnce();
+      exp.andReturn((Integer) ret).once();
     } else if (ret instanceof Throwable) {
-      exp.andThrow((Throwable) ret).atLeastOnce();
+      exp.andThrow((Throwable) ret).once();
     }
   }
 
