@@ -12,7 +12,6 @@ import com.celements.store.CelHibernateStore;
 import com.google.common.base.Preconditions;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.objects.BaseCollection;
 import com.xpn.xwiki.objects.BaseStringProperty;
 import com.xpn.xwiki.objects.ListProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
@@ -50,8 +49,7 @@ public class CelHibernateStorePropertyPart {
           }
         }
       } catch (ObjectNotFoundException exc) {
-        LOGGER.warn("loadXWikiProperty - no data for property: {} {}", property.getId(),
-            property.getName(), exc);
+        LOGGER.warn("loadXWikiProperty - no data for property: {}", property, exc);
       }
 
       // TODO: understand why collections are lazy loaded
@@ -66,11 +64,9 @@ public class CelHibernateStorePropertyPart {
         store.endTransaction(context, false, false);
       }
     } catch (Exception e) {
-      BaseCollection obj = property.getObject();
-      Object[] args = { (obj != null) ? obj.getName() : "unknown", property.getName() };
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-          "Exception while loading property {1} of object {0}", e, args);
+          "Exception while loading property " + property, e);
 
     } finally {
       try {
@@ -78,6 +74,7 @@ public class CelHibernateStorePropertyPart {
           store.endTransaction(context, false, false);
         }
       } catch (Exception e) {
+        LOGGER.error("failed commit/rollback for {}", property, e);
       }
     }
     logXProperty("loadXProperty - end", property);
@@ -112,8 +109,7 @@ public class CelHibernateStorePropertyPart {
       }
     } catch (Exception e) {
       // Something went wrong, collect some information.
-      final BaseCollection obj = property.getObject();
-      final Object[] args = { (obj != null) ? obj.getName() : "unknown", property.getName() };
+      String propertyStr = property.toString();
 
       // Try to roll back the transaction if this is in it's own transaction.
       try {
@@ -123,22 +119,22 @@ public class CelHibernateStorePropertyPart {
       } catch (Exception ee) {
         // Not a lot we can do here if there was an exception committing and an exception rolling
         // back.
+
+        // not a lot sure, but at least f...ing log it!
+        LOGGER.error("failed commit and rollback for {}", propertyStr, ee);
       }
 
       // Throw the exception.
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-          "Exception while saving property {1} of object {0}", e, args);
+          "Exception while saving property: " + propertyStr, e);
     }
     logXProperty("saveXProperty - end", property);
   }
 
   private void logXProperty(String msg, PropertyInterface property) {
     if (LOGGER.isTraceEnabled()) {
-      BaseCollection obj = property.getObject();
-      LOGGER.trace(msg + ": {} {}_{}_{}_{}", property.getId(), store.getModelUtils().serializeRef(
-          obj.getDocumentReference()), store.getModelUtils().serializeRefLocal(
-              obj.getXClassReference()), obj.getNumber(), property.getName());
+      LOGGER.trace("{}: {}", msg, property);
     }
   }
 

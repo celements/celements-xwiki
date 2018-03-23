@@ -29,6 +29,10 @@ class InformationSchema {
     loadForeignKeys();
   }
 
+  public String getDatabase() {
+    return database;
+  }
+
   public TableSchemaData get(String table) throws IllegalArgumentException {
     if (map.containsKey(table)) {
       return map.get(table);
@@ -83,14 +87,14 @@ class InformationSchema {
     return Utils.getComponent(IQueryExecutionServiceRole.class).executeReadSql(String.class, sql);
   }
 
-  class TableSchemaData {
+  static class TableSchemaData {
 
     private final String tableName;
     private final String pkColumnName;
     private final String pkDataType;
     private final Map<String, ForeignKey> foreignKeys;
 
-    private TableSchemaData(String tableName, String pkColumnName, String pkDataType) {
+    TableSchemaData(String tableName, String pkColumnName, String pkDataType) {
       this.tableName = tableName;
       this.pkColumnName = pkColumnName;
       this.pkDataType = pkDataType;

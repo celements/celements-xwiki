@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.cfg.Configuration;
 import org.hibernate.mapping.PersistentClass;
@@ -17,7 +18,6 @@ import org.xwiki.component.annotation.Requirement;
 import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
 import com.celements.model.context.ModelContext;
-import com.celements.model.migration.InformationSchema.TableSchemaData;
 import com.celements.query.IQueryExecutionServiceRole;
 import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.XWikiContext;
@@ -33,8 +33,12 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   public static final String NAME = "BaseCollectionIdColumnMigration";
 
-  static final List<String> XWIKI_TABLES = ImmutableList.of("xwikiclasses", "xwikiclassesprop",
-      "xwikiobjects", "xwikiproperties", "xwikistatsdoc", "xwikistatsreferer", "xwikistatsvisit");
+  static final List<String> XWIKI_TABLES = ImmutableList.of("xwikiobjects", "xwikiproperties",
+      "xwikiintegers", "xwikilongs", "xwikifloats", "xwikidoubles", "xwikistrings", "xwikidates",
+      "xwikilargestrings", "xwikilists", "xwikilistitems", "xwikistatsdoc", "xwikistatsreferer",
+      "xwikistatsvisit", "xwikiclasses", "xwikiclassesprop", "xwikinumberclasses",
+      "xwikibooleanclasses", "xwikistringclasses", "xwikidateclasses", "xwikislistclasses",
+      "xwikidblistclasses");
 
   @Requirement
   private HibernateSessionFactory sessionFactory;
@@ -46,6 +50,8 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
   private ModelContext context;
 
   private InformationSchema informationSchema;
+
+  private Set<String> migratedTables = new HashSet<>();
 
   @Override
   public String getName() {
@@ -59,11 +65,11 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   /**
    * getVersion is using days since 1.1.2010 until the day of committing this migration
-   * 14.02.2018 -> 2966 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
+   * 20.03.2018 -> 3000 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
    */
   @Override
   public XWikiDBVersion getVersion() {
-    return new XWikiDBVersion(2966);
+    return new XWikiDBVersion(3000);
   }
 
   @Override
@@ -71,14 +77,13 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
       throws XWikiException {
     LOGGER.info("migrating id columns for database [{}]", getDatabaseWithPrefix());
     try {
-      informationSchema = new InformationSchema(getDatabaseWithPrefix());
       migrateXWikiTables();
       migrateMappedTables();
     } catch (Exception exc) {
       LOGGER.error("Failed to migrate id columns for database [{}]", getDatabaseWithPrefix(), exc);
       throw exc;
     } finally {
-      informationSchema = null;
+      clearMigrationData();
     }
   }
 
@@ -112,15 +117,16 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
   }
 
   private void migrateTable(String table) throws XWikiException {
-    if (validateSchemaDataForTable(table)) {
+    if (validateTableForMigration(table)) {
       Collection<ForeignKey> droppedForeignKeys = new HashSet<>();
       try {
         dropReferencingForeignKeys(table, droppedForeignKeys);
         for (ForeignKey fk : droppedForeignKeys) {
           migrateTable(fk.getTable());
         }
-        String column = informationSchema.get(table).getPkColumnName();
+        String column = getInformationSchema().get(table).getPkColumnName();
         int count = queryExecutor.executeWriteSQL(getModifyIdColumnSql(table, column));
+        migratedTables.add(table);
         LOGGER.info("[{}] updated id column for {} rows", table, count);
       } finally {
         addForeignKeys(table, droppedForeignKeys);
@@ -128,14 +134,16 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     }
   }
 
-  private boolean validateSchemaDataForTable(String table) {
+  private boolean validateTableForMigration(String table) throws XWikiException {
     boolean validated = false;
     try {
-      TableSchemaData data = informationSchema.get(table);
-      if ("int".equals(data.getPkDataType())) {
-        validated = true;
+      if (migratedTables.contains(table)) {
+        LOGGER.trace("[{}] skip table, already migrated", table);
+      } else if (!"int".equals(getInformationSchema().get(table).getPkDataType())) {
+        LOGGER.debug("[{}] skip table, id column type isn't [int] but [{}]", table,
+            getInformationSchema().get(table).getPkDataType());
       } else {
-        LOGGER.debug("[{}] skip table, id column type is [{}]", table, data.getPkDataType());
+        validated = true;
       }
     } catch (IllegalArgumentException iae) {
       LOGGER.warn("[{}] skip table, no TableSchemaData", table, iae);
@@ -163,7 +171,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   private void dropReferencingForeignKeys(String table, Collection<ForeignKey> droppedForeignKeys)
       throws XWikiException {
-    for (ForeignKey fk : informationSchema.get(table).getForeignKeys()) {
+    for (ForeignKey fk : getInformationSchema().get(table).getForeignKeys()) {
       LOGGER.debug("[{}] dropping {}", table, fk);
       queryExecutor.executeWriteSQL(fk.getDropSql());
       droppedForeignKeys.add(fk);
@@ -171,6 +179,18 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     if (droppedForeignKeys.size() > 0) {
       LOGGER.info("[{}] dropped {} FKs", table, droppedForeignKeys.size());
     }
+  }
+
+  private void clearMigrationData() {
+    informationSchema = null;
+    migratedTables = new HashSet<>();
+  }
+
+  private InformationSchema getInformationSchema() throws XWikiException {
+    if (informationSchema == null) {
+      informationSchema = new InformationSchema(getDatabaseWithPrefix());
+    }
+    return informationSchema;
   }
 
   String getDatabaseWithPrefix() {
