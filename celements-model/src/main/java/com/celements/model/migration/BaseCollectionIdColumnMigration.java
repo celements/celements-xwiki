@@ -3,7 +3,6 @@ package com.celements.model.migration;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import org.hibernate.cfg.Configuration;
@@ -19,7 +18,7 @@ import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
 import com.celements.model.context.ModelContext;
 import com.celements.query.IQueryExecutionServiceRole;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.store.hibernate.HibernateSessionFactory;
@@ -33,7 +32,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   public static final String NAME = "BaseCollectionIdColumnMigration";
 
-  static final List<String> XWIKI_TABLES = ImmutableList.of("xwikiobjects", "xwikiproperties",
+  static final Set<String> XWIKI_TABLES = ImmutableSet.of("xwikiobjects", "xwikiproperties",
       "xwikiintegers", "xwikilongs", "xwikifloats", "xwikidoubles", "xwikistrings", "xwikidates",
       "xwikilargestrings", "xwikilists", "xwikilistitems", "xwikistatsdoc", "xwikistatsreferer",
       "xwikistatsvisit", "xwikiclasses", "xwikiclassesprop", "xwikinumberclasses",
@@ -99,11 +98,13 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     for (Iterator<PersistentClass> iter = getHibConfig().getClassMappings(); iter.hasNext();) {
       PersistentClass mapping = iter.next();
       String table = mapping.getTable().getName();
-      LOGGER.debug("[{}] try id column migration for mapped table", table);
-      if (isMappingWithLongPrimaryKey(mapping)) {
-        migrateTable(table);
-      } else {
-        LOGGER.debug("[{}] skip table, id isn't mapped as long", table);
+      if (!XWIKI_TABLES.contains(table)) {
+        LOGGER.debug("[{}] try id column migration for mapped table", table);
+        if (isMappingWithLongPrimaryKey(mapping)) {
+          migrateTable(table);
+        } else {
+          LOGGER.debug("[{}] skip table, id isn't mapped as long", table);
+        }
       }
     }
   }
@@ -139,11 +140,15 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
     try {
       if (migratedTables.contains(table)) {
         LOGGER.trace("[{}] skip table, already migrated", table);
-      } else if (!"int".equals(getInformationSchema().get(table).getPkDataType())) {
-        LOGGER.debug("[{}] skip table, id column type isn't [int] but [{}]", table,
-            getInformationSchema().get(table).getPkDataType());
       } else {
-        validated = true;
+        String type = getInformationSchema().get(table).getPkDataType();
+        if ("int".equals(type)) {
+          validated = true;
+        } else if ("bigint".equals(type)) {
+          LOGGER.trace("[{}] skip table, already [bigint]", table);
+        } else {
+          LOGGER.info("[{}] skip table, id column type is [{}]", table, type);
+        }
       }
     } catch (IllegalArgumentException iae) {
       LOGGER.warn("[{}] skip table, no TableSchemaData", table, iae);
@@ -194,8 +199,10 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
   }
 
   String getDatabaseWithPrefix() {
-    return context.getXWikiContext().getWiki().Param("xwiki.db.prefix", "")
-        + context.getWikiRef().getName();
+    String database = context.getWikiRef().getName();
+    database = database.equals("xwiki") ? "main" : database;
+    String prefix = context.getXWikiContext().getWiki().Param("xwiki.db.prefix", "");
+    return prefix + database;
   }
 
   private Configuration getHibConfig() {
