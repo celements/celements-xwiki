@@ -207,10 +207,11 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
   }
 
   private void expectInformationSchemaLoad() throws XWikiException {
-    expect(queryExecMock.executeReadSql(String.class, getLoadColumnsSql(getTestDb()))).andReturn(
+    String database = PREFIX + getContext().getDatabase();
+    expect(queryExecMock.executeReadSql(String.class, getLoadColumnsSql(database))).andReturn(
         idColumnBuilder.build()).once();
-    expect(queryExecMock.executeReadSql(String.class, getLoadForeignKeysSql(
-        getTestDb()))).andReturn(foreignKeyBuilder.build()).once();
+    expect(queryExecMock.executeReadSql(String.class, getLoadForeignKeysSql(database))).andReturn(
+        foreignKeyBuilder.build()).once();
   }
 
   @Test
@@ -219,6 +220,10 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     assertEquals("alter table tbl modify column TBL_ID bigint not null", getModifyIdColumnSql("tbl",
         createIdColumnName("tbl")));
     verifyDefault();
+  }
+
+  private String createIdColumnName(String table) {
+    return table.toUpperCase() + "_ID";
   }
 
   @Test
@@ -239,12 +244,23 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
         + "k.COLUMN_NAME = c.COLUMN_NAME group by k.TABLE_NAME", getLoadColumnsSql("db"));
   }
 
-  private String createIdColumnName(String table) {
-    return table.toUpperCase() + "_ID";
+  @Test
+  public void test_getDatabaseWithPrefix() {
+    String database = "asdf";
+    getContext().setDatabase(database);
+
+    replayDefault();
+    assertEquals(PREFIX + database, migration.getDatabaseWithPrefix());
+    verifyDefault();
   }
 
-  private String getTestDb() {
-    return PREFIX + getContext().getDatabase();
+  @Test
+  public void test_getDatabaseWithPrefix_xwiki() {
+    getContext().setDatabase("xwiki");
+
+    replayDefault();
+    assertEquals(PREFIX + "main", migration.getDatabaseWithPrefix());
+    verifyDefault();
   }
 
 }
