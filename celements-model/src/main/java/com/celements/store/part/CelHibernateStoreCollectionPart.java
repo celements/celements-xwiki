@@ -119,10 +119,9 @@ public class CelHibernateStoreCollectionPart {
           String key = it.next();
           BaseProperty prop = (BaseProperty) object.getField(key);
           if (!prop.getName().equals(key)) {
-            Object[] args = { key, object.getName() };
             throw new XWikiException(XWikiException.MODULE_XWIKI_CLASSES,
-                XWikiException.ERROR_XWIKI_CLASSES_FIELD_INVALID,
-                "Field {0} in object {1} has an invalid name", null, args);
+                XWikiException.ERROR_XWIKI_CLASSES_FIELD_INVALID, "Field '" + key
+                    + "' has an invalid name in object: " + object);
           }
 
           String pname = prop.getName();
@@ -138,10 +137,9 @@ public class CelHibernateStoreCollectionPart {
     } catch (XWikiException xe) {
       throw xe;
     } catch (Exception e) {
-      Object[] args = { object.getName() };
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
-          "Exception while saving object {0}", e, args);
+          "Exception while saving object: " + object, e);
 
     } finally {
       try {
@@ -149,6 +147,7 @@ public class CelHibernateStoreCollectionPart {
           store.endTransaction(context, true);
         }
       } catch (Exception e) {
+        LOGGER.error("failed commit/rollback for {}", object, e);
       }
     }
     logXObject("saveXObject - end", object);
@@ -270,12 +269,9 @@ public class CelHibernateStoreCollectionPart {
                 throw e;
               }
             } catch (Throwable e2) {
-              Object[] args = { object.getName(), object.getClass(), Integer.valueOf(
-                  object.getNumber() + ""), name };
               throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
                   XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-                  "Exception while loading object '{0}' of class '{1}', number '{2}' and property '{3}'",
-                  e, args);
+                  "Exception while loading property '" + name + "' for object: " + object, e);
             }
           }
 
@@ -287,11 +283,9 @@ public class CelHibernateStoreCollectionPart {
         store.endTransaction(context, false, false);
       }
     } catch (Exception e) {
-      Object[] args = { object.getName(), object.getClass(), Integer.valueOf(object.getNumber()
-          + "") };
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-          "Exception while loading object '{0}' of class '{1}' and number '{2}'", e, args);
+          "Exception while loading object: " + object, e);
 
     } finally {
       try {
@@ -299,6 +293,7 @@ public class CelHibernateStoreCollectionPart {
           store.endTransaction(context, false, false);
         }
       } catch (Exception e) {
+        LOGGER.error("failed commit/rollback for {}", object, e);
       }
     }
     logXObject("loadXObject - end", object);
@@ -372,16 +367,16 @@ public class CelHibernateStoreCollectionPart {
         store.endTransaction(context, true);
       }
     } catch (Exception e) {
-      Object[] args = { object.getName() };
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_DELETING_OBJECT,
-          "Exception while deleting object {0}", e, args);
+          "Exception while deleting object: " + object, e);
     } finally {
       try {
         if (bTransaction) {
           store.endTransaction(context, false);
         }
       } catch (Exception e) {
+        LOGGER.error("failed commit/rollback for {}", object, e);
       }
     }
     logXObject("deleteXObject - end", object);
@@ -389,9 +384,7 @@ public class CelHibernateStoreCollectionPart {
 
   private void logXObject(String msg, BaseCollection obj) {
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(msg + ": {}_{} {}_{}_{}", obj.getId(), obj.getIdVersion(),
-          store.getModelUtils().serializeRef(obj.getDocumentReference()),
-          store.getModelUtils().serializeRefLocal(obj.getXClassReference()), obj.getNumber());
+      LOGGER.debug("{}: {}", msg, obj);
     }
   }
 

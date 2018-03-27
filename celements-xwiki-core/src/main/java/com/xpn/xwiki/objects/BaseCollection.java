@@ -757,15 +757,11 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see java.lang.Object#toString()
-     */
     @Override
-    public String toString()
-    {
-        return toXMLString();
+    public String toString(boolean withDefinition) {
+      String className = getXClassReference() != null ? localEntityReferenceSerializer.serialize(
+          getXClassReference()) : "?";
+      return super.toString(withDefinition) + "_" + className + "_" + getNumber();
     }
 
     /**
@@ -831,4 +827,5 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
         // the new document reference.
         this.xClassReferenceCache = null;
     }
+    
 }

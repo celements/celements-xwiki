@@ -21,9 +21,6 @@ import org.xwiki.model.reference.WikiReference;
 
 import com.celements.store.CelHibernateStore;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -431,6 +428,7 @@ public class CelHibernateStoreDocumentPart {
           store.endTransaction(context, false);
         }
       } catch (Exception e) {
+        LOGGER.error("failed commit/rollback for {}", doc, e);
       }
 
       // End monitoring timer
@@ -443,21 +441,8 @@ public class CelHibernateStoreDocumentPart {
 
   private void logXWikiDoc(String msg, XWikiDocument doc) {
     if (LOGGER.isInfoEnabled()) {
-      msg += ": {} {}";
-      List<String> objects = new ArrayList<>();
-      if (LOGGER.isTraceEnabled()) {
-        for (BaseObject obj : FluentIterable.from(Iterables.concat(
-            doc.getXObjects().values())).filter(Predicates.notNull())) {
-          if (obj.hasValidId()) {
-            objects.add(obj.getIdVersion() + "_" + obj.getId());
-          } else {
-            objects.add(obj.getId() + " " + obj.getGuid());
-          }
-        }
-        msg += " {}";
-      }
-      LOGGER.info(msg, doc.getId(), store.getModelUtils().serializeRef(doc.getDocumentReference()),
-          objects);
+      LOGGER.info(msg + ": {} {}", doc.getId(), store.getModelUtils().serializeRef(
+          doc.getDocumentReference()));
     }
   }
 
