@@ -70,7 +70,7 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
   protected AbstractListField(@NotNull Builder<?, T, E> builder) {
     super(builder);
     this.marshaller = builder.marshaller;
-    this.size = getBuilderSize(builder);
+    this.size = firstNonNull(builder.size, 1);
     this.displayType = builder.displayType;
     this.picker = builder.picker;
   }
