@@ -75,10 +75,6 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
     this.picker = builder.picker;
   }
 
-  protected Integer getBuilderSize(Builder<?, T, E> builder) {
-    return firstNonNull(builder.size, 1);
-  }
-
   protected String serializeInternal(@NotNull List<E> values) {
     values = firstNonNull(values, ImmutableList.<E>of());
     return FluentIterable.from(values).transform(marshaller.getSerializer()).filter(
