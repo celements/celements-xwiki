@@ -52,6 +52,29 @@ public class ListFieldTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_defaultSize_isSet() {
+    ListField.getBuilderSizeDefaultSet(fieldBuilder);
+    assertEquals((Integer) 5, fieldBuilder.size);
+  }
+
+  @Test
+  public void test_defaultSize_singleSelect() {
+    fieldBuilder.multiSelect(false);
+    fieldBuilder.size(null);
+    ListField.getBuilderSizeDefaultSet(fieldBuilder);
+    assertNull(fieldBuilder.size);
+    assertEquals((Integer) 1, fieldBuilder.build().getSize());
+  }
+
+  @Test
+  public void test_defaultSize_multiselect() {
+    fieldBuilder.multiSelect(true);
+    fieldBuilder.size(null);
+    ListField.getBuilderSizeDefaultSet(fieldBuilder);
+    assertEquals((Integer) 2, fieldBuilder.size);
+  }
+
+  @Test
   public void test_immutability() {
     assertInstancesOf(AbstractListField.class, areImmutable(), allowingForSubclassing(),
         AllowedReason.provided(Marshaller.class).isAlsoImmutable());
