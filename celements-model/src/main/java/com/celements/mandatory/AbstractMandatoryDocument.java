@@ -19,7 +19,6 @@
  */
 package com.celements.mandatory;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.configuration.ConfigurationSource;
@@ -35,7 +34,6 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.user.api.XWikiUser;
 
-// TODO add unit tests
 public abstract class AbstractMandatoryDocument implements IMandatoryDocumentRole {
 
   @Requirement
@@ -82,7 +80,7 @@ public abstract class AbstractMandatoryDocument implements IMandatoryDocumentRol
   }
 
   private XWikiDocument getDoc() throws XWikiException {
-    XWikiUser originalUser = getContext().getXWikiUser();
+    XWikiUser originalUser = modelContext.getUser();
     try {
       modelContext.setUser(getUser());
       return modelAccess.getOrCreateDocument(getDocRef());
@@ -117,14 +115,14 @@ public abstract class AbstractMandatoryDocument implements IMandatoryDocumentRol
   public abstract Logger getLogger();
 
   protected String getWiki() {
-    return getContext().getDatabase();
+    return modelContext.getWikiRef().getName();
   }
 
   protected XWikiUser getUser() {
-    XWikiUser user = getContext().getXWikiUser();
+    XWikiUser user = modelContext.getUser();
     String defaultUserName = xwikiPropConfigSource.getProperty(
-        "celements.mandatory.defaultGlobalUserName");
-    if (StringUtils.isNotBlank(defaultUserName)) {
+        "celements.mandatory.defaultGlobalUserName", "").trim();
+    if (!defaultUserName.isEmpty()) {
       user = new XWikiUser(defaultUserName, true);
     }
     return user;
