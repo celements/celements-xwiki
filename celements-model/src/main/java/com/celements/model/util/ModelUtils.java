@@ -5,17 +5,24 @@ import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.WikiReference;
 
 import com.google.common.base.Optional;
 
 @ComponentRole
 public interface ModelUtils {
 
+  @NotNull
+  WikiReference getMainWikiRef();
+
+  @NotNull
+  String getDatabaseName(@NotNull WikiReference wikiRef);
+
   /**
    * @param ref
    * @return false if the given reference is relative
    */
-  public boolean isAbsoluteRef(@NotNull EntityReference ref);
+  boolean isAbsoluteRef(@NotNull EntityReference ref);
 
   /**
    * @param ref
@@ -23,7 +30,7 @@ public interface ModelUtils {
    * @return a cloned instance of the reference
    */
   @NotNull
-  public EntityReference cloneRef(@NotNull EntityReference ref);
+  EntityReference cloneRef(@NotNull EntityReference ref);
 
   /**
    * @param ref
@@ -35,8 +42,7 @@ public interface ModelUtils {
    *           when relative references are being cloned as subtypes of {@link EntityReference}
    */
   @NotNull
-  public <T extends EntityReference> T cloneRef(@NotNull EntityReference ref,
-      @NotNull Class<T> token);
+  <T extends EntityReference> T cloneRef(@NotNull EntityReference ref, @NotNull Class<T> token);
 
   /**
    * @param fromRef
@@ -46,7 +52,7 @@ public interface ModelUtils {
    * @return optional of the extracted reference
    */
   @Nullable
-  public <T extends EntityReference> Optional<T> extractRef(@Nullable EntityReference fromRef,
+  <T extends EntityReference> Optional<T> extractRef(@Nullable EntityReference fromRef,
       @NotNull Class<T> token);
 
   /**
@@ -61,7 +67,7 @@ public interface ModelUtils {
    * @return a new instance of the adjusted reference or ref if toRef was of lower order
    */
   @NotNull
-  public <T extends EntityReference> T adjustRef(@NotNull T ref, @NotNull Class<T> token,
+  <T extends EntityReference> T adjustRef(@NotNull T ref, @NotNull Class<T> token,
       @Nullable EntityReference toRef);
 
   /**
@@ -74,7 +80,7 @@ public interface ModelUtils {
    *           if unable to resolve absolute reference from name
    */
   @NotNull
-  public EntityReference resolveRef(@NotNull String name);
+  EntityReference resolveRef(@NotNull String name);
 
   /**
    * resolves an absolute reference from the given name and baseRef
@@ -88,7 +94,7 @@ public interface ModelUtils {
    *           if unable to resolve absolute reference from name and baseRef
    */
   @NotNull
-  public EntityReference resolveRef(@NotNull String name, @Nullable EntityReference baseRef);
+  EntityReference resolveRef(@NotNull String name, @Nullable EntityReference baseRef);
 
   /**
    * resolves an absolute reference from the given name and baseRef
@@ -104,7 +110,7 @@ public interface ModelUtils {
    *           if unable to resolve absolute reference from name and baseRef
    */
   @NotNull
-  public <T extends EntityReference> T resolveRef(@NotNull String name, @NotNull Class<T> token,
+  <T extends EntityReference> T resolveRef(@NotNull String name, @NotNull Class<T> token,
       @Nullable EntityReference baseRef);
 
   /**
@@ -119,20 +125,20 @@ public interface ModelUtils {
    *           if unable to resolve absolute reference from name
    */
   @NotNull
-  public <T extends EntityReference> T resolveRef(@NotNull String name, @NotNull Class<T> token);
+  <T extends EntityReference> T resolveRef(@NotNull String name, @NotNull Class<T> token);
 
   /**
    * @param ref
    * @return serialised global string representation of the given reference (e.g. "wiki:space.doc")
    */
   @NotNull
-  public String serializeRef(@NotNull EntityReference ref);
+  String serializeRef(@NotNull EntityReference ref);
 
   /**
    * @param ref
    * @return serialised local string representation of the given reference (e.g. "space.doc")
    */
   @NotNull
-  public String serializeRefLocal(@NotNull EntityReference ref);
+  String serializeRefLocal(@NotNull EntityReference ref);
 
 }
