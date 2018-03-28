@@ -25,6 +25,8 @@ import org.junit.Test;
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.common.test.ExceptionAsserter;
 import com.celements.migrations.celSubSystem.ICelementsMigrator;
+import com.celements.model.context.ModelContext;
+import com.celements.model.util.ModelUtils;
 import com.celements.query.IQueryExecutionServiceRole;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -34,8 +36,6 @@ import com.xpn.xwiki.web.Utils;
 
 public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
 
-  private static final String PREFIX = "cel_";
-
   private BaseCollectionIdColumnMigration migration;
   private IQueryExecutionServiceRole queryExecMock;
   private Configuration hibCfgMock;
@@ -44,10 +44,10 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
 
   @Before
   public void prepareTest() throws Exception {
-    expect(getWikiMock().Param("xwiki.db.prefix", "")).andReturn(PREFIX).anyTimes();
     queryExecMock = registerComponentMock(IQueryExecutionServiceRole.class);
     hibCfgMock = createMockAndAddToDefault(Configuration.class);
-    expect(registerComponentMock(HibernateSessionFactory.class).getConfiguration()).andReturn(
+    registerComponentMocks(HibernateSessionFactory.class, ModelUtils.class);
+    expect(getMock(HibernateSessionFactory.class).getConfiguration()).andReturn(
         hibCfgMock).anyTimes();
     migration = (BaseCollectionIdColumnMigration) Utils.getComponent(ICelementsMigrator.class,
         NAME);
@@ -207,7 +207,9 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
   }
 
   private void expectInformationSchemaLoad() throws XWikiException {
-    String database = PREFIX + getContext().getDatabase();
+    String database = "db";
+    expect(getMock(ModelUtils.class).getDatabaseName(Utils.getComponent(
+        ModelContext.class).getWikiRef())).andReturn(database).anyTimes();
     expect(queryExecMock.executeReadSql(String.class, getLoadColumnsSql(database))).andReturn(
         idColumnBuilder.build()).once();
     expect(queryExecMock.executeReadSql(String.class, getLoadForeignKeysSql(database))).andReturn(
@@ -242,25 +244,6 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
         + "where k.TABLE_SCHEMA = 'db' and k.CONSTRAINT_NAME = 'PRIMARY' and k.COLUMN_NAME "
         + "like '%_ID' and k.TABLE_SCHEMA = c.TABLE_SCHEMA and k.TABLE_NAME = c.TABLE_NAME and "
         + "k.COLUMN_NAME = c.COLUMN_NAME group by k.TABLE_NAME", getLoadColumnsSql("db"));
-  }
-
-  @Test
-  public void test_getDatabaseWithPrefix() {
-    String database = "asdf";
-    getContext().setDatabase(database);
-
-    replayDefault();
-    assertEquals(PREFIX + database, migration.getDatabaseWithPrefix());
-    verifyDefault();
-  }
-
-  @Test
-  public void test_getDatabaseWithPrefix_xwiki() {
-    getContext().setDatabase("xwiki");
-
-    replayDefault();
-    assertEquals(PREFIX + "main", migration.getDatabaseWithPrefix());
-    verifyDefault();
   }
 
 }
