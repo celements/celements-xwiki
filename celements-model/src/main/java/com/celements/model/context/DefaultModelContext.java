@@ -83,8 +83,14 @@ public class DefaultModelContext implements ModelContext {
   }
 
   @Override
+  public boolean isMainWiki() {
+    return getModelUtils().getMainWikiRef().equals(getWikiRef());
+  }
+
+  @Deprecated
+  @Override
   public WikiReference getMainWikiRef() {
-    return new WikiReference(getXWikiContext().getMainXWiki());
+    return getModelUtils().getMainWikiRef();
   }
 
   @Override
