@@ -14,6 +14,7 @@ import org.xwiki.model.reference.WikiReference;
 import com.celements.model.context.ModelContext;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
+import com.xpn.xwiki.XWiki;
 
 @Component
 public class DefaultModelUtils implements ModelUtils {
@@ -91,6 +92,25 @@ public class DefaultModelUtils implements ModelUtils {
       resolvedRef = resolver.resolve(name, type, baseRef);
     }
     return cloneRef(resolvedRef, token); // effective immutability
+  }
+
+  @Override
+  public WikiReference getMainWikiRef() {
+    return new WikiReference("xwiki");
+  }
+
+  @Override
+  public String getDatabaseName(WikiReference wikiRef) {
+    checkNotNull(wikiRef);
+    XWiki xwiki = context.getXWikiContext().getWiki();
+    String database = "";
+    if (getMainWikiRef().equals(wikiRef)) {
+      database = xwiki.Param("xwiki.db", "").trim();
+    }
+    if (database.isEmpty()) {
+      database = wikiRef.getName().replace('-', '_');
+    }
+    return xwiki.Param("xwiki.db.prefix", "") + database.replace('-', '_');
   }
 
   @Override

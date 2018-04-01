@@ -9,6 +9,7 @@ import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 
+import com.celements.model.util.ModelUtils;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -30,13 +31,13 @@ public interface ModelContext {
    * @return the old, discouraged {@link XWikiContext}
    */
   @NotNull
-  public XWikiContext getXWikiContext();
+  XWikiContext getXWikiContext();
 
   /**
    * @return the current wiki set in context
    */
   @NotNull
-  public WikiReference getWikiRef();
+  WikiReference getWikiRef();
 
   /**
    * @param wikiRef
@@ -44,16 +45,25 @@ public interface ModelContext {
    * @return the wiki which was set before
    */
   @NotNull
-  public WikiReference setWikiRef(@NotNull WikiReference wikiRef);
+  WikiReference setWikiRef(@NotNull WikiReference wikiRef);
 
+  /**
+   * @return true if the current context wiki is main
+   */
+  boolean isMainWiki();
+
+  /**
+   * @deprecated instead use {@link ModelUtils#getMainWikiRef()}
+   */
+  @Deprecated
   @NotNull
-  public WikiReference getMainWikiRef();
+  WikiReference getMainWikiRef();
 
   /**
    * @return the current doc set in context
    */
   @Nullable
-  public XWikiDocument getDoc();
+  XWikiDocument getDoc();
 
   /**
    * @param doc
@@ -61,31 +71,31 @@ public interface ModelContext {
    * @return the doc which was set before
    */
   @Nullable
-  public XWikiDocument setDoc(@Nullable XWikiDocument doc);
+  XWikiDocument setDoc(@Nullable XWikiDocument doc);
 
   @Nullable
-  public XWikiUser getUser();
+  XWikiUser getUser();
 
   @Nullable
-  public XWikiUser setUser(@Nullable XWikiUser user);
+  XWikiUser setUser(@Nullable XWikiUser user);
 
   @NotNull
-  public String getUserName();
+  String getUserName();
 
   @NotNull
-  public Optional<XWikiRequest> getRequest();
+  Optional<XWikiRequest> getRequest();
 
   @NotNull
-  public Optional<String> getRequestParameter(String key);
+  Optional<String> getRequestParameter(String key);
 
   @NotNull
-  public Optional<XWikiResponse> getResponse();
+  Optional<XWikiResponse> getResponse();
 
   /**
    * @return the default language for the current wiki
    */
   @NotNull
-  public String getDefaultLanguage();
+  String getDefaultLanguage();
 
   /**
    * @param ref
@@ -93,13 +103,13 @@ public interface ModelContext {
    * @return the default language for the given reference
    */
   @NotNull
-  public String getDefaultLanguage(@NotNull EntityReference ref);
+  String getDefaultLanguage(@NotNull EntityReference ref);
 
   /**
    * @return the current url set in context
    */
   @NotNull
-  public Optional<URL> getUrl();
+  Optional<URL> getUrl();
 
   /**
    * @param url
@@ -107,6 +117,6 @@ public interface ModelContext {
    * @return the url which was set before
    */
   @NotNull
-  public Optional<URL> setUrl(@Nullable URL url);
+  Optional<URL> setUrl(@Nullable URL url);
 
 }
