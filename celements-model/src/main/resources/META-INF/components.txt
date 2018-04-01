@@ -35,3 +35,4 @@ com.celements.store.id.UniqueHashIdComputer
 com.celements.model.migration.BaseCollectionIdColumnMigration
 com.celements.mandatory.MandatoryDocumentCompositor
 com.celements.mandatory.XWikiRecycleBinIndexes
+com.celements.mandatory.XWikiObjectUniqueConstraint
