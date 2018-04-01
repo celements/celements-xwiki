@@ -1,6 +1,7 @@
 package com.celements.query;
 
 import static com.google.common.base.MoreObjects.*;
+import static com.google.common.base.Preconditions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -170,13 +171,16 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
   }
 
   @Override
-  public boolean existsIndex(String database, String table, String name) throws XWikiException {
-    return executeReadSql(String.class, checkIfIndexExists(database, table, name)).size() > 0;
+  public boolean existsIndex(WikiReference wikiRef, String table, String name)
+      throws XWikiException {
+    String sql = getIndexExistSql(modelUtils.getDatabaseName(wikiRef), checkNotNull(table),
+        checkNotNull(name));
+    return executeReadSql(String.class, sql).size() > 0;
   }
 
-  private String checkIfIndexExists(String database, String table, String name) {
+  private String getIndexExistSql(String database, String table, String name) {
     return "select INDEX_NAME from INFORMATION_SCHEMA.STATISTICS where TABLE_SCHEMA = '" + database
-        + "' " + "and TABLE_NAME = '" + table + "' " + "and INDEX_NAME = '" + name + "';";
+        + "' " + "and TABLE_NAME = '" + table + "' " + "and INDEX_NAME = '" + name + "'";
   }
 
 }
