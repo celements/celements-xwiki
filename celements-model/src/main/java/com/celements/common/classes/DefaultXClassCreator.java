@@ -36,8 +36,8 @@ import com.celements.model.classes.ClassPackage;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.context.ModelContext;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.BaseClass;
+import com.xpn.xwiki.objects.classes.PropertyClass;
 
 @Singleton
 @Component
@@ -87,10 +87,8 @@ public class DefaultXClassCreator implements XClassCreator {
     LOGGER.debug("creating class '{}'", classDef.getName());
     XWikiDocument classDoc = modelAccess.getOrCreateDocument(
         classDef.getClassReference().getDocRef());
-    BaseClass bClass = generateXClass(classDef);
-    if (!classDoc.getXClass().equals(bClass)) {
+    if (updateXClass(classDef, classDoc.getXClass())) {
       try {
-        classDoc.setXClass(bClass);
         modelAccess.saveDocument(classDoc, "created/updated XClass");
       } catch (DocumentSaveException exc) {
         throw new XClassCreateException(exc);
@@ -101,6 +99,12 @@ public class DefaultXClassCreator implements XClassCreator {
   @Override
   public BaseClass generateXClass(ClassDefinition classDef) {
     BaseClass bClass = new BaseClass();
+    updateXClass(classDef, bClass);
+    return bClass;
+  }
+
+  boolean updateXClass(ClassDefinition classDef, BaseClass bClass) {
+    boolean updated = false;
     DocumentReference classDocRef = classDef.getClassReference().getDocRef();
     bClass.setDocumentReference(classDocRef);
     bClass.setXClassReference(classDocRef);
@@ -108,13 +112,17 @@ public class DefaultXClassCreator implements XClassCreator {
       bClass.setCustomMapping("internal");
     }
     for (ClassField<?> field : classDef.getFields()) {
-      if (bClass.get(field.getName()) == null) {
-        PropertyInterface xField = field.getXField();
-        xField.setObject(bClass);
-        bClass.addField(field.getName(), xField);
+      PropertyClass propertyClass = (PropertyClass) bClass.get(field.getName());
+      if (propertyClass == null) {
+        propertyClass = field.createXWikiPropertyClass();
+        propertyClass.setObject(bClass);
+        updated = true;
+      } else {
+        updated |= field.updateXWikiPropertyClass(propertyClass);
       }
+      bClass.addField(field.getName(), propertyClass);
     }
-    return bClass;
+    return updated;
   }
 
 }
