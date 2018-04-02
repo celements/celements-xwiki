@@ -10,7 +10,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.xpn.xwiki.objects.classes.ListClass;
+import com.xpn.xwiki.objects.StringProperty;
+import com.xpn.xwiki.objects.classes.PropertyClass;
 import com.xpn.xwiki.objects.classes.StaticListClass;
 
 @Immutable
@@ -52,10 +53,17 @@ public class CustomListField<T> extends ListField<T> {
   }
 
   @Override
-  protected ListClass getListClass() {
-    StaticListClass element = new StaticListClass();
-    element.setValues(serializedValuesForPropertyClass());
-    return element;
+  protected PropertyClass newPropertyClass() {
+    return new StaticListClass();
+  }
+
+  @Override
+  protected boolean updatePropertyClass(PropertyClass propertyClass) {
+    boolean updated = super.updatePropertyClass(propertyClass);
+    // TODO createOrUpdateProperty for certain subtypes, e.g. EnumListField/ComponentListField
+    updated |= createProperty(propertyClass, StringProperty.class, "values",
+        serializedValuesForPropertyClass());
+    return updated;
   }
 
   protected String serializedValuesForPropertyClass() {

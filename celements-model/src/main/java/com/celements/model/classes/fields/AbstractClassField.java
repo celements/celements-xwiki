@@ -11,7 +11,9 @@ import javax.validation.constraints.NotNull;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.util.ModelUtils;
 import com.google.common.base.Strings;
+import com.xpn.xwiki.objects.BaseProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
+import com.xpn.xwiki.objects.StringProperty;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 import com.xpn.xwiki.web.Utils;
 
@@ -90,23 +92,35 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
     return validationMessage;
   }
 
+  @Deprecated
   @Override
   public PropertyInterface getXField() {
-    PropertyClass element = getPropertyClass();
-    element.setName(name);
-    if (prettyName != null) {
-      element.setPrettyName(prettyName);
-    }
-    if (validationRegExp != null) {
-      element.setValidationRegExp(validationRegExp);
-    }
-    if (validationMessage != null) {
-      element.setValidationMessage(validationMessage);
-    }
-    return element;
+    return createXWikiPropertyClass();
   }
 
-  protected abstract PropertyClass getPropertyClass();
+  @Override
+  public PropertyClass createXWikiPropertyClass() {
+    PropertyClass propertyClass = newPropertyClass();
+    updateXWikiPropertyClass(propertyClass);
+    return propertyClass;
+  }
+
+  @Override
+  public boolean updateXWikiPropertyClass(PropertyClass propertyClass) {
+    boolean updated = false;
+    updated |= createOrUpdateProperty(propertyClass, StringProperty.class, "name", getName());
+    updated |= createProperty(propertyClass, StringProperty.class, "prettyName", getPrettyName());
+    updated |= createProperty(propertyClass, StringProperty.class, "validationRegExp",
+        getValidationRegExp());
+    updated |= createProperty(propertyClass, StringProperty.class, "validationMessage",
+        getValidationMessage());
+    updated |= updatePropertyClass(propertyClass);
+    return updated;
+  }
+
+  protected abstract PropertyClass newPropertyClass();
+
+  protected abstract boolean updatePropertyClass(PropertyClass propertyClass);
 
   @Override
   public int hashCode() {
@@ -130,6 +144,39 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   protected static ModelUtils getModelUtils() {
     return Utils.getComponent(ModelUtils.class);
+  }
+
+  protected boolean createProperty(PropertyClass propertyClass, Class<? extends BaseProperty> type,
+      String name, Object value) {
+    BaseProperty property = (BaseProperty) propertyClass.get(name);
+    if (property == null) {
+      try {
+        property = type.newInstance();
+      } catch (ReflectiveOperationException exc) {
+        throw new IllegalArgumentException("illegal type [" + type.getSimpleName() + "]", exc);
+      }
+      property.setName(name);
+      property.setValue(value);
+      propertyClass.put(name, property);
+      return true;
+    }
+    return false;
+  }
+
+  protected boolean createOrUpdateProperty(PropertyClass propertyClass,
+      Class<? extends BaseProperty> type, String name, Object value) {
+    if (!createProperty(propertyClass, type, name, value)) {
+      BaseProperty prop = (BaseProperty) propertyClass.get(name);
+      if (!Objects.equals(prop.getValue(), value)) {
+        prop.setValue(value);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected Integer asInteger(Boolean bool) {
+    return bool != null ? (bool ? 1 : 0) : null;
   }
 
 }

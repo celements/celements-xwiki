@@ -21,7 +21,8 @@ import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.xpn.xwiki.objects.classes.ListClass;
+import com.xpn.xwiki.objects.IntegerProperty;
+import com.xpn.xwiki.objects.StringProperty;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 
 public abstract class AbstractListField<T, E> extends AbstractClassField<T> implements
@@ -119,22 +120,15 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
   }
 
   @Override
-  protected PropertyClass getPropertyClass() {
-    ListClass element = getListClass();
-    if (size != null) {
-      element.setSize(size);
-    }
-    if (displayType != null) {
-      element.setDisplayType(displayType);
-    }
-    if (picker != null) {
-      element.setPicker(picker);
-    }
-    element.setSeparators(getSeparator());
-    return element;
+  protected boolean updatePropertyClass(PropertyClass propertyClass) {
+    boolean updated = false;
+    updated |= createOrUpdateProperty(propertyClass, StringProperty.class, "separators",
+        getSeparator());
+    updated |= createProperty(propertyClass, StringProperty.class, "size", getSize());
+    updated |= createProperty(propertyClass, StringProperty.class, "displayType", getDisplayType());
+    updated |= createProperty(propertyClass, IntegerProperty.class, "picker", asInteger(
+        getPicker()));
+    return updated;
   }
-
-  @NotNull
-  protected abstract ListClass getListClass();
 
 }

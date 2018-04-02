@@ -236,7 +236,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
      * 
      * @see com.xpn.xwiki.objects.ObjectInterface#get(java.lang.String)
      */
-    public PropertyInterface get(String name) throws XWikiException
+    public PropertyInterface get(String name)
     {
         return safeget(name);
     }
@@ -260,7 +260,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
      * 
      * @see com.xpn.xwiki.objects.ObjectInterface#put(java.lang.String, com.xpn.xwiki.objects.PropertyInterface)
      */
-    public void put(String name, PropertyInterface property) throws XWikiException
+    public void put(String name, PropertyInterface property)
     {
         safeput(name, property);
     }

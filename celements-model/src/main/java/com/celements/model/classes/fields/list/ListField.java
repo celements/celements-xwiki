@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 
 import com.celements.marshalling.Marshaller;
 import com.google.common.base.Strings;
-import com.xpn.xwiki.objects.classes.ListClass;
+import com.xpn.xwiki.objects.IntegerProperty;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 
 public abstract class ListField<T> extends AbstractListField<List<T>, T> {
@@ -97,12 +97,11 @@ public abstract class ListField<T> extends AbstractListField<List<T>, T> {
   }
 
   @Override
-  protected PropertyClass getPropertyClass() {
-    ListClass element = (ListClass) super.getPropertyClass();
-    if (multiSelect != null) {
-      element.setMultiSelect(multiSelect);
-    }
-    return element;
+  protected boolean updatePropertyClass(PropertyClass propertyClass) {
+    boolean updated = super.updatePropertyClass(propertyClass);
+    updated |= createOrUpdateProperty(propertyClass, IntegerProperty.class, "multiSelect",
+        asInteger(getMultiSelect()));
+    return updated;
   }
 
 }
