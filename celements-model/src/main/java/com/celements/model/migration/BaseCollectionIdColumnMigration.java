@@ -17,6 +17,7 @@ import org.xwiki.component.annotation.Requirement;
 import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
 import com.celements.model.context.ModelContext;
+import com.celements.model.util.ModelUtils;
 import com.celements.query.IQueryExecutionServiceRole;
 import com.google.common.collect.ImmutableSet;
 import com.xpn.xwiki.XWikiContext;
@@ -44,6 +45,9 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   @Requirement
   private IQueryExecutionServiceRole queryExecutor;
+
+  @Requirement
+  private ModelUtils modelUtils;
 
   @Requirement
   private ModelContext context;
@@ -199,10 +203,7 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
   }
 
   String getDatabaseWithPrefix() {
-    String database = context.getWikiRef().getName();
-    database = database.equals("xwiki") ? "main" : database;
-    String prefix = context.getXWikiContext().getWiki().Param("xwiki.db.prefix", "");
-    return prefix + database;
+    return modelUtils.getDatabaseName(context.getWikiRef());
   }
 
   private Configuration getHibConfig() {

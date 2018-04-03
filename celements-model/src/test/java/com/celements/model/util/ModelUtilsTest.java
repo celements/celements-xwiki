@@ -1,5 +1,7 @@
 package com.celements.model.util;
 
+import static com.celements.common.test.CelementsTestUtils.*;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
 import org.junit.Before;
@@ -26,6 +28,39 @@ public class ModelUtilsTest extends AbstractComponentTest {
   public void prepareTest() throws Exception {
     Utils.getComponent(ModelContext.class).setWikiRef(wikiRef);
     modelUtils = Utils.getComponent(ModelUtils.class);
+  }
+
+  @Test
+  public void test_getMainWikiRef() {
+    assertEquals("xwiki", modelUtils.getMainWikiRef().getName());
+  }
+
+  @Test
+  public void test_getMainWikiRef_immutable() {
+    modelUtils.getMainWikiRef().setName("asdf");
+    assertEquals("xwiki", modelUtils.getMainWikiRef().getName());
+  }
+
+  @Test
+  public void test_getDatabaseName() {
+    String prefix = "cel_";
+    expect(getWikiMock().Param("xwiki.db.prefix", "")).andReturn(prefix).once();
+
+    replayDefault();
+    assertEquals(prefix + wikiRef.getName(), modelUtils.getDatabaseName(wikiRef));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_getDatabaseName_main() {
+    String dbName = "main";
+    expect(getWikiMock().Param("xwiki.db", "")).andReturn(dbName).once();
+    String prefix = "cel_";
+    expect(getWikiMock().Param("xwiki.db.prefix", "")).andReturn(prefix).once();
+
+    replayDefault();
+    assertEquals(prefix + dbName, modelUtils.getDatabaseName(modelUtils.getMainWikiRef()));
+    verifyDefault();
   }
 
   @Test
