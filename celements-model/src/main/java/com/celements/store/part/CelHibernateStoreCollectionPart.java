@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hibernate.EntityMode;
+import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -202,15 +203,15 @@ public class CelHibernateStoreCollectionPart {
                 object.getId()));
             // Let's make sure to look for null fields in the dynamic mapping
             bclass.fromValueMap(map, object);
-            handledProps = bclass.getCustomMappingPropertyList(context);
-            for (Object element : handledProps) {
-              String prop = (String) element;
-              if (map.get(prop) == null) {
-                handledProps.remove(prop);
+            for (String prop : bclass.getCustomMappingPropertyList(context)) {
+              if (map.get(prop) != null) {
+                handledProps.add(prop);
               }
             }
           }
-        } catch (Exception e) {
+        } catch (HibernateException exc) {
+          LOGGER.error("Failed loading custom mapping for doc [{}], class [{}], nb [{}]",
+              object.getDocumentReference(), object.getXClassReference(), object.getNumber(), exc);
         }
 
         // Load strings, integers, dates all at once
