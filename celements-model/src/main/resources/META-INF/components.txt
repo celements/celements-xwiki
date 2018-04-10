@@ -36,3 +36,9 @@ com.celements.model.migration.BaseCollectionIdColumnMigration
 com.celements.mandatory.MandatoryDocumentCompositor
 com.celements.mandatory.XWikiRecycleBinIndexes
 com.celements.mandatory.XWikiObjectUniqueConstraint
+com.celements.model.doc.field.ReferenceDocField
+com.celements.model.doc.field.ParentDocField
+com.celements.model.doc.field.UpdateDateDocField
+com.celements.model.doc.field.CreationDateDocField
+com.celements.model.doc.field.TitleDocField
+com.celements.model.doc.field.ContentDocField
