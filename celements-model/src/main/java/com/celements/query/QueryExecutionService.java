@@ -59,8 +59,11 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
   private <T> List<List<T>> harmoniseResult(Class<T> type, List<?> result) {
     List<List<T>> ret = new ArrayList<>();
     for (Object elem : result) {
+      if (type == String.class) {
+        elem = elem.toString();
+      }
       List<T> resultRow = new ArrayList<>();
-      if (type.isAssignableFrom(elem.getClass())) { // one column selected
+      if ((elem == null) || type.isAssignableFrom(elem.getClass())) { // one column selected
         resultRow.add(type.cast(elem));
       } else if (elem.getClass().isArray()) { // multiple columns selected
         for (Object col : ((Object[]) elem)) {
