@@ -24,9 +24,15 @@ class InformationSchema {
   private final Map<String, TableSchemaData> map;
 
   InformationSchema(String database) throws XWikiException {
+    this(database, true);
+  }
+
+  InformationSchema(String database, boolean loadForeignKeys) throws XWikiException {
     this.database = database;
     map = load();
-    loadForeignKeys();
+    if (loadForeignKeys) {
+      loadForeignKeys();
+    }
   }
 
   public String getDatabase() {
