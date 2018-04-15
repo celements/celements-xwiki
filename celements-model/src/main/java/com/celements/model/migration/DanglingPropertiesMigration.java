@@ -107,7 +107,7 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
           }
           return true;
         } else {
-          LOGGER.debug("[{}] skip table, no dangling properties to delete", table);
+          LOGGER.info("[{}] skip table, no dangling properties to delete", table);
         }
       } catch (IllegalArgumentException iae) {
         LOGGER.warn("[{}] skip table, no TableSchemaData", table, iae);
