@@ -89,12 +89,9 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
   private boolean validateTableAndLogRows(String table, String className) throws XWikiException {
     try {
       TableSchemaData data = getInformationSchema().get(table);
-      String sql = getSqlSelectDangling(table, data.getPkColumnName(), className);
-      LOGGER.trace("[{}] select dangling sql: {}", table, sql);
+      String sql = getSelectSql(table, data.getPkColumnName(), className);
+      LOGGER.trace("[{}] select sql: {}", table, sql);
       List<List<String>> result = queryExecutor.executeReadSql(sql);
-      sql = getSqlSelectMismatched(table, data.getPkColumnName(), className);
-      LOGGER.trace("[{}] select mismatched sql: {}", table, sql);
-      result.addAll(queryExecutor.executeReadSql(sql));
       if (result.size() > 0) {
         checkState(LOGGER.isInfoEnabled(), "logging on level 'INFO' disabled");
         LOGGER.info("[{}] dangling properties:", table);
@@ -113,38 +110,24 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
 
   private void migrateTable(String table, String className) throws XWikiException {
     TableSchemaData data = getInformationSchema().get(table);
-    String sql = getSqlDelete(table, data.getPkColumnName(), className);
+    String sql = getDeleteSql(table, data.getPkColumnName(), className);
     LOGGER.trace("[{}] delete sql: {}", table, sql);
     int count = -1 /* queryExecutor.executeWriteSQL(sql) */;
     LOGGER.info("[{}] deleted {} dangling properties", table, count);
   }
 
-  static String getSqlSelectDangling(String table, String pkColumn, String className) {
-    return "select " + table + ".* from " + table + getSqlJoin(pkColumn) + " where "
-        + getSqlConditionDangling() + " order by " + pkColumn;
-  }
-
-  static String getSqlSelectMismatched(String table, String pkColumn, String className) {
+  static String getSelectSql(String table, String column, String className) {
     return "select XWO_ID, XWO_NAME, XWO_CLASSNAME, XWO_NUMBER, " + table + ".* from " + table
-        + getSqlJoin(pkColumn) + " where " + getSqlConditionMismatched(className)
-        + " order by XWO_CLASSNAME, XWO_NAME";
+        + getJoinAndWhereSql(column, className) + " order by XWO_CLASSNAME, XWO_NAME";
   }
 
-  static String getSqlDelete(String table, String pkColumn, String className) {
-    return "delete " + table + " from " + table + getSqlJoin(pkColumn) + " where "
-        + getSqlConditionDangling() + " or " + getSqlConditionMismatched(className);
+  static String getDeleteSql(String table, String column, String className) {
+    return "delete " + table + " from " + table + getJoinAndWhereSql(column, className);
   }
 
-  private static String getSqlJoin(String pkColumn) {
-    return " left join xwikiobjects on XWO_ID = " + pkColumn;
-  }
-
-  private static String getSqlConditionDangling() {
-    return "XWO_ID is null";
-  }
-
-  private static String getSqlConditionMismatched(String className) {
-    return "XWO_CLASSNAME <> '" + className + "'";
+  private static String getJoinAndWhereSql(String column, String className) {
+    return " left join xwikiobjects on XWO_ID = " + column
+        + " where XWO_ID is null or XWO_CLASSNAME <> '" + className + "'";
   }
 
   private void clearMigrationData() {
