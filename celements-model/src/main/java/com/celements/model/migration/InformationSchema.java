@@ -1,5 +1,7 @@
 package com.celements.model.migration;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,20 +42,22 @@ class InformationSchema {
   }
 
   public TableSchemaData get(String table) throws IllegalArgumentException {
-    if (map.containsKey(table)) {
-      return map.get(table);
-    } else {
-      throw new IllegalArgumentException();
-    }
+    checkArgument(map.containsKey(table), "[" + table + "] has no TableSchemaData");
+    return map.get(table);
   }
 
   private Map<String, TableSchemaData> load() throws XWikiException {
     Builder<String, TableSchemaData> builder = ImmutableMap.builder();
-    for (List<String> row : executeReadSql(getLoadColumnsSql(database))) {
+    String sql = getLoadColumnsSql(database);
+    List<List<String>> result = executeReadSql(sql);
+    checkArgument(!result.isEmpty(), "empty result for: %s", sql);
+    for (List<String> row : result) {
+      checkArgument(row.size() == 3, "illegal length on row [%s] for sql: %s", row, sql);
       String table = row.get(0);
       builder.put(table, new TableSchemaData(table, row.get(1), row.get(2)));
     }
     return builder.build();
+
   }
 
   static String getLoadForeignKeysSql(String database) {
