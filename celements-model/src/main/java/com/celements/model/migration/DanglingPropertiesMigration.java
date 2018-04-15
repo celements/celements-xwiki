@@ -131,7 +131,7 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
     TableSchemaData data = getInformationSchema().get(table);
     String sql = getDeleteSql(table, data.getPkColumnName(), className);
     LOGGER.trace("[{}] delete sql: {}", table, sql);
-    int count = -1 /* queryExecutor.executeWriteSQL(sql) */;
+    int count = queryExecutor.executeWriteSQL(sql);
     LOGGER.info("[{}] deleted {} dangling properties", table, count);
   }
 
