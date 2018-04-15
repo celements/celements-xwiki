@@ -113,8 +113,8 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
   }
 
   static String getSelectSql(String table, String column, String className) {
-    return "select * from " + table + getJoinAndWhereSql(column, className)
-        + " order by XWO_CLASSNAME, XWO_NAME";
+    return "select XWO_ID, XWO_NAME, XWO_CLASSNAME, XWO_NUMBER, " + table + ".* from " + table
+        + getJoinAndWhereSql(column, className) + " order by XWO_CLASSNAME, XWO_NAME";
   }
 
   static String getDeleteSql(String table, String column, String className) {
