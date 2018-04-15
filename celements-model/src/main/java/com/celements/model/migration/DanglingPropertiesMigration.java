@@ -11,9 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
+import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
+import com.celements.model.access.IModelAccessFacade;
+import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.model.context.ModelContext;
 import com.celements.model.migration.InformationSchema.TableSchemaData;
 import com.celements.model.util.ModelUtils;
@@ -35,6 +38,9 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
 
   @Requirement
   private IQueryExecutionServiceRole queryExecutor;
+
+  @Requirement
+  private IModelAccessFacade modelAccess;
 
   @Requirement
   private ModelUtils modelUtils;
@@ -87,25 +93,38 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
   }
 
   private boolean validateTableAndLogRows(String table, String className) throws XWikiException {
-    try {
-      TableSchemaData data = getInformationSchema().get(table);
-      String sql = getSelectSql(table, data.getPkColumnName(), className);
-      LOGGER.trace("[{}] select sql: {}", table, sql);
-      List<List<String>> result = queryExecutor.executeReadSql(sql);
-      if (result.size() > 0) {
-        checkState(LOGGER.isInfoEnabled(), "logging on level 'INFO' disabled");
-        LOGGER.info("[{}] dangling properties:", table);
-        for (List<String> row : result) {
-          LOGGER.info("[{}] {}", table, row.toString());
+    if (hasInternalCustomMapping(table, className)) {
+      try {
+        TableSchemaData data = getInformationSchema().get(table);
+        String sql = getSelectSql(table, data.getPkColumnName(), className);
+        LOGGER.trace("[{}] select sql: {}", table, sql);
+        List<List<String>> result = queryExecutor.executeReadSql(sql);
+        if (result.size() > 0) {
+          checkState(LOGGER.isInfoEnabled(), "logging on level 'INFO' disabled");
+          LOGGER.info("[{}] dangling properties:", table);
+          for (List<String> row : result) {
+            LOGGER.info("[{}] {}", table, row.toString());
+          }
+          return true;
+        } else {
+          LOGGER.debug("[{}] skip table, no dangling properties to delete", table);
         }
-        return true;
-      } else {
-        LOGGER.debug("[{}] skip table, no dangling properties to delete", table);
+      } catch (IllegalArgumentException iae) {
+        LOGGER.warn("[{}] skip table, no TableSchemaData", table, iae);
       }
-    } catch (IllegalArgumentException iae) {
-      LOGGER.warn("[{}] skip table, no TableSchemaData", table, iae);
+    } else {
+      LOGGER.debug("[{}] skip table, class [{}] has no internal custom mapping", table, className);
     }
     return false;
+  }
+
+  private boolean hasInternalCustomMapping(String table, String className) {
+    try {
+      DocumentReference docRef = modelUtils.resolveRef(className, DocumentReference.class);
+      return modelAccess.getDocument(docRef).getXClass().hasInternalCustomMapping();
+    } catch (DocumentNotExistsException | IllegalArgumentException exc) {
+      return false;
+    }
   }
 
   private void migrateTable(String table, String className) throws XWikiException {
