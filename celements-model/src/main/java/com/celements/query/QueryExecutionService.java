@@ -41,14 +41,19 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
   private ModelContext context;
 
   @Override
+  public List<List<String>> executeReadSql(String sql) throws XWikiException {
+    return executeReadSql(String.class, sql);
+  }
+
+  @Override
   public <T> List<List<T>> executeReadSql(Class<T> type, String sql) throws XWikiException {
     Session session = null;
     try {
       session = getNewHibSession();
       List<?> result = session.createSQLQuery(sql).list();
       return harmoniseResult(type, result);
-    } catch (HibernateException hibExc) {
-      throw new XWikiException(0, 0, "error while executing sql", hibExc);
+    } catch (HibernateException | ClassCastException exc) {
+      throw new XWikiException(0, 0, "error while executing or parsing sql", exc);
     } finally {
       if (session != null) {
         session.close();
@@ -56,23 +61,28 @@ public class QueryExecutionService implements IQueryExecutionServiceRole {
     }
   }
 
-  private <T> List<List<T>> harmoniseResult(Class<T> type, List<?> result) {
+  private <T> List<List<T>> harmoniseResult(Class<T> type, List<?> result)
+      throws ClassCastException {
     List<List<T>> ret = new ArrayList<>();
     for (Object elem : result) {
-      if (type == String.class) {
-        elem = elem.toString();
-      }
       List<T> resultRow = new ArrayList<>();
-      if ((elem == null) || type.isAssignableFrom(elem.getClass())) { // one column selected
-        resultRow.add(type.cast(elem));
-      } else if (elem.getClass().isArray()) { // multiple columns selected
+      if ((elem != null) && elem.getClass().isArray()) { // multiple columns selected
         for (Object col : ((Object[]) elem)) {
-          resultRow.add(type.cast(col));
+          resultRow.add(cast(type, col));
         }
+      } else { // one column selected
+        resultRow.add(cast(type, elem));
       }
       ret.add(resultRow);
     }
     return ret;
+  }
+
+  private <T> T cast(Class<T> type, Object elem) throws ClassCastException {
+    if ((elem != null) && (type == String.class)) {
+      elem = elem.toString();
+    }
+    return type.cast(elem);
   }
 
   @Override

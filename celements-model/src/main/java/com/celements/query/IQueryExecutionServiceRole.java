@@ -17,6 +17,9 @@ import com.xpn.xwiki.XWikiException;
 public interface IQueryExecutionServiceRole {
 
   @NotNull
+  public List<List<String>> executeReadSql(@NotNull String sql) throws XWikiException;
+
+  @NotNull
   public <T> List<List<T>> executeReadSql(@NotNull Class<T> type, @NotNull String sql)
       throws XWikiException;
 
