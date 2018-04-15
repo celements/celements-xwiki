@@ -52,11 +52,12 @@ class InformationSchema {
     String sql = getLoadColumnsSql(database);
     List<List<String>> result = executeReadSql(sql);
     if (result.isEmpty()) {
-      throw new XWikiException(0, 0, format("empty result for: %s", sql));
+      throw new XWikiException(0, 0, format("empty result for: {0}", sql));
     }
     for (List<String> row : result) {
       if (row.size() != 3) {
-        throw new XWikiException(0, 0, format("illegal length on row [%s] for sql: %s", row, sql));
+        throw new XWikiException(0, 0, format("illegal length on row [{0}] for sql: {1}", row,
+            sql));
       }
       String table = row.get(0);
       builder.put(table, new TableSchemaData(table, row.get(1), row.get(2)));
