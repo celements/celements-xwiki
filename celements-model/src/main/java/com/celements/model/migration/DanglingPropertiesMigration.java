@@ -15,6 +15,7 @@ import org.xwiki.component.annotation.Requirement;
 import com.celements.migrations.SubSystemHibernateMigrationManager;
 import com.celements.migrator.AbstractCelementsHibernateMigrator;
 import com.celements.model.context.ModelContext;
+import com.celements.model.migration.InformationSchema.TableSchemaData;
 import com.celements.model.util.ModelUtils;
 import com.celements.query.IQueryExecutionServiceRole;
 import com.xpn.xwiki.XWikiContext;
@@ -87,9 +88,10 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
 
   private boolean validateTableAndLogRows(String table, String className) throws XWikiException {
     try {
-      String column = getInformationSchema().get(table).getPkColumnName();
-      List<List<String>> result = queryExecutor.executeReadSql(getSelectSql(table, column,
-          className));
+      TableSchemaData data = getInformationSchema().get(table);
+      String sql = getSelectSql(table, data.getPkColumnName(), className);
+      LOGGER.trace("[{}] select sql: {}", table, sql);
+      List<List<String>> result = queryExecutor.executeReadSql(sql);
       if (result.size() > 0) {
         checkState(LOGGER.isInfoEnabled(), "logging on level 'INFO' disabled");
         LOGGER.info("[{}] dangling properties:", table);
@@ -107,8 +109,10 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
   }
 
   private void migrateTable(String table, String className) throws XWikiException {
-    String column = getInformationSchema().get(table).getPkColumnName();
-    int count = -1 /* queryExecutor.executeWriteSQL(getDeleteSql(table, column, className)) */;
+    TableSchemaData data = getInformationSchema().get(table);
+    String sql = getDeleteSql(table, data.getPkColumnName(), className);
+    LOGGER.trace("[{}] delete sql: {}", table, sql);
+    int count = -1 /* queryExecutor.executeWriteSQL(sql) */;
     LOGGER.info("[{}] deleted {} dangling properties", table, count);
   }
 
