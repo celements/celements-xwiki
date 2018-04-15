@@ -88,8 +88,8 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
   private boolean validateTableAndLogRows(String table, String className) throws XWikiException {
     try {
       String column = getInformationSchema().get(table).getPkColumnName();
-      List<List<String>> result = queryExecutor.executeReadSql(String.class, getSelectSql(table,
-          column, className));
+      List<List<String>> result = queryExecutor.executeReadSql(getSelectSql(table, column,
+          className));
       if (result.size() > 0) {
         checkState(LOGGER.isInfoEnabled(), "logging on level 'INFO' disabled");
         LOGGER.info("[{}] dangling properties:", table);

@@ -1,7 +1,6 @@
 package com.celements.model.migration;
 
 import static com.google.common.base.Preconditions.*;
-import static java.text.MessageFormat.format;
 
 import java.util.HashMap;
 import java.util.List;
@@ -43,22 +42,13 @@ class InformationSchema {
   }
 
   public TableSchemaData get(String table) throws IllegalArgumentException {
-    checkArgument(map.containsKey(table), "[" + table + "] has no TableSchemaData");
+    checkArgument(map.containsKey(table));
     return map.get(table);
   }
 
   private Map<String, TableSchemaData> load() throws XWikiException {
     Builder<String, TableSchemaData> builder = ImmutableMap.builder();
-    String sql = getLoadColumnsSql(database);
-    List<List<String>> result = executeReadSql(sql);
-    if (result.isEmpty()) {
-      throw new XWikiException(0, 0, format("empty result for: {0}", sql));
-    }
-    for (List<String> row : result) {
-      if (row.size() != 3) {
-        throw new XWikiException(0, 0, format("illegal length on row [{0}] for sql: {1}", row,
-            sql));
-      }
+    for (List<String> row : executeReadSql(getLoadColumnsSql(database))) {
       String table = row.get(0);
       builder.put(table, new TableSchemaData(table, row.get(1), row.get(2)));
     }
@@ -100,7 +90,7 @@ class InformationSchema {
   }
 
   private List<List<String>> executeReadSql(String sql) throws XWikiException {
-    return Utils.getComponent(IQueryExecutionServiceRole.class).executeReadSql(String.class, sql);
+    return Utils.getComponent(IQueryExecutionServiceRole.class).executeReadSql(sql);
   }
 
   static class TableSchemaData {
