@@ -1,6 +1,7 @@
 package com.celements.model.migration;
 
 import static com.google.common.base.Preconditions.*;
+import static java.text.MessageFormat.format;
 
 import java.util.HashMap;
 import java.util.List;
@@ -50,9 +51,13 @@ class InformationSchema {
     Builder<String, TableSchemaData> builder = ImmutableMap.builder();
     String sql = getLoadColumnsSql(database);
     List<List<String>> result = executeReadSql(sql);
-    checkArgument(!result.isEmpty(), "empty result for: %s", sql);
+    if (result.isEmpty()) {
+      throw new XWikiException(0, 0, format("empty result for: %s", sql));
+    }
     for (List<String> row : result) {
-      checkArgument(row.size() == 3, "illegal length on row [%s] for sql: %s", row, sql);
+      if (row.size() != 3) {
+        throw new XWikiException(0, 0, format("illegal length on row [%s] for sql: %s", row, sql));
+      }
       String table = row.get(0);
       builder.put(table, new TableSchemaData(table, row.get(1), row.get(2)));
     }
