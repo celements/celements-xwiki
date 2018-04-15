@@ -55,11 +55,11 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
 
   /**
    * getVersion is using days since 1.1.2010 until the day of committing this migration
-   * http://www.wolframalpha.com/input/?i=days+since+01.01.2010
+   * 15.04.2018 -> 3025 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
    */
   @Override
   public XWikiDBVersion getVersion() {
-    return new XWikiDBVersion(3001);
+    return new XWikiDBVersion(3026);
   }
 
   @Override

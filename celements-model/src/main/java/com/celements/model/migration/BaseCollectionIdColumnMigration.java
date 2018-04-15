@@ -68,11 +68,11 @@ public class BaseCollectionIdColumnMigration extends AbstractCelementsHibernateM
 
   /**
    * getVersion is using days since 1.1.2010 until the day of committing this migration
-   * 20.03.2018 -> 3000 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
+   * 14.04.2018 -> 3025 http://www.wolframalpha.com/input/?i=days+since+01.01.2010
    */
   @Override
   public XWikiDBVersion getVersion() {
-    return new XWikiDBVersion(3000);
+    return new XWikiDBVersion(3025);
   }
 
   @Override
