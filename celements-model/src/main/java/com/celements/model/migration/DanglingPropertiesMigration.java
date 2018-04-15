@@ -115,10 +115,10 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
   }
 
   private void logData(String table, List<List<String>> result) {
-    checkState(LOGGER.isInfoEnabled(), "logging on level 'INFO' disabled");
-    LOGGER.info("[{}] dangling properties:", table);
+    checkState(LOGGER.isWarnEnabled(), "logging on level 'WARN' disabled");
+    LOGGER.warn("[{}] dangling properties:", table);
     for (List<String> row : result) {
-      LOGGER.info("[{}] {}", table, row.toString());
+      LOGGER.warn("[{}] {}", table, row.toString());
     }
   }
 
