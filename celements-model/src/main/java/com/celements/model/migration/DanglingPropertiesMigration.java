@@ -108,7 +108,7 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
 
   private void migrateTable(String table, String className) throws XWikiException {
     String column = getInformationSchema().get(table).getPkColumnName();
-    int count = queryExecutor.executeWriteSQL(getDeleteSql(table, column, className));
+    int count = -1 /* queryExecutor.executeWriteSQL(getDeleteSql(table, column, className)) */;
     LOGGER.info("[{}] deleted {} dangling properties", table, count);
   }
 
