@@ -53,7 +53,6 @@ class InformationSchema {
       builder.put(table, new TableSchemaData(table, row.get(1), row.get(2)));
     }
     return builder.build();
-
   }
 
   static String getLoadForeignKeysSql(String database) {

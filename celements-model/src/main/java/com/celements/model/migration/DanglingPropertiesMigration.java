@@ -79,7 +79,7 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
         PersistentClass mapping = iter.next();
         String table = mapping.getTable().getName();
         String className = mapping.getEntityName();
-        if (validateTableAndLogRows(table, className)) {
+        if (validateTableAndLogData(table, className)) {
           migrateTable(table, className);
         }
       }
@@ -92,7 +92,7 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
     }
   }
 
-  private boolean validateTableAndLogRows(String table, String className) throws XWikiException {
+  private boolean validateTableAndLogData(String table, String className) throws XWikiException {
     if (hasInternalCustomMapping(table, className)) {
       try {
         TableSchemaData data = getInformationSchema().get(table);
@@ -100,11 +100,7 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
         LOGGER.trace("[{}] select sql: {}", table, sql);
         List<List<String>> result = queryExecutor.executeReadSql(sql);
         if (result.size() > 0) {
-          checkState(LOGGER.isInfoEnabled(), "logging on level 'INFO' disabled");
-          LOGGER.info("[{}] dangling properties:", table);
-          for (List<String> row : result) {
-            LOGGER.info("[{}] {}", table, row.toString());
-          }
+          logData(table, result);
           return true;
         } else {
           LOGGER.info("[{}] skip table, no dangling properties to delete", table);
@@ -116,6 +112,14 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
       LOGGER.debug("[{}] skip table, class [{}] has no internal custom mapping", table, className);
     }
     return false;
+  }
+
+  private void logData(String table, List<List<String>> result) {
+    checkState(LOGGER.isInfoEnabled(), "logging on level 'INFO' disabled");
+    LOGGER.info("[{}] dangling properties:", table);
+    for (List<String> row : result) {
+      LOGGER.info("[{}] {}", table, row.toString());
+    }
   }
 
   private boolean hasInternalCustomMapping(String table, String className) {
