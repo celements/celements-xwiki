@@ -28,7 +28,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>celements-model</artifactId>
-  <version>1.3-SNAPSHOT</version>
+  <version>1.3.1</version>
   <description>Celements XWiki</description>
   <dependencies>
     <!-- Add here all your dependencies -->
@@ -43,6 +43,6 @@
     <connection>scm:git:git@github.com:celements/celements-xwiki.git</connection>
     <developerConnection>scm:git:git@github.com:celements/celements-xwiki.git</developerConnection>
     <url>https://github.com/celements/celements-xwiki</url>
-    <tag>celements-model-1.3</tag>
+    <tag>celements-model-1.3.1</tag>
   </scm>
 </project>
