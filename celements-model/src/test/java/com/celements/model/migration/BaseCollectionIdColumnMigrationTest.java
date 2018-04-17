@@ -210,9 +210,9 @@ public class BaseCollectionIdColumnMigrationTest extends AbstractComponentTest {
     String database = "db";
     expect(getMock(ModelUtils.class).getDatabaseName(Utils.getComponent(
         ModelContext.class).getWikiRef())).andReturn(database).anyTimes();
-    expect(queryExecMock.executeReadSql(String.class, getLoadColumnsSql(database))).andReturn(
+    expect(queryExecMock.executeReadSql(getLoadColumnsSql(database))).andReturn(
         idColumnBuilder.build()).once();
-    expect(queryExecMock.executeReadSql(String.class, getLoadForeignKeysSql(database))).andReturn(
+    expect(queryExecMock.executeReadSql(getLoadForeignKeysSql(database))).andReturn(
         foreignKeyBuilder.build()).once();
   }
 

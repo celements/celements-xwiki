@@ -36,3 +36,4 @@ com.celements.model.migration.BaseCollectionIdColumnMigration
 com.celements.mandatory.MandatoryDocumentCompositor
 com.celements.mandatory.XWikiRecycleBinIndexes
 com.celements.mandatory.XWikiObjectUniqueConstraint
+com.celements.model.migration.DanglingPropertiesMigration

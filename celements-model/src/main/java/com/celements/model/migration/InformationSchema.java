@@ -1,5 +1,7 @@
 package com.celements.model.migration;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +26,15 @@ class InformationSchema {
   private final Map<String, TableSchemaData> map;
 
   InformationSchema(String database) throws XWikiException {
+    this(database, true);
+  }
+
+  InformationSchema(String database, boolean loadForeignKeys) throws XWikiException {
     this.database = database;
     map = load();
-    loadForeignKeys();
+    if (loadForeignKeys) {
+      loadForeignKeys();
+    }
   }
 
   public String getDatabase() {
@@ -34,11 +42,8 @@ class InformationSchema {
   }
 
   public TableSchemaData get(String table) throws IllegalArgumentException {
-    if (map.containsKey(table)) {
-      return map.get(table);
-    } else {
-      throw new IllegalArgumentException();
-    }
+    checkArgument(map.containsKey(table));
+    return map.get(table);
   }
 
   private Map<String, TableSchemaData> load() throws XWikiException {
@@ -84,7 +89,7 @@ class InformationSchema {
   }
 
   private List<List<String>> executeReadSql(String sql) throws XWikiException {
-    return Utils.getComponent(IQueryExecutionServiceRole.class).executeReadSql(String.class, sql);
+    return Utils.getComponent(IQueryExecutionServiceRole.class).executeReadSql(sql);
   }
 
   static class TableSchemaData {
