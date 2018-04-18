@@ -28,11 +28,11 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   public abstract static class Builder<B extends Builder<B, T>, T> {
 
-    protected final String classDefName;
-    protected final String name;
-    protected String prettyName;
-    protected String validationRegExp;
-    protected String validationMessage;
+    private final String classDefName;
+    private final String name;
+    private String prettyName;
+    private String validationRegExp;
+    private String validationMessage;
 
     public Builder(@NotNull String classDefName, @NotNull String name) {
       this.classDefName = checkNotNull(classDefName);

@@ -39,10 +39,10 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
   public abstract static class Builder<B extends Builder<B, T, E>, T, E> extends
       AbstractClassField.Builder<B, T> {
 
-    protected final Marshaller<E> marshaller;
-    protected Integer size;
-    protected String displayType;
-    protected Boolean picker;
+    private final Marshaller<E> marshaller;
+    private Integer size;
+    private String displayType;
+    private Boolean picker;
 
     public Builder(@NotNull String classDefName, @NotNull String name,
         @NotNull Marshaller<E> marshaller) {
@@ -70,13 +70,9 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
   protected AbstractListField(@NotNull Builder<?, T, E> builder) {
     super(builder);
     this.marshaller = builder.marshaller;
-    this.size = getBuilderSize(builder);
+    this.size = firstNonNull(builder.size, 2);
     this.displayType = builder.displayType;
     this.picker = builder.picker;
-  }
-
-  protected Integer getBuilderSize(Builder<?, T, E> builder) {
-    return firstNonNull(builder.size, 1);
   }
 
   protected String serializeInternal(@NotNull List<E> values) {

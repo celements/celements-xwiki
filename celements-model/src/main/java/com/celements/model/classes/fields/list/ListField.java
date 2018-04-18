@@ -20,8 +20,8 @@ public abstract class ListField<T> extends AbstractListField<List<T>, T> {
   public abstract static class Builder<B extends Builder<B, T>, T> extends
       AbstractListField.Builder<B, List<T>, T> {
 
-    protected Boolean multiSelect;
-    protected String separator;
+    private Boolean multiSelect;
+    private String separator;
 
     public Builder(@NotNull String classDefName, @NotNull String name,
         @NotNull Marshaller<T> marshaller) {
@@ -62,16 +62,9 @@ public abstract class ListField<T> extends AbstractListField<List<T>, T> {
   }
 
   protected ListField(@NotNull Builder<?, T> builder) {
-    super(getBuilderSizeDefaultSet(builder));
+    super(builder);
     this.multiSelect = builder.multiSelect;
     this.separator = firstNonNull(Strings.emptyToNull(builder.separator), DEFAULT_SEPARATOR);
-  }
-
-  static <T> Builder<? extends Builder<?, T>, T> getBuilderSizeDefaultSet(Builder<?, T> builder) {
-    if ((builder.multiSelect != null) && builder.multiSelect) {
-      builder.size(firstNonNull(builder.size, 2));
-    }
-    return builder;
   }
 
   @Override
