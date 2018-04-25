@@ -2,6 +2,7 @@ package com.celements.store.part;
 
 import java.io.Serializable;
 
+import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -16,7 +17,6 @@ import com.xpn.xwiki.objects.BaseStringProperty;
 import com.xpn.xwiki.objects.ListProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
 
-//TODO CELDEV-626 - CelHibernateStore refactoring
 public class CelHibernateStorePropertyPart {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CelHibernateStore.class);
@@ -36,100 +36,90 @@ public class CelHibernateStorePropertyPart {
         bTransaction = store.beginTransaction(false, context);
       }
       Session session = store.getSession(context);
-
-      try {
-        session.load(property, (Serializable) property);
-        // In Oracle, empty string are converted to NULL. Since an undefined property is not found
-        // at all, it is safe to assume that a retrieved NULL value should actually be an empty
-        // string.
-        if (property instanceof BaseStringProperty) {
-          BaseStringProperty stringProperty = (BaseStringProperty) property;
-          if (stringProperty.getValue() == null) {
-            stringProperty.setValue("");
-          }
-        }
-      } catch (ObjectNotFoundException exc) {
-        LOGGER.warn("loadXWikiProperty - no data for property: {}", property, exc);
-      }
-
-      // TODO: understand why collections are lazy loaded
-      // Let's force reading lists if there is a list
-      // This seems to be an issue since Hibernate 3.0
-      // Without this test ViewEditTest.testUpdateAdvanceObjectProp fails
-      if (property instanceof ListProperty) {
-        ((ListProperty) property).getList();
-      }
-
-      if (bTransaction) {
-        store.endTransaction(context, false, false);
-      }
-    } catch (Exception e) {
+      session.load(property, (Serializable) property);
+      executePostLoadActions(property);
+    } catch (ObjectNotFoundException exc) {
+      LOGGER.warn("loadXProperty - no data for {}: {}", property.getId(), property, exc);
+    } catch (HibernateException | XWikiException exc) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-          "Exception while loading property " + property, e);
-
+          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT, "loadXProperty - failed for "
+              + property.getId() + " :" + property, exc);
     } finally {
       try {
         if (bTransaction) {
           store.endTransaction(context, false, false);
         }
-      } catch (Exception e) {
-        LOGGER.error("failed commit/rollback for {}", property, e);
+      } catch (HibernateException exc) {
+        LOGGER.error("loadXProperty - failed rollback for {}: {}", property.getId(), property, exc);
       }
     }
     logXProperty("loadXProperty - end", property);
   }
 
-  public void saveXWikiProperty(final PropertyInterface property, final XWikiContext context,
-      final boolean runInOwnTransaction) throws XWikiException {
+  private void executePostLoadActions(PropertyInterface property) {
+    if (property instanceof BaseStringProperty) {
+      // In Oracle, empty string are converted to NULL. Since an undefined property is not found
+      // at all, it's safe to assume that a retrieved NULL value should actually be an empty string
+      BaseStringProperty stringProperty = (BaseStringProperty) property;
+      if (stringProperty.getValue() == null) {
+        stringProperty.setValue("");
+      }
+    }
+    if (property instanceof ListProperty) {
+      // Force read list properties. This seems to be an issue since Hibernate 3.0. Without this
+      // test ViewEditTest.testUpdateAdvanceObjectProp fails
+      // TODO: understand why collections are lazy loaded.
+      ((ListProperty) property).getList();
+    }
+  }
+
+  public void saveXWikiProperty(PropertyInterface property, XWikiContext context,
+      boolean bTransaction) throws XWikiException {
     logXProperty("saveXProperty - start", property);
-    // Clone runInOwnTransaction so the value passed is not altered.
-    boolean bTransaction = runInOwnTransaction;
+    boolean commit = false;
     try {
       if (bTransaction) {
         store.checkHibernate(context);
         bTransaction = store.beginTransaction(context);
       }
-
-      final Session session = store.getSession(context);
-
-      final Query query = session.createQuery(
-          "select prop.name from BaseProperty as prop where prop.id.id = :id and prop.id.name= :name");
-      query.setLong("id", property.getId());
-      query.setString("name", property.getName());
-
-      if (query.uniqueResult() == null) {
-        session.save(property);
-      } else {
-        session.update(property);
-      }
-
-      if (bTransaction) {
-        store.endTransaction(context, true);
-      }
-    } catch (Exception e) {
-      // Something went wrong, collect some information.
-      String propertyStr = property.toString();
-
-      // Try to roll back the transaction if this is in it's own transaction.
+      updateOrSaveProperty(property, context);
+      commit = true;
+    } catch (HibernateException | XWikiException exc) {
+      // something went wrong, collect some information
+      String propertyStr = property.getId() + " :" + property;
+      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
+          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT, "saveXProperty - failed for "
+              + propertyStr, exc);
+    } finally {
       try {
         if (bTransaction) {
-          store.endTransaction(context, false);
+          store.endTransaction(context, commit);
         }
-      } catch (Exception ee) {
-        // Not a lot we can do here if there was an exception committing and an exception rolling
-        // back.
-
-        // not a lot sure, but at least f...ing log it!
-        LOGGER.error("failed commit and rollback for {}", propertyStr, ee);
+      } catch (HibernateException exc) {
+        LOGGER.error("saveXProperty - failed {} for {}: {}", (commit ? "commit" : "rollback"),
+            property.getId(), property, exc);
       }
-
-      // Throw the exception.
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-          "Exception while saving property: " + propertyStr, e);
     }
     logXProperty("saveXProperty - end", property);
+  }
+
+  private void updateOrSaveProperty(PropertyInterface property, XWikiContext context)
+      throws HibernateException {
+    Session session = store.getSession(context);
+    if (existsProperty(property, session)) {
+      session.update(property);
+    } else {
+      session.save(property);
+    }
+  }
+
+  private boolean existsProperty(PropertyInterface property, Session session)
+      throws HibernateException {
+    Query query = session.createQuery("select prop.name from BaseProperty as prop "
+        + "where prop.id.id = :id and prop.id.name= :name");
+    query.setLong("id", property.getId());
+    query.setString("name", property.getName());
+    return query.uniqueResult() != null;
   }
 
   private void logXProperty(String msg, PropertyInterface property) {
