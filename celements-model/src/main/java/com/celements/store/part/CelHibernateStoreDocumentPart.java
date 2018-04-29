@@ -125,9 +125,7 @@ public class CelHibernateStoreDocumentPart {
         // session.saveOrUpdate(doc);
       }
 
-      prepareXObjects(doc);
-      deleteRemovedXObjects(doc, context);
-      saveXObjects(doc, context);
+      deleteAndSaveXObjects(doc, context);
 
       if (context.getWiki().hasBacklinks(context)) {
         store.saveLinks(doc, context, true);
@@ -178,42 +176,32 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  private void prepareXObjects(XWikiDocument doc) throws IdComputationException {
-    if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
-      for (BaseObject obj : getObjectFetcher(doc).iter()) {
-        obj.setDocumentReference(doc.getDocumentReference());
-        if (Strings.isNullOrEmpty(obj.getGuid())) {
-          obj.setGuid(UUID.randomUUID().toString());
-        }
-        if (!obj.hasValidId()) {
-          long nextId = store.getIdComputer().computeNextObjectId(doc);
-          obj.setId(nextId, store.getIdComputer().getIdVersion());
-          LOGGER.debug("saveXWikiDoc - computed id [{}]", obj.getId());
-        }
-      }
-    }
-  }
-
-  private void deleteRemovedXObjects(XWikiDocument doc, XWikiContext context)
-      throws XWikiException {
-    if (doc.getXObjectsToRemove().size() > 0) {
+  private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context) throws XWikiException,
+      IdComputationException {
+    prepareXObjects(doc);
+    if ((doc.getXObjectsToRemove() != null) && (doc.getXObjectsToRemove().size() > 0)) {
       for (BaseObject removedObject : doc.getXObjectsToRemove()) {
         store.deleteXWikiObject(removedObject, context, false);
       }
       doc.setXObjectsToRemove(new ArrayList<BaseObject>());
     }
-  }
-
-  private void saveXObjects(XWikiDocument doc, XWikiContext context) throws XWikiException {
-    if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
-      for (BaseObject obj : getObjectFetcher(doc).iter()) {
-        store.saveXWikiCollection(obj, context, false);
-      }
+    for (BaseObject obj : getXObjectFetcher(doc).iter()) {
+      store.saveXWikiCollection(obj, context, false);
     }
   }
 
-  private XWikiObjectFetcher getObjectFetcher(XWikiDocument doc) {
-    return XWikiObjectEditor.on(doc).fetch();
+  private void prepareXObjects(XWikiDocument doc) throws IdComputationException {
+    for (BaseObject obj : getXObjectFetcher(doc).iter()) {
+      obj.setDocumentReference(doc.getDocumentReference());
+      if (Strings.isNullOrEmpty(obj.getGuid())) {
+        obj.setGuid(UUID.randomUUID().toString());
+      }
+      if (!obj.hasValidId()) {
+        long nextId = store.getIdComputer().computeNextObjectId(doc);
+        obj.setId(nextId, store.getIdComputer().getIdVersion());
+        LOGGER.debug("saveXWikiDoc - computed id [{}]", obj.getId());
+      }
+    }
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
@@ -454,6 +442,10 @@ public class CelHibernateStoreDocumentPart {
       }
     }
     logXWikiDoc("deleteXWikiDoc - end", doc);
+  }
+
+  private XWikiObjectFetcher getXObjectFetcher(XWikiDocument doc) {
+    return XWikiObjectEditor.on(doc).fetch();
   }
 
   private void logXWikiDoc(String msg, XWikiDocument doc) {
