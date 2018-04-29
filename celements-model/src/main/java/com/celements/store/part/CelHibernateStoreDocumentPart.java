@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.FlushMode;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
@@ -19,8 +18,12 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 
+import com.celements.model.object.xwiki.XWikiObjectEditor;
+import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.store.CelHibernateStore;
+import com.celements.store.id.CelementsIdComputer.IdComputationException;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -68,14 +71,7 @@ public class CelHibernateStoreDocumentPart {
 
       // Let's update the class XML since this is the new way to store it
       // TODO If all the properties are removed, the old xml stays?
-      BaseClass bclass = doc.getXClass();
-      if (bclass != null) {
-        if (bclass.getFieldList().size() > 0) {
-          doc.setXClassXML(bclass.toXMLString());
-        } else {
-          doc.setXClassXML("");
-        }
-      }
+      setBaseClass(doc, context);
 
       if (doc.hasElement(XWikiDocument.HAS_ATTACHMENTS)) {
         store.saveAttachmentList(doc, context, false);
@@ -129,40 +125,9 @@ public class CelHibernateStoreDocumentPart {
         // session.saveOrUpdate(doc);
       }
 
-      // Remove objects planned for removal
-      if (doc.getXObjectsToRemove().size() > 0) {
-        for (BaseObject removedObject : doc.getXObjectsToRemove()) {
-          store.deleteXWikiObject(removedObject, context, false);
-        }
-        doc.setXObjectsToRemove(new ArrayList<BaseObject>());
-      }
-
-      if (bclass != null) {
-        bclass.setDocumentReference(doc.getDocumentReference());
-        // Store this XWikiClass in the context in case of recursive usage of classes
-        context.addBaseClass(bclass);
-      }
-
-      if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
-        // TODO: Delete all objects for which we don't have a name in the Map
-        for (List<BaseObject> objects : doc.getXObjects().values()) {
-          for (BaseObject obj : objects) {
-            if (obj != null) {
-              obj.setDocumentReference(doc.getDocumentReference());
-              /* If the object doesn't have a GUID, create it before saving */
-              if (StringUtils.isEmpty(obj.getGuid())) {
-                obj.setGuid(UUID.randomUUID().toString());
-              }
-              if (!obj.hasValidId()) {
-                LOGGER.trace("obj [{}] has invalid id", obj.getId());
-                long nextId = store.getIdComputer().computeNextObjectId(doc);
-                obj.setId(nextId, store.getIdComputer().getIdVersion());
-              }
-              store.saveXWikiCollection(obj, context, false);
-            }
-          }
-        }
-      }
+      prepareXObjects(doc);
+      deleteRemovedXObjects(doc, context);
+      saveXObjects(doc, context);
 
       if (context.getWiki().hasBacklinks(context)) {
         store.saveLinks(doc, context, true);
@@ -197,6 +162,58 @@ public class CelHibernateStoreDocumentPart {
     }
 
     logXWikiDoc("saveXWikiDoc - end", doc);
+  }
+
+  private void setBaseClass(XWikiDocument doc, XWikiContext context) {
+    BaseClass bclass = doc.getXClass();
+    if (bclass != null) {
+      bclass.setDocumentReference(doc.getDocumentReference());
+      if (bclass.getFieldList().size() > 0) {
+        doc.setXClassXML(bclass.toXMLString());
+      } else {
+        doc.setXClassXML("");
+      }
+      // Store this XWikiClass in the context in case of recursive usage of classes
+      context.addBaseClass(bclass);
+    }
+  }
+
+  private void prepareXObjects(XWikiDocument doc) throws IdComputationException {
+    if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
+      for (BaseObject obj : getObjectFetcher(doc).iter()) {
+        obj.setDocumentReference(doc.getDocumentReference());
+        if (Strings.isNullOrEmpty(obj.getGuid())) {
+          obj.setGuid(UUID.randomUUID().toString());
+        }
+        if (!obj.hasValidId()) {
+          long nextId = store.getIdComputer().computeNextObjectId(doc);
+          obj.setId(nextId, store.getIdComputer().getIdVersion());
+          LOGGER.debug("saveXWikiDoc - computed id [{}]", obj.getId());
+        }
+      }
+    }
+  }
+
+  private void deleteRemovedXObjects(XWikiDocument doc, XWikiContext context)
+      throws XWikiException {
+    if (doc.getXObjectsToRemove().size() > 0) {
+      for (BaseObject removedObject : doc.getXObjectsToRemove()) {
+        store.deleteXWikiObject(removedObject, context, false);
+      }
+      doc.setXObjectsToRemove(new ArrayList<BaseObject>());
+    }
+  }
+
+  private void saveXObjects(XWikiDocument doc, XWikiContext context) throws XWikiException {
+    if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
+      for (BaseObject obj : getObjectFetcher(doc).iter()) {
+        store.saveXWikiCollection(obj, context, false);
+      }
+    }
+  }
+
+  private XWikiObjectFetcher getObjectFetcher(XWikiDocument doc) {
+    return XWikiObjectEditor.on(doc).fetch();
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
