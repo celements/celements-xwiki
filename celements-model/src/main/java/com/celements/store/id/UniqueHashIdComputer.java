@@ -80,7 +80,8 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   private Set<Long> collectVersionedObjectIds(XWikiDocument doc) {
     Set<Long> ids = new HashSet<>();
-    for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter()) {
+    for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter().append(
+        doc.getXObjectsToRemove())) {
       if (obj.hasValidId() && (obj.getIdVersion() == getIdVersion())) {
         ids.add(obj.getId());
       }
