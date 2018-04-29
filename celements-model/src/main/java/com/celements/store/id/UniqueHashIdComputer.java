@@ -1,11 +1,13 @@
 package com.celements.store.id;
 
+import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Verify.*;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -80,9 +82,9 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   private Set<Long> collectVersionedObjectIds(XWikiDocument doc) {
     Set<Long> ids = new HashSet<>();
-    for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter().append(
-        doc.getXObjectsToRemove())) {
-      if (obj.hasValidId() && (obj.getIdVersion() == getIdVersion())) {
+    for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter().append(firstNonNull(
+        doc.getXObjectsToRemove(), Collections.<BaseObject>emptyList()))) {
+      if ((obj != null) && obj.hasValidId() && (obj.getIdVersion() == getIdVersion())) {
         ids.add(obj.getId());
       }
     }
