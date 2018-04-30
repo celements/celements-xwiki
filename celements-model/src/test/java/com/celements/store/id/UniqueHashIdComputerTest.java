@@ -236,7 +236,7 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_computeNextObjectId_fill() throws Exception {
+  public void test_computeNextObjectId_keepRemovedObjectsId() throws Exception {
     XWikiDocument doc = new XWikiDocument(docRef);
     doc.setLanguage(lang);
     long docId = 0xf0da7f3f8545c000L;
@@ -245,6 +245,20 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     assertEquals(docId + 2, (removeObj = addObjWithComputedId(doc)).getId());
     assertEquals(docId + 3, addObjWithComputedId(doc).getId());
     doc.removeXObject(removeObj);
+    assertEquals(docId + 4, addObjWithComputedId(doc).getId());
+  }
+
+  @Test
+  public void test_computeNextObjectId_fillDeletedObjects() throws Exception {
+    XWikiDocument doc = new XWikiDocument(docRef);
+    doc.setLanguage(lang);
+    long docId = 0xf0da7f3f8545c000L;
+    BaseObject removeObj;
+    assertEquals(docId + 1, addObjWithComputedId(doc).getId());
+    assertEquals(docId + 2, (removeObj = addObjWithComputedId(doc)).getId());
+    assertEquals(docId + 3, addObjWithComputedId(doc).getId());
+    doc.removeXObject(removeObj);
+    doc.getXObjectsToRemove().clear();
     assertEquals(docId + 2, addObjWithComputedId(doc).getId());
     assertEquals(docId + 4, addObjWithComputedId(doc).getId());
   }

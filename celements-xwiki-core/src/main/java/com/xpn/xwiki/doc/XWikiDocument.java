@@ -4670,8 +4670,10 @@ public class XWikiDocument implements DocumentModelBridge
      */
     public void addXObjectToRemove(BaseObject object)
     {
-        getXObjectsToRemove().add(object);
-        setContentDirty(true);
+        if (object != null) {
+          getXObjectsToRemove().add(object);
+          setContentDirty(true);
+        }
     }
 
     /**
