@@ -99,7 +99,6 @@ public class CelHibernateStoreCollectionPart {
         } else {
           dynamicSession.update(bclass.getName(), objmap);
         }
-
         // dynamicSession.saveOrUpdate((String) bclass.getName(), objmap);
       }
 
