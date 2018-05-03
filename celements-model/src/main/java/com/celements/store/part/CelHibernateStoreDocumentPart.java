@@ -222,6 +222,7 @@ public class CelHibernateStoreDocumentPart {
         }
       }
     }
+    store.getSession(context).clear();
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {

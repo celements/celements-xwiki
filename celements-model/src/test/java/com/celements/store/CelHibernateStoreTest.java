@@ -100,6 +100,10 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     Session sessionMock = createMockAndAddToDefault(Session.class);
     sessionMock.setFlushMode(anyObject(FlushMode.class));
     expectLastCall().anyTimes();
+    sessionMock.flush();
+    expectLastCall().anyTimes();
+    sessionMock.clear();
+    expectLastCall().anyTimes();
     return sessionMock;
   }
 
