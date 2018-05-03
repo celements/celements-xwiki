@@ -218,7 +218,7 @@ public class CelHibernateStoreDocumentPart {
         } else {
           long nextId = store.getIdComputer().computeNextObjectId(doc);
           obj.setId(nextId, store.getIdComputer().getIdVersion());
-          LOGGER.debug("saveXWikiDoc - obj [{}] computed id [{}]", key, obj.getId());
+          LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed id [{}]", key, obj.getId());
         }
       }
     }
@@ -418,10 +418,10 @@ public class CelHibernateStoreDocumentPart {
       commit = true;
       // We need to ensure that the deleted document becomes the original document
       doc.setOriginalDocument(doc.clone());
-    } catch (HibernateException | XWikiException e) {
+    } catch (HibernateException | XWikiException exc) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_DELETING_DOC,
-          "Exception while deleting document: " + doc.getDocumentReference(), e);
+          "Exception while deleting document: " + doc.getDocumentReference(), exc);
     } finally {
       try {
         if (bTransaction) {
