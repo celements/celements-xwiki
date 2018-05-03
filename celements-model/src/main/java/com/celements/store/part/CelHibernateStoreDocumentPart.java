@@ -1,12 +1,16 @@
 package com.celements.store.part;
 
+import static com.google.common.base.MoreObjects.*;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.hibernate.FlushMode;
+import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -22,8 +26,10 @@ import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -38,6 +44,15 @@ public class CelHibernateStoreDocumentPart {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CelHibernateStore.class);
 
+  private final Function<BaseObject, String> OBJECT_KEY_FUNCTION = new Function<BaseObject, String>() {
+
+    @Override
+    public String apply(BaseObject object) {
+      String className = store.getModelUtils().serializeRefLocal(object.getXClassReference());
+      return className + "_" + object.getNumber();
+    }
+  };
+
   private final CelHibernateStore store;
 
   public CelHibernateStoreDocumentPart(CelHibernateStore store) {
@@ -47,6 +62,7 @@ public class CelHibernateStoreDocumentPart {
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
       throws XWikiException {
     logXWikiDoc("saveXWikiDoc - start", doc);
+    boolean commit = false;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
       // Start monitoring timer
@@ -67,7 +83,7 @@ public class CelHibernateStoreDocumentPart {
 
       // These informations will allow to not look for attachments and objects on loading
       doc.setElement(XWikiDocument.HAS_ATTACHMENTS, (doc.getAttachmentList().size() != 0));
-      doc.setElement(XWikiDocument.HAS_OBJECTS, (doc.getXObjects().size() != 0));
+      doc.setElement(XWikiDocument.HAS_OBJECTS, getXObjectFetcher(doc).exists());
 
       // Let's update the class XML since this is the new way to store it
       // TODO If all the properties are removed, the old xml stays?
@@ -107,8 +123,9 @@ public class CelHibernateStoreDocumentPart {
             if (context.getWiki().hasVersioning(context)) {
               doc.getDocumentArchive(context);
             }
-          } catch (XWikiException e) {
-            // this is a non critical error
+          } catch (XWikiException xwe) {
+            LOGGER.debug("saveXWikiDoc - this is a non critical error: {} {}", doc.getId(),
+                store.getModelUtils().serializeRef(doc.getDocumentReference()), xwe);
           }
         }
       }
@@ -131,26 +148,21 @@ public class CelHibernateStoreDocumentPart {
         store.saveLinks(doc, context, true);
       }
 
-      if (bTransaction) {
-        store.endTransaction(context, true);
-      }
-
+      commit = true;
       doc.setNew(false);
-
       // We need to ensure that the saved document becomes the original document
       doc.setOriginalDocument(doc.clone());
-
-    } catch (Exception e) {
-      Object[] args = { doc.getDocumentReference() };
+    } catch (HibernateException | XWikiException | IdComputationException exc) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
-          "Exception while saving document {0}", e, args);
+          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC, "Exception while saving document:"
+              + doc.getDocumentReference(), exc);
     } finally {
       try {
         if (bTransaction) {
-          store.endTransaction(context, false);
+          store.endTransaction(context, commit);
         }
-      } catch (Exception e) {
+      } catch (HibernateException exc) {
+        LOGGER.error("failed commit/rollback for {}", doc, exc);
       }
 
       // End monitoring timer
@@ -178,7 +190,7 @@ public class CelHibernateStoreDocumentPart {
 
   private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context) throws XWikiException,
       IdComputationException {
-    prepareXObjects(doc);
+    prepareXObjects(doc, context);
     if ((doc.getXObjectsToRemove() != null) && (doc.getXObjectsToRemove().size() > 0)) {
       for (BaseObject removedObject : doc.getXObjectsToRemove()) {
         store.deleteXWikiObject(removedObject, context, false);
@@ -190,16 +202,24 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  private void prepareXObjects(XWikiDocument doc) throws IdComputationException {
+  private void prepareXObjects(XWikiDocument doc, XWikiContext context)
+      throws IdComputationException {
+    Map<String, BaseObject> existingObjects = loadExistingXObjects(doc, context);
     for (BaseObject obj : getXObjectFetcher(doc).iter()) {
       obj.setDocumentReference(doc.getDocumentReference());
       if (Strings.isNullOrEmpty(obj.getGuid())) {
         obj.setGuid(UUID.randomUUID().toString());
       }
       if (!obj.hasValidId()) {
-        long nextId = store.getIdComputer().computeNextObjectId(doc);
-        obj.setId(nextId, store.getIdComputer().getIdVersion());
-        LOGGER.debug("saveXWikiDoc - computed id [{}]", obj.getId());
+        String key = OBJECT_KEY_FUNCTION.apply(obj);
+        if (existingObjects.containsKey(key)) {
+          obj.setId(existingObjects.get(key).getId(), existingObjects.get(key).getIdVersion());
+          LOGGER.debug("saveXWikiDoc - obj [{}] already exists, keeping id [{}]", key, obj.getId());
+        } else {
+          long nextId = store.getIdComputer().computeNextObjectId(doc);
+          obj.setId(nextId, store.getIdComputer().getIdVersion());
+          LOGGER.debug("saveXWikiDoc - obj [{}] computed id [{}]", key, obj.getId());
+        }
       }
     }
   }
@@ -255,29 +275,20 @@ public class CelHibernateStoreDocumentPart {
       context.addBaseClass(bclass);
 
       if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
-        Query query = session.createQuery(
-            "from BaseObject as bobject where bobject.name = :name order by " + "bobject.number");
-        query.setText("name", doc.getFullName());
-        Iterator<BaseObject> it = query.list().iterator();
-
         EntityReference localGroupEntityReference = new EntityReference("XWikiGroups",
             EntityType.DOCUMENT, new EntityReference("XWiki", EntityType.SPACE));
         DocumentReference groupsDocumentReference = new DocumentReference(context.getDatabase(),
             localGroupEntityReference.getParent().getName(), localGroupEntityReference.getName());
 
         boolean hasGroups = false;
-        while (it.hasNext()) {
-          BaseObject object = it.next();
+        for (BaseObject object : loadExistingXObjects(doc, context).values()) {
           DocumentReference classReference = object.getXClassReference();
 
-          if (classReference == null) {
-            continue;
-          }
-
           // It seems to search before is case insensitive. And this would break the loading if we
-          // get an
-          // object which doesn't really belong to this document
+          // get an object which doesn't really belong to this document
           if (!object.getDocumentReference().equals(doc.getDocumentReference())) {
+            LOGGER.warn("loadXWikiDoc - skipping obj [{}], doc [{}] not matching", object,
+                store.getModelUtils().serializeRef(doc.getDocumentReference()));
             continue;
           }
 
@@ -332,21 +343,17 @@ public class CelHibernateStoreDocumentPart {
 
       // We need to ensure that the loaded document becomes the original document
       doc.setOriginalDocument(doc.clone());
-
-      if (bTransaction) {
-        store.endTransaction(context, false, false);
-      }
-    } catch (Exception e) {
-      Object[] args = { doc.getDocumentReference() };
+    } catch (HibernateException | XWikiException exc) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_READING_DOC,
-          "Exception while reading document {0}", e, args);
+          "Exception while reading document: " + doc.getDocumentReference(), exc);
     } finally {
       try {
         if (bTransaction) {
-          store.endTransaction(context, false, false);
+          store.endTransaction(context, false);
         }
-      } catch (Exception e) {
+      } catch (HibernateException exc) {
+        LOGGER.error("failed commit/rollback for {}", doc, exc);
       }
 
       // End monitoring timer
@@ -359,9 +366,18 @@ public class CelHibernateStoreDocumentPart {
     return doc;
   }
 
+  @SuppressWarnings("unchecked")
+  private Map<String, BaseObject> loadExistingXObjects(XWikiDocument doc, XWikiContext context) {
+    Query query = store.getSession(context).createQuery(
+        "from BaseObject as obj where obj.name = :name order by obj.className, obj.number");
+    query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
+    return FluentIterable.<BaseObject>from(query.list()).uniqueIndex(OBJECT_KEY_FUNCTION);
+  }
+
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
     logXWikiDoc("deleteXWikiDoc - start", doc);
-    boolean bTransaction = true;
+    boolean bTransaction = false;
+    boolean commit = false;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
       // Start monitoring timer
@@ -370,7 +386,7 @@ public class CelHibernateStoreDocumentPart {
       }
       store.checkHibernate(context);
       SessionFactory sfactory = store.injectCustomMappingsInSessionFactory(doc, context);
-      bTransaction = bTransaction && store.beginTransaction(sfactory, context);
+      bTransaction = store.beginTransaction(sfactory, context);
       Session session = store.getSession(context);
       session.setFlushMode(FlushMode.COMMIT);
 
@@ -382,9 +398,7 @@ public class CelHibernateStoreDocumentPart {
       }
 
       // Let's delete any attachment this document might have
-      List attachlist = doc.getAttachmentList();
-      for (int i = 0; i < attachlist.size(); i++) {
-        XWikiAttachment attachment = (XWikiAttachment) attachlist.get(i);
+      for (XWikiAttachment attachment : doc.getAttachmentList()) {
         context.getWiki().getAttachmentStore().deleteXWikiAttachment(attachment, false, context,
             false);
       }
@@ -394,46 +408,27 @@ public class CelHibernateStoreDocumentPart {
         store.deleteLinks(doc.getId(), context, true);
       }
 
-      // Find the list of classes for which we have an object
-      // Remove properties planned for removal
-      if (doc.getObjectsToRemove().size() > 0) {
-        for (int i = 0; i < doc.getObjectsToRemove().size(); i++) {
-          BaseObject bobj = doc.getObjectsToRemove().get(i);
-          if (bobj != null) {
-            store.deleteXWikiObject(bobj, context, false);
-          }
-        }
-        doc.setObjectsToRemove(new ArrayList<BaseObject>());
-      }
-      for (List<BaseObject> objects : doc.getXObjects().values()) {
-        for (BaseObject obj : objects) {
-          if (obj != null) {
-            store.deleteXWikiObject(obj, context, false);
-          }
-        }
+      for (BaseObject object : getXObjectFetcher(doc).iter().append(firstNonNull(
+          doc.getXObjectsToRemove(), Collections.<BaseObject>emptyList()))) {
+        store.deleteXWikiObject(object, context, false);
       }
       context.getWiki().getVersioningStore().deleteArchive(doc, false, context);
 
       session.delete(doc);
-
+      commit = true;
       // We need to ensure that the deleted document becomes the original document
       doc.setOriginalDocument(doc.clone());
-
-      if (bTransaction) {
-        store.endTransaction(context, true);
-      }
-    } catch (Exception e) {
-      Object[] args = { doc.getDocumentReference() };
+    } catch (HibernateException | XWikiException e) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_DELETING_DOC,
-          "Exception while deleting document {0}", e, args);
+          "Exception while deleting document: " + doc.getDocumentReference(), e);
     } finally {
       try {
         if (bTransaction) {
-          store.endTransaction(context, false);
+          store.endTransaction(context, commit);
         }
-      } catch (Exception e) {
-        LOGGER.error("failed commit/rollback for {}", doc, e);
+      } catch (HibernateException exc) {
+        LOGGER.error("failed commit/rollback for {}", doc, exc);
       }
 
       // End monitoring timer

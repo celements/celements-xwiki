@@ -119,7 +119,7 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
   }
 
   public static void expectLoadObjects(Session sessionMock, final List<BaseObject> objList) {
-    String hql = "from BaseObject as bobject where bobject.name = :name order by bobject.number";
+    String hql = "from BaseObject as obj where obj.name = :name order by obj.className, obj.number";
     Query queryObj = new TestHibernateQuery<BaseObject>(hql) {
 
       @Override
