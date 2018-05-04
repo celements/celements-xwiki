@@ -222,6 +222,8 @@ public class CelHibernateStoreDocumentPart {
         }
       }
     }
+    // flush and clear the session to evict loaded objects
+    store.getSession(context).flush();
     store.getSession(context).clear();
   }
 
