@@ -30,6 +30,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -212,8 +213,10 @@ public class CelHibernateStoreDocumentPart {
       }
       if (!obj.hasValidId()) {
         String key = OBJECT_KEY_FUNCTION.apply(obj);
-        if (existingObjects.containsKey(key)) {
-          obj.setId(existingObjects.get(key).getId(), existingObjects.get(key).getIdVersion());
+        BaseObject existingObj = existingObjects.get(key);
+        if (existingObj != null) {
+          obj.setId(existingObj.getId(), existingObj.getIdVersion());
+          store.getSession(context).evict(existingObj); // evict loaded instance to save object
           LOGGER.debug("saveXWikiDoc - obj [{}] already exists, keeping id [{}]", key, obj.getId());
         } else {
           long nextId = store.getIdComputer().computeNextObjectId(doc);
@@ -222,9 +225,6 @@ public class CelHibernateStoreDocumentPart {
         }
       }
     }
-    // flush and clear the session to evict loaded objects
-    store.getSession(context).flush();
-    store.getSession(context).clear();
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
@@ -370,7 +370,8 @@ public class CelHibernateStoreDocumentPart {
   }
 
   @SuppressWarnings("unchecked")
-  private Map<String, BaseObject> loadExistingXObjects(XWikiDocument doc, XWikiContext context) {
+  private ImmutableMap<String, BaseObject> loadExistingXObjects(XWikiDocument doc,
+      XWikiContext context) {
     Query query = store.getSession(context).createQuery(
         "from BaseObject as obj where obj.name = :name order by obj.className, obj.number");
     query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
