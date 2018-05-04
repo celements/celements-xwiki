@@ -213,10 +213,8 @@ public class CelHibernateStoreDocumentPart {
       }
       if (!obj.hasValidId()) {
         String key = OBJECT_KEY_FUNCTION.apply(obj);
-        BaseObject existingObj = existingObjects.get(key);
-        if (existingObj != null) {
-          obj.setId(existingObj.getId(), existingObj.getIdVersion());
-          store.getSession(context).evict(existingObj); // evict loaded instance to save object
+        if (existingObjects.containsKey(key)) {
+          obj.setId(existingObjects.get(key).getId(), existingObjects.get(key).getIdVersion());
           LOGGER.debug("saveXWikiDoc - obj [{}] already exists, keeping id [{}]", key, obj.getId());
         } else {
           long nextId = store.getIdComputer().computeNextObjectId(doc);
@@ -224,6 +222,10 @@ public class CelHibernateStoreDocumentPart {
           LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed id [{}]", key, obj.getId());
         }
       }
+    }
+    // evict loaded instances in order to save/delete the prepared objects
+    for (BaseObject existingObj : existingObjects.values()) {
+      store.getSession(context).evict(existingObj);
     }
   }
 
