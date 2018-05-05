@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.UUID;
 
 import org.hibernate.FlushMode;
@@ -18,6 +17,7 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.model.EntityType;
+import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
@@ -28,10 +28,9 @@ import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
-import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -46,15 +45,6 @@ import com.xpn.xwiki.web.Utils;
 public class CelHibernateStoreDocumentPart {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CelHibernateStore.class);
-
-  private final Function<BaseObject, String> OBJECT_KEY_FUNCTION = new Function<BaseObject, String>() {
-
-    @Override
-    public String apply(BaseObject object) {
-      String className = store.getModelUtils().serializeRefLocal(object.getXClassReference());
-      return className + "_" + object.getNumber();
-    }
-  };
 
   private final CelHibernateStore store;
 
@@ -206,32 +196,32 @@ public class CelHibernateStoreDocumentPart {
   }
 
   private void prepareXObjects(XWikiDocument doc) throws IdComputationException {
-    Map<String, BaseObject> existingObjects = fetchExistingXObjects(
-        doc.getDocumentReference()).uniqueIndex(OBJECT_KEY_FUNCTION);
     for (BaseObject obj : getXObjectFetcher(doc).iter()) {
       obj.setDocumentReference(doc.getDocumentReference());
       if (Strings.isNullOrEmpty(obj.getGuid())) {
         obj.setGuid(UUID.randomUUID().toString());
       }
       if (!obj.hasValidId()) {
-        String key = OBJECT_KEY_FUNCTION.apply(obj);
-        if (existingObjects.containsKey(key) && existingObjects.get(key).hasValidId()) {
-          obj.setId(existingObjects.get(key).getId(), existingObjects.get(key).getIdVersion());
-          LOGGER.debug("saveXWikiDoc - obj [{}] already exists, keeping id [{}]", key, obj.getId());
+        Optional<BaseObject> existingObj = fetchExistingObject(doc.getDocumentReference(), obj);
+        if (existingObj.isPresent() && existingObj.get().hasValidId()) {
+          obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
+          LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
         } else {
           long nextId = store.getIdComputer().computeNextObjectId(doc);
           obj.setId(nextId, store.getIdComputer().getIdVersion());
-          LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed id [{}]", key, obj.getId());
+          LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj.getClassName(),
+              obj.getNumber(), obj.getId());
         }
       }
     }
   }
 
-  private FluentIterable<BaseObject> fetchExistingXObjects(DocumentReference docRef) {
+  private Optional<BaseObject> fetchExistingObject(DocumentReference docRef, BaseObject obj) {
     try {
-      return getXObjectFetcher(getModelAccess().getDocument(docRef)).iter();
+      return XWikiObjectFetcher.on(getModelAccess().getDocument(docRef)).filter(new ClassReference(
+          obj.getXClassReference())).filter(obj.getNumber()).first();
     } catch (DocumentNotExistsException exc) {
-      return FluentIterable.of();
+      return Optional.absent();
     }
   }
 
