@@ -18,6 +18,7 @@ import org.xwiki.model.reference.ImmutableDocumentReference;
 import org.xwiki.model.reference.ImmutableReference;
 
 import com.celements.common.test.AbstractComponentTest;
+import com.celements.model.access.IModelAccessFacade;
 import com.xpn.xwiki.XWikiConfig;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -31,6 +32,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
 
   @Before
   public void prepareTest() throws Exception {
+    registerComponentMock(IModelAccessFacade.class);
     sessionFactoryMock = createMockAndAddToDefault(SessionFactory.class);
     expect(getWikiMock().getConfig()).andReturn(new XWikiConfig()).anyTimes();
     expect(getWikiMock().getPlugin("monitor", getContext())).andReturn(null).anyTimes();
@@ -75,7 +77,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     Session sessionMock = createSessionMock(doc);
     expectSaveDocExists(sessionMock, false);
     expect(sessionMock.save(capture(docCapture))).andReturn(null).once();
-    expectLoadObjects(sessionMock, Collections.<BaseObject>emptyList());
+    expect(getMock(IModelAccessFacade.class).getDocument(docRef)).andReturn(doc).once();
 
     replayDefault();
     getStore(sessionMock).saveXWikiDoc(doc, getContext());

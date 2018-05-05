@@ -22,6 +22,8 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 
+import com.celements.model.access.IModelAccessFacade;
+import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.store.CelHibernateStore;
@@ -30,7 +32,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableMap;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -39,6 +40,7 @@ import com.xpn.xwiki.monitor.api.MonitorPlugin;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.util.Util;
+import com.xpn.xwiki.web.Utils;
 
 //TODO CELDEV-626 - CelHibernateStore refactoring
 public class CelHibernateStoreDocumentPart {
@@ -204,8 +206,9 @@ public class CelHibernateStoreDocumentPart {
   }
 
   private void prepareXObjects(XWikiDocument doc, XWikiContext context)
-      throws IdComputationException {
-    Map<String, BaseObject> existingObjects = loadExistingXObjects(doc, context);
+      throws IdComputationException, HibernateException {
+    Map<String, BaseObject> existingObjects = fetchExistingXObjects(
+        doc.getDocumentReference()).uniqueIndex(OBJECT_KEY_FUNCTION);
     for (BaseObject obj : getXObjectFetcher(doc).iter()) {
       obj.setDocumentReference(doc.getDocumentReference());
       if (Strings.isNullOrEmpty(obj.getGuid())) {
@@ -226,6 +229,14 @@ public class CelHibernateStoreDocumentPart {
     // evict loaded instances in order to save/delete the prepared objects
     for (BaseObject existingObj : existingObjects.values()) {
       store.getSession(context).evict(existingObj);
+    }
+  }
+
+  private FluentIterable<BaseObject> fetchExistingXObjects(DocumentReference docRef) {
+    try {
+      return getXObjectFetcher(getModelAccess().getDocument(docRef)).iter();
+    } catch (DocumentNotExistsException exc) {
+      return FluentIterable.of();
     }
   }
 
@@ -280,13 +291,19 @@ public class CelHibernateStoreDocumentPart {
       context.addBaseClass(bclass);
 
       if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
+        boolean hasGroups = false;
         EntityReference localGroupEntityReference = new EntityReference("XWikiGroups",
             EntityType.DOCUMENT, new EntityReference("XWiki", EntityType.SPACE));
         DocumentReference groupsDocumentReference = new DocumentReference(context.getDatabase(),
             localGroupEntityReference.getParent().getName(), localGroupEntityReference.getName());
 
-        boolean hasGroups = false;
-        for (BaseObject object : loadExistingXObjects(doc, context).values()) {
+        Query query = store.getSession(context).createQuery(
+            "from BaseObject as obj where obj.name = :name order by obj.className, obj.number");
+        query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
+        @SuppressWarnings("unchecked")
+        Iterator<BaseObject> objIter = query.iterate();
+        while (objIter.hasNext()) {
+          BaseObject object = objIter.next();
           DocumentReference classReference = object.getXClassReference();
 
           // It seems to search before is case insensitive. And this would break the loading if we
@@ -371,15 +388,6 @@ public class CelHibernateStoreDocumentPart {
     return doc;
   }
 
-  @SuppressWarnings("unchecked")
-  private ImmutableMap<String, BaseObject> loadExistingXObjects(XWikiDocument doc,
-      XWikiContext context) {
-    Query query = store.getSession(context).createQuery(
-        "from BaseObject as obj where obj.name = :name order by obj.className, obj.number");
-    query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
-    return FluentIterable.<BaseObject>from(query.list()).uniqueIndex(OBJECT_KEY_FUNCTION);
-  }
-
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
     logXWikiDoc("deleteXWikiDoc - start", doc);
     boolean bTransaction = false;
@@ -447,6 +455,13 @@ public class CelHibernateStoreDocumentPart {
 
   private XWikiObjectFetcher getXObjectFetcher(XWikiDocument doc) {
     return XWikiObjectEditor.on(doc).fetch();
+  }
+
+  /**
+   * IMPORTANT: circular dependency, be aware of possible infinite loops
+   */
+  private IModelAccessFacade getModelAccess() {
+    return Utils.getComponent(IModelAccessFacade.class);
   }
 
   private void logXWikiDoc(String msg, XWikiDocument doc) {

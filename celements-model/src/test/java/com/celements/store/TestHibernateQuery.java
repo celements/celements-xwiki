@@ -127,6 +127,10 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
         return objList;
       }
 
+      @Override
+      public Iterator<BaseObject> iterate() throws HibernateException {
+        return objList.iterator();
+      }
     };
     expect(sessionMock.createQuery(eq(hql))).andReturn(queryObj).anyTimes();
   }
