@@ -216,7 +216,7 @@ public class CelHibernateStoreDocumentPart {
       }
       if (!obj.hasValidId()) {
         String key = OBJECT_KEY_FUNCTION.apply(obj);
-        if (existingObjects.containsKey(key) && (obj != existingObjects.get(key))) {
+        if (existingObjects.containsKey(key) && existingObjects.get(key).hasValidId()) {
           obj.setId(existingObjects.get(key).getId(), existingObjects.get(key).getIdVersion());
           LOGGER.debug("saveXWikiDoc - obj [{}] already exists, keeping id [{}]", key, obj.getId());
         } else {
