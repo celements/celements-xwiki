@@ -209,8 +209,7 @@ public class CelHibernateStoreDocumentPart {
         } else {
           long nextId = store.getIdComputer().computeNextObjectId(doc);
           obj.setId(nextId, store.getIdComputer().getIdVersion());
-          LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj.getClassName(),
-              obj.getNumber(), obj.getId());
+          LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
         }
       }
     }
