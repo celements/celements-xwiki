@@ -193,7 +193,7 @@ public class CelHibernateStoreDocumentPart {
 
   private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context) throws XWikiException,
       IdComputationException {
-    prepareXObjects(doc, context);
+    prepareXObjects(doc);
     if ((doc.getXObjectsToRemove() != null) && (doc.getXObjectsToRemove().size() > 0)) {
       for (BaseObject removedObject : doc.getXObjectsToRemove()) {
         store.deleteXWikiObject(removedObject, context, false);
@@ -205,8 +205,7 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  private void prepareXObjects(XWikiDocument doc, XWikiContext context)
-      throws IdComputationException, HibernateException {
+  private void prepareXObjects(XWikiDocument doc) throws IdComputationException {
     Map<String, BaseObject> existingObjects = fetchExistingXObjects(
         doc.getDocumentReference()).uniqueIndex(OBJECT_KEY_FUNCTION);
     for (BaseObject obj : getXObjectFetcher(doc).iter()) {
@@ -225,10 +224,6 @@ public class CelHibernateStoreDocumentPart {
           LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed id [{}]", key, obj.getId());
         }
       }
-    }
-    // evict loaded instances in order to save/delete the prepared objects
-    for (BaseObject existingObj : existingObjects.values()) {
-      store.getSession(context).evict(existingObj);
     }
   }
 
