@@ -22,8 +22,6 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 
-import com.celements.model.access.IModelAccessFacade;
-import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.store.CelHibernateStore;
@@ -38,8 +36,8 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.monitor.api.MonitorPlugin;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
+import com.xpn.xwiki.store.XWikiStoreInterface;
 import com.xpn.xwiki.util.Util;
-import com.xpn.xwiki.web.Utils;
 
 //TODO CELDEV-626 - CelHibernateStore refactoring
 public class CelHibernateStoreDocumentPart {
@@ -183,7 +181,7 @@ public class CelHibernateStoreDocumentPart {
 
   private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context) throws XWikiException,
       IdComputationException {
-    prepareXObjects(doc);
+    prepareXObjects(doc, context);
     if ((doc.getXObjectsToRemove() != null) && (doc.getXObjectsToRemove().size() > 0)) {
       for (BaseObject removedObject : doc.getXObjectsToRemove()) {
         store.deleteXWikiObject(removedObject, context, false);
@@ -195,14 +193,15 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  private void prepareXObjects(XWikiDocument doc) throws IdComputationException {
+  private void prepareXObjects(XWikiDocument doc, XWikiContext context)
+      throws IdComputationException, XWikiException {
     for (BaseObject obj : getXObjectFetcher(doc).iter()) {
       obj.setDocumentReference(doc.getDocumentReference());
       if (Strings.isNullOrEmpty(obj.getGuid())) {
         obj.setGuid(UUID.randomUUID().toString());
       }
       if (!obj.hasValidId()) {
-        Optional<BaseObject> existingObj = fetchExistingObject(doc.getDocumentReference(), obj);
+        Optional<BaseObject> existingObj = fetchExistingObject(doc, obj, context);
         if (existingObj.isPresent() && existingObj.get().hasValidId()) {
           obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
           LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
@@ -215,11 +214,13 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  private Optional<BaseObject> fetchExistingObject(DocumentReference docRef, BaseObject obj) {
-    try {
-      return XWikiObjectFetcher.on(getModelAccess().getDocument(docRef)).filter(new ClassReference(
+  private Optional<BaseObject> fetchExistingObject(XWikiDocument doc, BaseObject obj,
+      XWikiContext context) throws XWikiException {
+    if (getPrimaryStore(context).exists(doc, context)) {
+      XWikiDocument origDoc = getPrimaryStore(context).loadXWikiDoc(doc, context);
+      return XWikiObjectFetcher.on(origDoc).filter(new ClassReference(
           obj.getXClassReference())).filter(obj.getNumber()).first();
-    } catch (DocumentNotExistsException exc) {
+    } else {
       return Optional.absent();
     }
   }
@@ -442,10 +443,10 @@ public class CelHibernateStoreDocumentPart {
   }
 
   /**
-   * IMPORTANT: circular dependency, be aware of possible infinite loops
+   * @return the cache store if one is configured, else it's self referencing
    */
-  private IModelAccessFacade getModelAccess() {
-    return Utils.getComponent(IModelAccessFacade.class);
+  private XWikiStoreInterface getPrimaryStore(XWikiContext context) {
+    return context.getWiki().getStore();
   }
 
   private void logXWikiDoc(String msg, XWikiDocument doc) {
