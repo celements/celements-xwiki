@@ -153,7 +153,8 @@ public class CelHibernateStoreDocumentPart {
           store.endTransaction(context, commit);
         }
       } catch (HibernateException exc) {
-        LOGGER.error("failed commit/rollback for {}", doc, exc);
+        LOGGER.error("saveXWikiDoc - failed {} for {}", (commit ? "commit" : "rollback"),
+            doc.getDocumentReference(), exc);
       }
 
       // End monitoring timer
@@ -360,7 +361,7 @@ public class CelHibernateStoreDocumentPart {
           store.endTransaction(context, false);
         }
       } catch (HibernateException exc) {
-        LOGGER.error("failed commit/rollback for {}", doc, exc);
+        LOGGER.error("loadXWikiDoc - failed rollback for {}", doc.getDocumentReference(), exc);
       }
 
       // End monitoring timer
@@ -427,7 +428,8 @@ public class CelHibernateStoreDocumentPart {
           store.endTransaction(context, commit);
         }
       } catch (HibernateException exc) {
-        LOGGER.error("failed commit/rollback for {}", doc, exc);
+        LOGGER.error("deleteXWikiDoc - failed {} for {}", (commit ? "commit" : "rollback"),
+            doc.getDocumentReference(), exc);
       }
 
       // End monitoring timer
