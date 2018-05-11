@@ -18,6 +18,7 @@ import org.xwiki.model.reference.ImmutableDocumentReference;
 import org.xwiki.model.reference.ImmutableReference;
 
 import com.celements.common.test.AbstractComponentTest;
+import com.celements.model.access.IModelAccessFacade;
 import com.xpn.xwiki.XWikiConfig;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -31,6 +32,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
 
   @Before
   public void prepareTest() throws Exception {
+    registerComponentMock(IModelAccessFacade.class);
     sessionFactoryMock = createMockAndAddToDefault(SessionFactory.class);
     expect(getWikiMock().getConfig()).andReturn(new XWikiConfig()).anyTimes();
     expect(getWikiMock().getPlugin("monitor", getContext())).andReturn(null).anyTimes();
@@ -98,6 +100,10 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
   private Session createSessionMock(XWikiDocument doc) {
     Session sessionMock = createMockAndAddToDefault(Session.class);
     sessionMock.setFlushMode(anyObject(FlushMode.class));
+    expectLastCall().anyTimes();
+    sessionMock.flush();
+    expectLastCall().anyTimes();
+    sessionMock.clear();
     expectLastCall().anyTimes();
     return sessionMock;
   }

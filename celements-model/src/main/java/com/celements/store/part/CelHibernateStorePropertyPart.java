@@ -124,7 +124,7 @@ public class CelHibernateStorePropertyPart {
 
   private void logXProperty(String msg, PropertyInterface property) {
     if (LOGGER.isTraceEnabled()) {
-      LOGGER.trace("{}: {}", msg, property);
+      LOGGER.trace("{}: {} - {}", msg, property.getId(), property);
     }
   }
 
