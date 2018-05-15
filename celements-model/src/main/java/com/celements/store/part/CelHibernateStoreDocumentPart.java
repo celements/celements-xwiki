@@ -62,7 +62,7 @@ public class CelHibernateStoreDocumentPart {
         monitor.startTimer("hibernate");
       }
 
-      // instantiate before transaction
+      // initialise before beginning store transaction because of possible #loadXWikiDoc
       XObjectPreparer objPreparer = new XObjectPreparer(doc, context);
 
       doc.setStore(store);
@@ -210,14 +210,14 @@ public class CelHibernateStoreDocumentPart {
     }
 
     private XWikiDocument loadOriginalDocument(XWikiContext context) throws XWikiException {
-      XWikiDocument origDoc = new XWikiDocument(cloneRef(doc.getDocumentReference(),
+      XWikiDocument dummyDoc = new XWikiDocument(cloneRef(doc.getDocumentReference(),
           DocumentReference.class));
-      origDoc.setLanguage(doc.getLanguage());
+      dummyDoc.setLanguage(doc.getLanguage());
       if (!doc.isNew() && doc.hasElement(XWikiDocument.HAS_OBJECTS) && getPrimaryStore(
-          context).exists(doc, context)) {
-        origDoc = getPrimaryStore(context).loadXWikiDoc(origDoc, context);
+          context).exists(dummyDoc, context)) {
+        return getPrimaryStore(context).loadXWikiDoc(dummyDoc, context);
       }
-      return origDoc;
+      return dummyDoc;
     }
 
     void execute() throws IdComputationException {
@@ -241,21 +241,6 @@ public class CelHibernateStoreDocumentPart {
       }
     }
 
-  }
-
-  private Optional<BaseObject> fetchExistingObject(XWikiDocument doc, BaseObject obj,
-      XWikiContext context) throws XWikiException {
-    if (getPrimaryStore(context).exists(doc, context)) {
-      XWikiDocument origDoc = new XWikiDocument(cloneRef(doc.getDocumentReference(),
-          DocumentReference.class));
-      origDoc.setLanguage(doc.getLanguage());
-      origDoc = getPrimaryStore(context).loadXWikiDoc(doc, context);
-      store.getSession(context).clear();
-      return XWikiObjectFetcher.on(origDoc).filter(new ClassReference(
-          obj.getXClassReference())).filter(obj.getNumber()).first();
-    } else {
-      return Optional.absent();
-    }
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
