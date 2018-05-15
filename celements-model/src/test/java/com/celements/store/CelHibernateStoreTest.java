@@ -76,6 +76,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     Session sessionMock = createSessionMock(doc);
     expectSaveDocExists(sessionMock, false);
     expect(sessionMock.save(capture(docCapture))).andReturn(null).once();
+    expect(sessionMock.close()).andReturn(null);
 
     replayDefault();
     getStore(sessionMock).saveXWikiDoc(doc, getContext());
