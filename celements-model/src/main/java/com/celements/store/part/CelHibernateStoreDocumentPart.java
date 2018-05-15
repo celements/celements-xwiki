@@ -62,6 +62,9 @@ public class CelHibernateStoreDocumentPart {
         monitor.startTimer("hibernate");
       }
 
+      // instantiate before transaction
+      XObjectPreparer objPreparer = new XObjectPreparer(doc, context);
+
       doc.setStore(store);
       // Make sure the database name is stored
       doc.getDocumentReference().setWikiReference(new WikiReference(context.getDatabase()));
@@ -135,6 +138,7 @@ public class CelHibernateStoreDocumentPart {
         // session.saveOrUpdate(doc);
       }
 
+      objPreparer.execute();
       deleteAndSaveXObjects(doc, context);
 
       if (context.getWiki().hasBacklinks(context)) {
@@ -182,9 +186,8 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context) throws XWikiException,
-      IdComputationException {
-    new XObjectPreparer(doc, context).prepare();
+  private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context)
+      throws XWikiException {
     if ((doc.getXObjectsToRemove() != null) && (doc.getXObjectsToRemove().size() > 0)) {
       for (BaseObject removedObject : doc.getXObjectsToRemove()) {
         store.deleteXWikiObject(removedObject, context, false);
@@ -194,6 +197,50 @@ public class CelHibernateStoreDocumentPart {
     for (BaseObject obj : getXObjectFetcher(doc).iter()) {
       store.saveXWikiCollection(obj, context, false);
     }
+  }
+
+  private class XObjectPreparer {
+
+    private final XWikiDocument doc;
+    private final XWikiDocument origDoc;
+
+    XObjectPreparer(XWikiDocument doc, XWikiContext context) throws XWikiException {
+      this.doc = doc;
+      this.origDoc = loadOriginalDocument(context);
+    }
+
+    private XWikiDocument loadOriginalDocument(XWikiContext context) throws XWikiException {
+      XWikiDocument origDoc = new XWikiDocument(cloneRef(doc.getDocumentReference(),
+          DocumentReference.class));
+      origDoc.setLanguage(doc.getLanguage());
+      if (!doc.isNew() && doc.hasElement(XWikiDocument.HAS_OBJECTS) && getPrimaryStore(
+          context).exists(doc, context)) {
+        origDoc = getPrimaryStore(context).loadXWikiDoc(origDoc, context);
+      }
+      return origDoc;
+    }
+
+    void execute() throws IdComputationException {
+      for (BaseObject obj : getXObjectFetcher(doc).iter()) {
+        obj.setDocumentReference(doc.getDocumentReference());
+        if (Strings.isNullOrEmpty(obj.getGuid())) {
+          obj.setGuid(UUID.randomUUID().toString());
+        }
+        if (!obj.hasValidId()) {
+          Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
+              new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
+          if (existingObj.isPresent() && existingObj.get().hasValidId()) {
+            obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
+            LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
+          } else {
+            long nextId = store.getIdComputer().computeNextObjectId(doc);
+            obj.setId(nextId, store.getIdComputer().getIdVersion());
+            LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
+          }
+        }
+      }
+    }
+
   }
 
   private Optional<BaseObject> fetchExistingObject(XWikiDocument doc, BaseObject obj,
@@ -209,49 +256,6 @@ public class CelHibernateStoreDocumentPart {
     } else {
       return Optional.absent();
     }
-  }
-
-  private class XObjectPreparer {
-
-    private final XWikiDocument doc;
-    private final XWikiContext context;
-    private XWikiDocument origDoc;
-
-    XObjectPreparer(XWikiDocument doc, XWikiContext context) {
-      this.doc = doc;
-      this.context = context;
-    }
-
-    void prepare() throws XWikiException, IdComputationException {
-      for (BaseObject obj : getXObjectFetcher(doc).iter()) {
-        obj.setDocumentReference(doc.getDocumentReference());
-        if (Strings.isNullOrEmpty(obj.getGuid())) {
-          obj.setGuid(UUID.randomUUID().toString());
-        }
-        if (!obj.hasValidId()) {
-          Optional<BaseObject> existingObj = XWikiObjectFetcher.on(getOrLoadOrigDoc()).filter(
-              new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
-          if (existingObj.isPresent() && existingObj.get().hasValidId()) {
-            obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
-            LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
-          } else {
-            long nextId = store.getIdComputer().computeNextObjectId(doc);
-            obj.setId(nextId, store.getIdComputer().getIdVersion());
-            LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
-          }
-        }
-      }
-    }
-
-    private XWikiDocument getOrLoadOrigDoc() throws XWikiException {
-      if (origDoc == null) {
-        origDoc = new XWikiDocument(cloneRef(doc.getDocumentReference(), DocumentReference.class));
-        origDoc.setLanguage(doc.getLanguage());
-        origDoc = getPrimaryStore(context).loadXWikiDoc(origDoc, context);
-      }
-      return origDoc;
-    }
-
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
