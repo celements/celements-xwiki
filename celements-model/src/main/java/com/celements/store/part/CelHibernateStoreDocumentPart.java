@@ -219,6 +219,7 @@ public class CelHibernateStoreDocumentPart {
       XWikiContext context) throws XWikiException {
     if (getPrimaryStore(context).exists(doc, context)) {
       XWikiDocument origDoc = getPrimaryStore(context).loadXWikiDoc(doc, context);
+      store.getSession(context).evict(origDoc);
       return XWikiObjectFetcher.on(origDoc).filter(new ClassReference(
           obj.getXClassReference())).filter(obj.getNumber()).first();
     } else {
