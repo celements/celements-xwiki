@@ -61,9 +61,12 @@ public class CelHibernateStoreDocumentPart {
         monitor.startTimer("hibernate");
       }
 
+      XWikiDocument origDoc;
       if (getXObjectFetcher(doc).exists()) {
-        XWikiDocument origDoc = getPrimaryStore(context).loadXWikiDoc(doc, context);
+        origDoc = getPrimaryStore(context).loadXWikiDoc(doc, context);
         store.getSession(context).clear();
+      } else {
+        origDoc = new XWikiDocument(doc.getDocumentReference());
       }
 
       doc.setStore(store);
