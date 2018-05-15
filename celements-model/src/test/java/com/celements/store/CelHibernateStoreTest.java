@@ -42,7 +42,6 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     expect(getWikiMock().hasBacklinks(getContext())).andReturn(false).anyTimes();
     expect(getWikiMock().Param(eq("xwiki.store.hibernate.useclasstables.read"), eq("1"))).andReturn(
         "0").anyTimes();
-
   }
 
   @Test
