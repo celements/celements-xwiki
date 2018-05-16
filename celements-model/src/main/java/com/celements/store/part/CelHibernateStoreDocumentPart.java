@@ -6,7 +6,9 @@ import static com.google.common.base.Preconditions.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -16,9 +18,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.object.xwiki.XWikiObjectEditor;
@@ -193,81 +193,31 @@ public class CelHibernateStoreDocumentPart {
         bclass.setDocumentReference(doc.getDocumentReference());
         doc.setXClass(bclass);
       }
-
       // Store this XWikiClass in the context so that we can use it in case of recursive usage
       // of classes
       context.addBaseClass(bclass);
 
       if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
-        boolean hasGroups = false;
-        EntityReference localGroupEntityReference = new EntityReference("XWikiGroups",
-            EntityType.DOCUMENT, new EntityReference("XWiki", EntityType.SPACE));
-        DocumentReference groupsDocumentReference = new DocumentReference(context.getDatabase(),
-            localGroupEntityReference.getParent().getName(), localGroupEntityReference.getName());
-
-        Query query = store.getSession(context).createQuery(
-            "from BaseObject as obj where obj.name = :name order by obj.className, obj.number");
-        query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
-        @SuppressWarnings("unchecked")
-        Iterator<BaseObject> objIter = query.iterate();
+        Iterator<BaseObject> objIter = loadXObjects(doc, context);
+        Map<Integer, BaseObject> groupObjs = new HashMap<>();
         while (objIter.hasNext()) {
-          BaseObject object = objIter.next();
-          DocumentReference classReference = object.getXClassReference();
-
-          // It seems to search before is case insensitive. And this would break the loading if we
-          // get an object which doesn't really belong to this document
-          if (!object.getDocumentReference().equals(doc.getDocumentReference())) {
-            LOGGER.warn("loadXWikiDoc - skipping obj [{}], doc [{}] not matching", object,
+          BaseObject loadedObject = objIter.next();
+          if (!loadedObject.getDocumentReference().equals(doc.getDocumentReference())) {
+            LOGGER.warn("loadXWikiDoc - skipping obj [{}], doc [{}] not matching", loadedObject,
                 store.getModelUtils().serializeRef(doc.getDocumentReference()));
             continue;
           }
-
-          BaseObject newobject;
-          if (classReference.equals(doc.getDocumentReference())) {
-            newobject = bclass.newCustomClassInstance(context);
-          } else {
-            newobject = BaseClass.newCustomClassInstance(classReference, context);
-          }
-          if (newobject != null) {
-            newobject.setId(object.getId(), object.getIdVersion());
-            newobject.setClassName(object.getClassName());
-            newobject.setDocumentReference(object.getDocumentReference());
-            newobject.setNumber(object.getNumber());
-            newobject.setGuid(object.getGuid());
-            object = newobject;
-          }
-
-          if (classReference.equals(groupsDocumentReference)) {
+          BaseObject object = copyToNewXObject(doc, loadedObject, context);
+          if (object.getXClassReference().equals(getXWikiGroupsClassDocRef(context))) {
             // Groups objects are handled differently.
-            hasGroups = true;
+            groupObjs.put(object.getNumber(), object);
           } else {
             store.loadXWikiCollection(object, doc, context, false, true);
           }
           doc.setXObject(object.getNumber(), object);
         }
-
-        // AFAICT this was added as an emergency patch because loading of objects has proven
-        // too slow and the objects which cause the most overhead are the XWikiGroups objects
-        // as each group object (each group member) would otherwise cost 2 database queries.
-        // This will do every group member in a single query.
-        if (hasGroups) {
-          Query query2 = session.createQuery(
-              "select bobject.number, prop.value from StringProperty as prop, "
-                  + "BaseObject as bobject where bobject.name = :name and bobject.className='XWiki.XWikiGroups' "
-                  + "and bobject.id=prop.id.id and prop.id.name='member' order by bobject.number");
-          query2.setText("name", doc.getFullName());
-          Iterator<?> it2 = query2.list().iterator();
-          while (it2.hasNext()) {
-            Object[] result = (Object[]) it2.next();
-            Integer number = (Integer) result[0];
-            String member = (String) result[1];
-            BaseObject obj = BaseClass.newCustomClassInstance(groupsDocumentReference, context);
-            obj.setDocumentReference(doc.getDocumentReference());
-            obj.setXClassReference(localGroupEntityReference);
-            obj.setNumber(number.intValue());
-            obj.setStringValue("member", member);
-            doc.setXObject(obj.getNumber(), obj);
-          }
+        if (groupObjs.size() > 0) {
+          loadFieldsForGroupObjects(doc, groupObjs, context);
         }
       }
 
@@ -294,6 +244,48 @@ public class CelHibernateStoreDocumentPart {
 
     logXWikiDoc("loadXWikiDoc - end", doc);
     return doc;
+  }
+
+  @SuppressWarnings("unchecked")
+  private Iterator<BaseObject> loadXObjects(XWikiDocument doc, XWikiContext context) {
+    String hql = "from BaseObject as obj where obj.name = :name order by obj.className, obj.number";
+    Query query = store.getSession(context).createQuery(hql);
+    query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
+    return query.iterate();
+  }
+
+  private BaseObject copyToNewXObject(XWikiDocument doc, BaseObject loadedObject,
+      XWikiContext context) throws XWikiException {
+    BaseObject object;
+    if (loadedObject.getXClassReference().equals(doc.getDocumentReference())) {
+      object = doc.getXClass().newCustomClassInstance(context);
+    } else {
+      object = BaseClass.newCustomClassInstance(loadedObject.getXClassReference(), context);
+    }
+    object.setXClassReference(loadedObject.getXClassReference());
+    object.setDocumentReference(new DocumentReference(doc.getDocumentReference()));
+    object.setNumber(loadedObject.getNumber());
+    object.setGuid(loadedObject.getGuid());
+    object.setId(loadedObject.getId(), loadedObject.getIdVersion());
+    return object;
+  }
+
+  // AFAICT this was added as an emergency patch because loading of objects has proven too slow and
+  // the objects which cause the most overhead are the XWikiGroups objects as each group object
+  // (each group member) would otherwise cost 2 database queries. This will do every group member in
+  // a single query.
+  private void loadFieldsForGroupObjects(XWikiDocument doc, Map<Integer, BaseObject> groupObjs,
+      XWikiContext context) {
+    String hql = "select obj.number, prop.value from StringProperty as prop, BaseObject as obj "
+        + "where obj.name = :name and obj.className = 'XWiki.XWikiGroups' and obj.id = prop.id.id "
+        + "and prop.id.name = 'member'";
+    Query query = store.getSession(context).createQuery(hql);
+    query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
+    Iterator<?> dataIter = query.iterate();
+    while (dataIter.hasNext()) {
+      Object[] row = (Object[]) dataIter.next();
+      groupObjs.get(row[0]).setStringValue("member", (String) row[1]);
+    }
   }
 
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
@@ -361,6 +353,10 @@ public class CelHibernateStoreDocumentPart {
       }
     }
     logXWikiDoc("deleteXWikiDoc - end", doc);
+  }
+
+  private DocumentReference getXWikiGroupsClassDocRef(XWikiContext context) {
+    return new DocumentReference(context.getDatabase(), "XWiki", "XWikiGroups");
   }
 
   private XWikiObjectFetcher getXObjectFetcher(XWikiDocument doc) {

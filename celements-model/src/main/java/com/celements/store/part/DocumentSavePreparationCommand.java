@@ -108,7 +108,7 @@ class DocumentSavePreparationCommand {
         if (!obj.hasValidId()) {
           Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
               new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
-          if (existingObj.isPresent() && existingObj.get().hasValidId()) {
+          if (existingObj.isPresent()) {
             obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
             LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
           } else {
