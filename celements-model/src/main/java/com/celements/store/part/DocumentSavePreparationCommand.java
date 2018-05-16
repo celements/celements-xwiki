@@ -3,6 +3,7 @@ package com.celements.store.part;
 import static com.celements.model.util.References.*;
 import static com.google.common.base.Preconditions.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.concurrent.Immutable;
@@ -89,14 +90,28 @@ class DocumentSavePreparationCommand {
     }
 
     private XWikiDocument loadOriginalDocument(XWikiContext context) throws XWikiException {
-      XWikiDocument dummyDoc = new XWikiDocument(cloneRef(doc.getDocumentReference(),
+      XWikiDocument origDoc = new XWikiDocument(cloneRef(doc.getDocumentReference(),
           DocumentReference.class));
-      dummyDoc.setLanguage(doc.getLanguage());
+      origDoc.setLanguage(doc.getLanguage());
       if (!doc.isNew() && doc.hasElement(XWikiDocument.HAS_OBJECTS) && getPrimaryStore(
-          context).exists(dummyDoc, context)) {
-        return getPrimaryStore(context).loadXWikiDoc(dummyDoc, context);
+          context).exists(origDoc, context)) {
+        origDoc = getPrimaryStore(context).loadXWikiDoc(origDoc, context);
       }
-      return dummyDoc;
+      logOrigDocObjects(origDoc);
+      return origDoc;
+    }
+
+    private void logOrigDocObjects(XWikiDocument origDoc) {
+      if (LOGGER.isDebugEnabled()) {
+        List<BaseObject> objects = XWikiObjectFetcher.on(origDoc).list();
+        LOGGER.debug("saveXWikiDoc - for {} doc fetched {} existing objects", (doc.isNew() ? "new"
+            : "existing"), objects.size());
+        if (LOGGER.isTraceEnabled()) {
+          for (BaseObject obj : objects) {
+            LOGGER.trace("saveXWikiDoc - loaded existing obj [{}]", obj);
+          }
+        }
+      }
     }
 
     void execute() throws IdComputationException {
