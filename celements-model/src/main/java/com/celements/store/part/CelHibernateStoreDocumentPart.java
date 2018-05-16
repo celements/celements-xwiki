@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.UUID;
 
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -18,7 +17,6 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.model.EntityType;
-import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
@@ -27,9 +25,6 @@ import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -37,7 +32,6 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.monitor.api.MonitorPlugin;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
-import com.xpn.xwiki.store.XWikiStoreInterface;
 import com.xpn.xwiki.util.Util;
 
 //TODO CELDEV-626 - CelHibernateStore refactoring
@@ -46,40 +40,19 @@ public class CelHibernateStoreDocumentPart {
   private static final Logger LOGGER = LoggerFactory.getLogger(CelHibernateStore.class);
 
   private final CelHibernateStore store;
+  private final DocumentSavePreparationCommand savePrepCmd;
 
   public CelHibernateStoreDocumentPart(CelHibernateStore store) {
-    this.store = Preconditions.checkNotNull(store);
+    this.store = checkNotNull(store);
+    this.savePrepCmd = new DocumentSavePreparationCommand(store);
   }
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
       throws XWikiException {
     logXWikiDoc("saveXWikiDoc - start", doc);
     boolean commit = false;
-    MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
-      // Start monitoring timer
-      if (monitor != null) {
-        monitor.startTimer("hibernate");
-      }
-      doc.setStore(store);
-      // Make sure the database name is stored
-      doc.getDocumentReference().setWikiReference(new WikiReference(context.getDatabase()));
-
-      if (bTransaction) {
-        store.checkHibernate(context);
-        SessionFactory sfactory = store.injectCustomMappingsInSessionFactory(doc, context);
-        bTransaction = store.beginTransaction(sfactory, context);
-      }
-      Session session = store.getSession(context);
-      session.setFlushMode(FlushMode.COMMIT);
-
-      // These informations will allow to not look for attachments and objects on loading
-      doc.setElement(XWikiDocument.HAS_ATTACHMENTS, (doc.getAttachmentList().size() != 0));
-      doc.setElement(XWikiDocument.HAS_OBJECTS, getXObjectFetcher(doc).exists());
-
-      // Let's update the class XML since this is the new way to store it
-      // TODO If all the properties are removed, the old xml stays?
-      setBaseClass(doc, context);
+      Session session = savePrepCmd.execute(doc, bTransaction, context);
 
       if (doc.hasElement(XWikiDocument.HAS_ATTACHMENTS)) {
         store.saveAttachmentList(doc, context, false);
@@ -157,33 +130,13 @@ public class CelHibernateStoreDocumentPart {
         LOGGER.error("saveXWikiDoc - failed {} for {}", (commit ? "commit" : "rollback"),
             doc.getDocumentReference(), exc);
       }
-
-      // End monitoring timer
-      if (monitor != null) {
-        monitor.endTimer("hibernate");
-      }
     }
 
     logXWikiDoc("saveXWikiDoc - end", doc);
   }
 
-  private void setBaseClass(XWikiDocument doc, XWikiContext context) {
-    BaseClass bclass = doc.getXClass();
-    if (bclass != null) {
-      bclass.setDocumentReference(doc.getDocumentReference());
-      if (bclass.getFieldList().size() > 0) {
-        doc.setXClassXML(bclass.toXMLString());
-      } else {
-        doc.setXClassXML("");
-      }
-      // Store this XWikiClass in the context in case of recursive usage of classes
-      context.addBaseClass(bclass);
-    }
-  }
-
-  private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context) throws XWikiException,
-      IdComputationException {
-    prepareXObjects(doc, context);
+  private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context)
+      throws XWikiException {
     if ((doc.getXObjectsToRemove() != null) && (doc.getXObjectsToRemove().size() > 0)) {
       for (BaseObject removedObject : doc.getXObjectsToRemove()) {
         store.deleteXWikiObject(removedObject, context, false);
@@ -192,38 +145,6 @@ public class CelHibernateStoreDocumentPart {
     }
     for (BaseObject obj : getXObjectFetcher(doc).iter()) {
       store.saveXWikiCollection(obj, context, false);
-    }
-  }
-
-  private void prepareXObjects(XWikiDocument doc, XWikiContext context)
-      throws IdComputationException, XWikiException {
-    for (BaseObject obj : getXObjectFetcher(doc).iter()) {
-      obj.setDocumentReference(doc.getDocumentReference());
-      if (Strings.isNullOrEmpty(obj.getGuid())) {
-        obj.setGuid(UUID.randomUUID().toString());
-      }
-      if (!obj.hasValidId()) {
-        Optional<BaseObject> existingObj = fetchExistingObject(doc, obj, context);
-        if (existingObj.isPresent() && existingObj.get().hasValidId()) {
-          obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
-          LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
-        } else {
-          long nextId = store.getIdComputer().computeNextObjectId(doc);
-          obj.setId(nextId, store.getIdComputer().getIdVersion());
-          LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
-        }
-      }
-    }
-  }
-
-  private Optional<BaseObject> fetchExistingObject(XWikiDocument doc, BaseObject obj,
-      XWikiContext context) throws XWikiException {
-    if (getPrimaryStore(context).exists(doc, context)) {
-      XWikiDocument origDoc = getPrimaryStore(context).loadXWikiDoc(doc, context);
-      return XWikiObjectFetcher.on(origDoc).filter(new ClassReference(
-          obj.getXClassReference())).filter(obj.getNumber()).first();
-    } else {
-      return Optional.absent();
     }
   }
 
@@ -444,13 +365,6 @@ public class CelHibernateStoreDocumentPart {
 
   private XWikiObjectFetcher getXObjectFetcher(XWikiDocument doc) {
     return XWikiObjectEditor.on(doc).fetch();
-  }
-
-  /**
-   * @return the cache store if one is configured, else it's self referencing
-   */
-  private XWikiStoreInterface getPrimaryStore(XWikiContext context) {
-    return context.getWiki().getStore();
   }
 
   private void validateWikis(XWikiDocument doc, XWikiContext context) {
