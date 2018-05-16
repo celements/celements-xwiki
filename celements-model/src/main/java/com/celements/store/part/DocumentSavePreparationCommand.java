@@ -123,13 +123,17 @@ class DocumentSavePreparationCommand {
         if (!obj.hasValidId()) {
           Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
               new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
-          if (existingObj.isPresent() && existingObj.get().hasValidId()) {
-            obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
-            LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
-          } else {
+          if (!existingObj.isPresent()) {
             long nextId = store.getIdComputer().computeNextObjectId(doc);
             obj.setId(nextId, store.getIdComputer().getIdVersion());
             LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
+          } else if (existingObj.get().hasValidId()) {
+            obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
+            LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
+          } else {
+            LOGGER.error("saveXWikiDoc - unable to set id for obj [{}] because existingObj [{}] "
+                + "has invalid id", obj, existingObj);
+            throw new IllegalStateException();
           }
         }
       }
