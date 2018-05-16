@@ -908,9 +908,10 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   private XWikiDocument createEmptyXWikiDoc(XWikiDocument doc) {
     DocumentReference docRef = new ImmutableDocumentReference(References.adjustRef(
         doc.getDocumentReference(), DocumentReference.class, modelContext.getWikiRef()));
-    doc = docCreator.create(docRef, doc.getLanguage());
-    doc.setStore(getBackingStore());
-    return doc;
+    XWikiDocument newDoc = docCreator.createWithoutDefaults(docRef, doc.getLanguage());
+    newDoc.setDefaultLanguage(doc.getDefaultLanguage());
+    newDoc.setStore(getBackingStore());
+    return newDoc;
   }
 
   @Override

@@ -36,7 +36,7 @@ public class DefaultXWikiDocumentCreator implements XWikiDocumentCreator {
     doc.setContent("");
     doc.setContentDirty(true);
     doc.setMetaDataDirty(true);
-    doc.setOriginalDocument(new XWikiDocument(docRef));
+    doc.setOriginalDocument(new XWikiDocument(doc.getDocumentReference()));
     return doc;
   }
 
