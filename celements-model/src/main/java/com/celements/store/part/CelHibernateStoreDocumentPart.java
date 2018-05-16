@@ -19,6 +19,7 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
@@ -289,6 +290,7 @@ public class CelHibernateStoreDocumentPart {
 
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
     logXWikiDoc("deleteXWikiDoc - start", doc);
+    validateWikis(doc, context);
     boolean bTransaction = false;
     boolean commit = false;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
@@ -359,6 +361,15 @@ public class CelHibernateStoreDocumentPart {
 
   private XWikiObjectFetcher getXObjectFetcher(XWikiDocument doc) {
     return XWikiObjectEditor.on(doc).fetch();
+  }
+
+  private void validateWikis(XWikiDocument doc, XWikiContext context) {
+    WikiReference docWiki = doc.getDocumentReference().getWikiReference();
+    WikiReference providedContextWiki = new WikiReference(context.getDatabase());
+    WikiReference executionContextWiki = store.getModelContext().getWikiRef();
+    checkArgument(docWiki.equals(providedContextWiki) && docWiki.equals(executionContextWiki),
+        "wikis not matching for doc [%s], providedContextWiki [%s], executionContextWiki [%s]",
+        doc.getDocumentReference(), providedContextWiki, executionContextWiki);
   }
 
   private void logXWikiDoc(String msg, XWikiDocument doc) {

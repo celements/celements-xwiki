@@ -18,6 +18,7 @@ import org.xwiki.model.reference.ImmutableDocumentReference;
 import org.xwiki.model.reference.ImmutableReference;
 
 import com.celements.common.test.AbstractComponentTest;
+import com.celements.common.test.ExceptionAsserter;
 import com.celements.model.access.IModelAccessFacade;
 import com.xpn.xwiki.XWikiConfig;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -88,6 +89,25 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
         docCapture.docRef instanceof ImmutableReference);
     assertTrue("after execution docRef has to be immutable",
         doc.getDocumentReference() instanceof ImmutableReference);
+  }
+
+  @Test
+  public void test_delete_invalidWiki() throws Exception {
+    final XWikiDocument doc = new XWikiDocument(new DocumentReference("otherWiki", "space", "doc"));
+    Session sessionMock = createSessionMock(doc);
+
+    replayDefault();
+    final CelHibernateStore store = getStore(sessionMock);
+    doc.setStore(store);
+    new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class,
+        "different wiki than context db should fast fail") {
+
+      @Override
+      protected void execute() throws Exception {
+        store.deleteXWikiDoc(doc, getContext());
+      }
+    }.evaluate();
+    verifyDefault();
   }
 
   private CelHibernateStore getStore(Session session) {
