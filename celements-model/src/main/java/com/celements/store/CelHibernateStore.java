@@ -9,6 +9,7 @@ import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.ImmutableDocumentReference;
 
+import com.celements.model.context.ModelContext;
 import com.celements.model.util.ModelUtils;
 import com.celements.store.id.CelementsIdComputer;
 import com.celements.store.id.UniqueHashIdComputer;
@@ -37,6 +38,9 @@ public class CelHibernateStore extends XWikiHibernateStore {
 
   @Requirement
   private ModelUtils modelUtils;
+
+  @Requirement
+  private ModelContext modelContext;
 
   private final CelHibernateStoreDocumentPart documentStorePart;
   private final CelHibernateStoreCollectionPart collectionStorePart;
@@ -172,6 +176,10 @@ public class CelHibernateStore extends XWikiHibernateStore {
 
   public ModelUtils getModelUtils() {
     return modelUtils;
+  }
+
+  public ModelContext getModelContext() {
+    return modelContext;
   }
 
   /**
