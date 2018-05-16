@@ -3,6 +3,7 @@ package com.celements.store.part;
 import static com.celements.model.util.References.*;
 import static com.google.common.base.Preconditions.*;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -131,9 +132,9 @@ class DocumentSavePreparationCommand {
             obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
             LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
           } else {
-            LOGGER.error("saveXWikiDoc - unable to set id for obj [{}] because existingObj [{}] "
-                + "has invalid id", obj, existingObj);
-            throw new IllegalStateException();
+            throw new IdComputationException(MessageFormat.format("saveXWikiDoc - unable to set id "
+                + "for obj [{0}] because existingObj [{1}] has invalid id", obj,
+                existingObj.get()));
           }
         }
       }
