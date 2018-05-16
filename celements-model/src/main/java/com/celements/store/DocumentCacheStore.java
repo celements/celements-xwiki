@@ -55,6 +55,7 @@ import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 
 import com.celements.model.access.ContextExecutor;
+import com.celements.model.access.XWikiDocumentCreator;
 import com.celements.model.access.exception.MetaDataLoadException;
 import com.celements.model.context.ModelContext;
 import com.celements.model.metadata.DocumentMetaData;
@@ -98,6 +99,9 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
 
   @Requirement
   private CacheManager cacheManager;
+
+  @Requirement
+  private XWikiDocumentCreator docCreator;
 
   @Requirement
   private ModelContext modelContext;
@@ -394,12 +398,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     String keyWithLang = getKeyWithLang(doc);
     if (doesNotExistsForKey(key) || doesNotExistsForKey(keyWithLang)) {
       LOGGER.debug("Cache: The document {} does not exist, return an empty one", keyWithLang);
-      doc.setStore(getBackingStore());
-      doc.setNew(true);
-      // Make sure to always return a document with an original version, even for one that does
-      // not exist. This allows to write more generic code.
-      doc.setOriginalDocument(new XWikiDocument(doc.getDocumentReference()));
-      ret = doc;
+      ret = createEmptyXWikiDoc(doc);
     } else {
       LOGGER.debug("Cache: Trying to get doc '{}' from cache", keyWithLang);
       XWikiDocument cachedoc = getDocFromCache(keyWithLang);
@@ -909,7 +908,9 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   private XWikiDocument createEmptyXWikiDoc(XWikiDocument doc) {
     DocumentReference docRef = new ImmutableDocumentReference(References.adjustRef(
         doc.getDocumentReference(), DocumentReference.class, modelContext.getWikiRef()));
-    return new XWikiDocument(docRef);
+    doc = docCreator.create(docRef, doc.getLanguage());
+    doc.setStore(getBackingStore());
+    return doc;
   }
 
   @Override
