@@ -11,7 +11,9 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.common.test.AbstractComponentTest;
+import com.celements.model.util.ModelUtils;
 import com.celements.model.util.References;
+import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.store.XWikiStoreInterface;
 import com.xpn.xwiki.web.Utils;
@@ -231,6 +233,33 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
 
     assertSame(existingDocument, docCacheStore.loadXWikiDoc(inputParamDoc, getContext()));
     verifyDefault();
+  }
+
+  @Test
+  public void testLoadXWikiDoc_differentProvidedDB() throws Exception {
+    getContext().setDatabase("ctxWiki");
+    XWikiContext providedContext = (XWikiContext) getContext().clone();
+    providedContext.setDatabase("providedCtxWiki");
+    DocumentReference docRef = new DocumentReference(providedContext.getDatabase(), "space",
+        "page");
+    String key = Utils.getComponent(ModelUtils.class).serializeRef(docRef);
+    XWikiDocument inputParamDoc = new XWikiDocument(References.adjustRef(docRef,
+        DocumentReference.class, new WikiReference("docWiki")));
+    XWikiDocument savedDoc = new XWikiDocument(docRef);
+    savedDoc.setNew(false);
+    Capture<XWikiDocument> querySaveDocCapture = new Capture<>();
+    expect(mockStore.loadXWikiDoc(capture(querySaveDocCapture), same(providedContext))).andReturn(
+        savedDoc).once();
+
+    replayDefault();
+    docCacheStore.initalize();
+    XWikiDocument ret = docCacheStore.loadXWikiDoc(inputParamDoc, providedContext);
+    verifyDefault();
+
+    assertNotNull("doc expected in cache", docCacheStore.getDocFromCache(key));
+    XWikiDocument querySaveDoc = querySaveDocCapture.getValue();
+    assertEquals(docRef.getWikiReference(), ret.getDocumentReference().getWikiReference());
+    assertEquals(docRef.getWikiReference(), querySaveDoc.getDocumentReference().getWikiReference());
   }
 
   @Test
