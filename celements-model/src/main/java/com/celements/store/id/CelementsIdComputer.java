@@ -57,15 +57,15 @@ public interface CelementsIdComputer {
 
     private static final long serialVersionUID = 1L;
 
-    public IdComputationException(String message) {
+    protected IdComputationException(String message) {
       super(message);
     }
 
-    public IdComputationException(Throwable cause) {
+    protected IdComputationException(Throwable cause) {
       super(cause);
     }
 
-    public IdComputationException(String message, Throwable cause) {
+    protected IdComputationException(String message, Throwable cause) {
       super(message, cause);
     }
 

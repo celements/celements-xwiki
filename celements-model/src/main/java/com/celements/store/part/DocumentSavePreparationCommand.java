@@ -3,7 +3,6 @@ package com.celements.store.part;
 import static com.celements.model.util.References.*;
 import static com.google.common.base.Preconditions.*;
 
-import java.text.MessageFormat;
 import java.util.UUID;
 
 import javax.annotation.concurrent.Immutable;
@@ -109,17 +108,13 @@ class DocumentSavePreparationCommand {
         if (!obj.hasValidId()) {
           Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
               new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
-          if (!existingObj.isPresent()) {
-            long nextId = store.getIdComputer().computeNextObjectId(doc);
-            obj.setId(nextId, store.getIdComputer().getIdVersion());
-            LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
-          } else if (existingObj.get().hasValidId()) {
+          if (existingObj.isPresent()) {
             obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
             LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
           } else {
-            throw new IdComputationException(MessageFormat.format("saveXWikiDoc - unable to set id "
-                + "for obj [{0}] because existingObj [{1}] has invalid id", obj,
-                existingObj.get()));
+            long nextId = store.getIdComputer().computeNextObjectId(doc);
+            obj.setId(nextId, store.getIdComputer().getIdVersion());
+            LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
           }
         }
       }
