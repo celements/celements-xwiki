@@ -1,6 +1,7 @@
 package com.celements.store.part;
 
 import static com.google.common.base.MoreObjects.*;
+import static com.google.common.base.Preconditions.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,7 +54,6 @@ public class CelHibernateStoreDocumentPart {
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
       throws XWikiException {
     logXWikiDoc("saveXWikiDoc - start", doc);
-    logNotMatchingWikis(doc, context);
     boolean commit = false;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
@@ -229,7 +229,6 @@ public class CelHibernateStoreDocumentPart {
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
     logXWikiDoc("loadXWikiDoc - start", doc);
-    logNotMatchingWikis(doc, context);
     // To change body of implemented methods use Options | File Templates.
     boolean bTransaction = true;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
@@ -378,7 +377,7 @@ public class CelHibernateStoreDocumentPart {
 
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
     logXWikiDoc("deleteXWikiDoc - start", doc);
-    logNotMatchingWikis(doc, context);
+    validateWikis(doc, context);
     boolean bTransaction = false;
     boolean commit = false;
     MonitorPlugin monitor = Util.getMonitorPlugin(context);
@@ -454,15 +453,13 @@ public class CelHibernateStoreDocumentPart {
     return context.getWiki().getStore();
   }
 
-  private void logNotMatchingWikis(XWikiDocument doc, XWikiContext context) {
+  private void validateWikis(XWikiDocument doc, XWikiContext context) {
     WikiReference docWiki = doc.getDocumentReference().getWikiReference();
     WikiReference providedContextWiki = new WikiReference(context.getDatabase());
     WikiReference executionContextWiki = store.getModelContext().getWikiRef();
-    if (!docWiki.equals(providedContextWiki) || !docWiki.equals(executionContextWiki)) {
-      LOGGER.error("wikis not matching for doc [{} {}], providedContextWiki [{}], "
-          + "executionContextWiki [{}]", doc.getId(), doc.getDocumentReference(),
-          providedContextWiki, executionContextWiki, new Throwable());
-    }
+    checkArgument(docWiki.equals(providedContextWiki) && docWiki.equals(executionContextWiki),
+        "wikis not matching for doc [%s], providedContextWiki [%s], executionContextWiki [%s]",
+        doc.getDocumentReference(), providedContextWiki, executionContextWiki);
   }
 
   private void logXWikiDoc(String msg, XWikiDocument doc) {
