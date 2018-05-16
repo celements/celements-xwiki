@@ -25,6 +25,7 @@ import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
+import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -254,16 +255,19 @@ public class CelHibernateStoreDocumentPart {
         // This will do every group member in a single query.
         if (hasGroups) {
           Query query2 = session.createQuery(
-              "select bobject.number, prop.value from StringProperty as prop, "
+              "select bobject.id, bobject.idVersion, bobject.number, prop.value from StringProperty as prop, "
                   + "BaseObject as bobject where bobject.name = :name and bobject.className='XWiki.XWikiGroups' "
                   + "and bobject.id=prop.id.id and prop.id.name='member' order by bobject.number");
           query2.setText("name", doc.getFullName());
           Iterator<?> it2 = query2.list().iterator();
           while (it2.hasNext()) {
             Object[] result = (Object[]) it2.next();
-            Integer number = (Integer) result[0];
-            String member = (String) result[1];
+            Long id = (Long) result[0];
+            IdVersion idVersion = (IdVersion) result[1];
+            Integer number = (Integer) result[2];
+            String member = (String) result[3];
             BaseObject obj = BaseClass.newCustomClassInstance(groupsDocumentReference, context);
+            obj.setId(id, idVersion);
             obj.setDocumentReference(doc.getDocumentReference());
             obj.setXClassReference(localGroupEntityReference);
             obj.setNumber(number.intValue());
