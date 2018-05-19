@@ -37,3 +37,5 @@ com.celements.mandatory.MandatoryDocumentCompositor
 com.celements.mandatory.XWikiRecycleBinIndexes
 com.celements.mandatory.XWikiObjectUniqueConstraint
 com.celements.model.migration.DanglingPropertiesMigration
+com.celements.web.classes.oldcore.XWikiUsersClass
+com.celements.web.classes.oldcore.XWikiGroupsClass
