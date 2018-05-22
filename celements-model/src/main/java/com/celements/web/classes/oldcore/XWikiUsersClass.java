@@ -52,6 +52,14 @@ public class XWikiUsersClass extends AbstractClassDefinition implements IOldCore
   // addTextField("phone", "Phone", 30);
   // addTextAreaField("address", "Address", 40, 3);
 
+  // additional Celements field
+  public static final ClassField<Boolean> FIELD_FORCE_PWD_CHANGE = new BooleanField.Builder(
+      CLASS_FN, "force_pwd_change").prettyName("force_pwd_change").displayType("yesno").build();
+
+  // additional Celements field
+  public static final ClassField<String> FIELD_ADMIN_LANG = new StringField.Builder(CLASS_FN,
+      "admin_language").prettyName("User Edit-Interface Language").size(4).build();
+
   @Override
   public String getName() {
     return CLASS_FN;
