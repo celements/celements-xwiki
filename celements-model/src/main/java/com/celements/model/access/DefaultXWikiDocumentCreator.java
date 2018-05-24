@@ -1,5 +1,7 @@
 package com.celements.model.access;
 
+import static com.celements.model.util.References.*;
+
 import java.util.Date;
 
 import org.xwiki.component.annotation.Component;
@@ -21,7 +23,7 @@ public class DefaultXWikiDocumentCreator implements XWikiDocumentCreator {
 
   @Override
   public XWikiDocument createWithoutDefaults(DocumentReference docRef, String lang) {
-    XWikiDocument doc = new XWikiDocument(docRef);
+    XWikiDocument doc = new XWikiDocument(cloneRef(docRef, DocumentReference.class));
     doc.setNew(true);
     doc.setLanguage(lang);
     Date creationDate = new Date();
@@ -34,6 +36,7 @@ public class DefaultXWikiDocumentCreator implements XWikiDocumentCreator {
     doc.setContent("");
     doc.setContentDirty(true);
     doc.setMetaDataDirty(true);
+    doc.setOriginalDocument(new XWikiDocument(doc.getDocumentReference()));
     return doc;
   }
 

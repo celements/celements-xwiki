@@ -47,12 +47,15 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.ImmutableDocumentReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 
+import com.celements.model.access.ContextExecutor;
+import com.celements.model.access.XWikiDocumentCreator;
 import com.celements.model.access.exception.MetaDataLoadException;
 import com.celements.model.context.ModelContext;
 import com.celements.model.metadata.DocumentMetaData;
@@ -96,6 +99,9 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
 
   @Requirement
   private CacheManager cacheManager;
+
+  @Requirement
+  private XWikiDocumentCreator docCreator;
 
   @Requirement
   private ModelContext modelContext;
@@ -246,11 +252,18 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   }
 
   @Override
-  public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
-      throws XWikiException {
-    getBackingStore().saveXWikiDoc(doc, context, bTransaction);
-    doc.setStore(this.store);
-    removeDocFromCache(doc, true);
+  public void saveXWikiDoc(final XWikiDocument doc, final XWikiContext context,
+      final boolean bTransaction) throws XWikiException {
+    new ContextExecutor<Void, XWikiException>() {
+
+      @Override
+      protected Void call() throws XWikiException {
+        getBackingStore().saveXWikiDoc(doc, context, bTransaction);
+        doc.setStore(DocumentCacheStore.this.store);
+        removeDocFromCache(doc, true);
+        return null;
+      }
+    }.inWiki(new WikiReference(context.getDatabase())).execute();
   }
 
   @Override
@@ -366,20 +379,26 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   }
 
   @Override
-  public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
+  public XWikiDocument loadXWikiDoc(final XWikiDocument doc, final XWikiContext context)
+      throws XWikiException {
+    return new ContextExecutor<XWikiDocument, XWikiException>() {
+
+      @Override
+      protected XWikiDocument call() throws XWikiException {
+        return loadXWikiDocInternal(doc, context);
+      }
+    }.inWiki(new WikiReference(context.getDatabase())).execute();
+  }
+
+  private XWikiDocument loadXWikiDocInternal(XWikiDocument doc, XWikiContext context)
+      throws XWikiException {
     LOGGER.trace("Cache: begin for docRef '{}' in cache", doc.getDocumentReference());
-    DocumentReference contextDocRef = getDocRefContextDb(doc);
     XWikiDocument ret;
-    String key = getKey(contextDocRef);
+    String key = getKey(doc.getDocumentReference());
     String keyWithLang = getKeyWithLang(doc);
     if (doesNotExistsForKey(key) || doesNotExistsForKey(keyWithLang)) {
       LOGGER.debug("Cache: The document {} does not exist, return an empty one", keyWithLang);
-      doc.setStore(getBackingStore());
-      doc.setNew(true);
-      // Make sure to always return a document with an original version, even for one that does
-      // not exist. This allows to write more generic code.
-      doc.setOriginalDocument(new XWikiDocument(contextDocRef));
-      ret = doc;
+      ret = createEmptyXWikiDoc(doc);
     } else {
       LOGGER.debug("Cache: Trying to get doc '{}' from cache", keyWithLang);
       XWikiDocument cachedoc = getDocFromCache(keyWithLang);
@@ -394,11 +413,6 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     return ret;
   }
 
-  private DocumentReference getDocRefContextDb(XWikiDocument doc) {
-    return new DocumentReference(References.adjustRef(doc.getDocumentReference(),
-        DocumentReference.class, modelContext.getWikiRef()));
-  }
-
   private boolean doesNotExistsForKey(String key) {
     return getExistCache().get(key) == Boolean.FALSE;
   }
@@ -410,10 +424,26 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     return getDocCache().get(key);
   }
 
+  /**
+   * getCache is private, thus for tests we need getExistFromCache to check the cache state
+   */
+  Boolean getExistFromCache(String key) {
+    return getExistCache().get(key);
+  }
+
   @Override
-  public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
-    getBackingStore().deleteXWikiDoc(doc, context);
-    removeDocFromCache(doc, false);
+  public void deleteXWikiDoc(final XWikiDocument doc, final XWikiContext context)
+      throws XWikiException {
+    new ContextExecutor<Void, XWikiException>() {
+
+      @Override
+      protected Void call() throws XWikiException {
+
+        getBackingStore().deleteXWikiDoc(doc, context);
+        removeDocFromCache(doc, false);
+        return null;
+      }
+    }.inWiki(new WikiReference(context.getDatabase())).execute();
   }
 
   @Override
@@ -693,7 +723,17 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   }
 
   @Override
-  public boolean exists(XWikiDocument doc, XWikiContext context) throws XWikiException {
+  public boolean exists(final XWikiDocument doc, final XWikiContext context) throws XWikiException {
+    return new ContextExecutor<Boolean, XWikiException>() {
+
+      @Override
+      protected Boolean call() throws XWikiException {
+        return existsInternal(doc, context);
+      }
+    }.inWiki(new WikiReference(context.getDatabase())).execute();
+  }
+
+  private boolean existsInternal(XWikiDocument doc, XWikiContext context) throws XWikiException {
     String key = getKey(doc.getDocumentReference());
     Boolean result = getExistCache().get(key);
     if (result == null) {
@@ -854,7 +894,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
         LOGGER_DL.trace("DocumentLoader-{}: Trying to get doc '{}' for real",
             Thread.currentThread().getId(), key);
         // IMPORTANT: do not clone here. Creating new document is much faster.
-        XWikiDocument buildDoc = new XWikiDocument(getDocRefContextDb(doc));
+        XWikiDocument buildDoc = createEmptyXWikiDoc(doc);
         buildDoc.setLanguage(doc.getLanguage());
         buildDoc = getBackingStore().loadXWikiDoc(buildDoc, context);
         buildDoc.setStore(getBackingStore());
@@ -863,6 +903,15 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
       }
 
     }
+  }
+
+  private XWikiDocument createEmptyXWikiDoc(XWikiDocument doc) {
+    DocumentReference docRef = new ImmutableDocumentReference(References.adjustRef(
+        doc.getDocumentReference(), DocumentReference.class, modelContext.getWikiRef()));
+    XWikiDocument newDoc = docCreator.createWithoutDefaults(docRef, doc.getLanguage());
+    newDoc.setDefaultLanguage(doc.getDefaultLanguage());
+    newDoc.setStore(getBackingStore());
+    return newDoc;
   }
 
   @Override

@@ -18,6 +18,7 @@ import org.xwiki.model.reference.ImmutableDocumentReference;
 import org.xwiki.model.reference.ImmutableReference;
 
 import com.celements.common.test.AbstractComponentTest;
+import com.celements.common.test.ExceptionAsserter;
 import com.celements.model.access.IModelAccessFacade;
 import com.xpn.xwiki.XWikiConfig;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -42,7 +43,6 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     expect(getWikiMock().hasBacklinks(getContext())).andReturn(false).anyTimes();
     expect(getWikiMock().Param(eq("xwiki.store.hibernate.useclasstables.read"), eq("1"))).andReturn(
         "0").anyTimes();
-
   }
 
   @Test
@@ -77,6 +77,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     Session sessionMock = createSessionMock(doc);
     expectSaveDocExists(sessionMock, false);
     expect(sessionMock.save(capture(docCapture))).andReturn(null).once();
+    expect(sessionMock.close()).andReturn(null);
 
     replayDefault();
     getStore(sessionMock).saveXWikiDoc(doc, getContext());
@@ -88,6 +89,25 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
         docCapture.docRef instanceof ImmutableReference);
     assertTrue("after execution docRef has to be immutable",
         doc.getDocumentReference() instanceof ImmutableReference);
+  }
+
+  @Test
+  public void test_delete_invalidWiki() throws Exception {
+    final XWikiDocument doc = new XWikiDocument(new DocumentReference("otherWiki", "space", "doc"));
+    Session sessionMock = createSessionMock(doc);
+
+    replayDefault();
+    final CelHibernateStore store = getStore(sessionMock);
+    doc.setStore(store);
+    new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class,
+        "different wiki than context db should fast fail") {
+
+      @Override
+      protected void execute() throws Exception {
+        store.deleteXWikiDoc(doc, getContext());
+      }
+    }.evaluate();
+    verifyDefault();
   }
 
   private CelHibernateStore getStore(Session session) {

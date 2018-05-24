@@ -48,6 +48,13 @@ public class CelHibernateStoreCollectionPart {
         return;
       }
       logXObject("saveXObject - start", object);
+
+      if (!object.hasValidId()) {
+        throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
+            XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
+            "Unable to save object with invalid id: " + object);
+      }
+
       // We need a slightly different behavior here
       boolean stats = (object instanceof XWikiStats);
 
