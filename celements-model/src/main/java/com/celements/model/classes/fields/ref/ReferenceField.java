@@ -8,6 +8,7 @@ import org.xwiki.model.reference.EntityReference;
 import com.celements.marshalling.ReferenceMarshaller;
 import com.celements.model.classes.fields.AbstractClassField;
 import com.celements.model.classes.fields.CustomClassField;
+import com.celements.model.util.ReferenceSerializationMode;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 import com.xpn.xwiki.objects.classes.StringClass;
 
@@ -20,10 +21,16 @@ public abstract class ReferenceField<T extends EntityReference> extends Abstract
   public abstract static class Builder<B extends Builder<B, T>, T extends EntityReference> extends
       AbstractClassField.Builder<B, T> {
 
+    private ReferenceSerializationMode mode;
     private Integer size;
 
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name);
+    }
+
+    public B refSerializationMode(@Nullable ReferenceSerializationMode mode) {
+      this.mode = mode;
+      return getThis();
     }
 
     public B size(@Nullable Integer val) {
@@ -36,7 +43,7 @@ public abstract class ReferenceField<T extends EntityReference> extends Abstract
   protected ReferenceField(@NotNull Builder<?, T> builder) {
     super(builder);
     this.size = builder.size;
-    marshaller = new ReferenceMarshaller<>(getType());
+    marshaller = new ReferenceMarshaller<>(getType(), builder.mode);
   }
 
   public Integer getSize() {
