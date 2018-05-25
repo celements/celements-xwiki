@@ -10,6 +10,8 @@ import com.xpn.xwiki.objects.classes.LevelsClass;
 @Immutable
 public final class AccessRightLevelsField extends EnumListField<EAccessLevel> {
 
+  public static final String DEFAULT_SEPARATOR = ",|";
+
   public static class Builder extends EnumListField.Builder<EAccessLevel> {
 
     public Builder(@NotNull String classDefName, @NotNull String name) {
@@ -23,6 +25,7 @@ public final class AccessRightLevelsField extends EnumListField<EAccessLevel> {
 
     @Override
     public AccessRightLevelsField build() {
+      separator(DEFAULT_SEPARATOR);
       return new AccessRightLevelsField(getThis());
     }
 

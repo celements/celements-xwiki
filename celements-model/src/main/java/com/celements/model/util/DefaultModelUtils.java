@@ -15,6 +15,7 @@ import com.celements.model.context.ModelContext;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.web.Utils;
 
 @Component
 public class DefaultModelUtils implements ModelUtils {
@@ -24,12 +25,6 @@ public class DefaultModelUtils implements ModelUtils {
 
   @Requirement("explicit")
   private EntityReferenceResolver<String> resolver;
-
-  @Requirement
-  private EntityReferenceSerializer<String> serializer;
-
-  @Requirement("local")
-  private EntityReferenceSerializer<String> serializerLocal;
 
   @Override
   public boolean isAbsoluteRef(EntityReference ref) {
@@ -114,15 +109,43 @@ public class DefaultModelUtils implements ModelUtils {
   }
 
   @Override
-  public String serializeRef(EntityReference ref) {
+  public String serializeRef(EntityReference ref, ReferenceSerializationMode mode) {
     checkNotNull(ref);
+    @SuppressWarnings("unchecked")
+    EntityReferenceSerializer<String> serializer = Utils.getComponent(
+        EntityReferenceSerializer.class, getReferenceSerializerHintFromMode(mode));
     return serializer.serialize(ref);
+  }
+
+  private String getReferenceSerializerHintFromMode(ReferenceSerializationMode mode) {
+    String hint;
+    switch (mode) {
+      case GLOBAL:
+        hint = "default";
+        break;
+      case LOCAL:
+        hint = "local";
+        break;
+      case COMPACT:
+        hint = "compact";
+        break;
+      case COMPACT_WIKI:
+        hint = "compactwiki";
+        break;
+      default:
+        throw new IllegalArgumentException(String.valueOf(mode));
+    }
+    return hint;
+  }
+
+  @Override
+  public String serializeRef(EntityReference ref) {
+    return serializeRef(ref, ReferenceSerializationMode.GLOBAL);
   }
 
   @Override
   public String serializeRefLocal(EntityReference ref) {
-    checkNotNull(ref);
-    return serializerLocal.serialize(ref);
+    return serializeRef(ref, ReferenceSerializationMode.LOCAL);
   }
 
 }

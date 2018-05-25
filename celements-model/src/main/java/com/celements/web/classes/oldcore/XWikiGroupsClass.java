@@ -1,5 +1,7 @@
 package com.celements.web.classes.oldcore;
 
+import static com.celements.model.util.ReferenceSerializationMode.*;
+
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -18,7 +20,7 @@ public class XWikiGroupsClass extends AbstractClassDefinition implements IOldCor
   public static final String CLASS_DEF_HINT = CLASS_FN;
 
   public static final ClassField<DocumentReference> FIELD_MEMBER = new DocumentReferenceField.Builder(
-      CLASS_FN, "member").prettyName("Member").size(30).build();
+      CLASS_FN, "member").prettyName("Member").refSerializationMode(COMPACT_WIKI).size(30).build();
 
   @Override
   public String getName() {

@@ -1,6 +1,7 @@
 package com.celements.model.util;
 
 import static com.celements.common.test.CelementsTestUtils.*;
+import static com.celements.model.util.ReferenceSerializationMode.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
@@ -8,10 +9,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.common.test.AbstractComponentTest;
+import com.celements.common.test.ExceptionAsserter;
 import com.celements.model.context.ModelContext;
 import com.xpn.xwiki.web.Utils;
 
@@ -110,12 +113,6 @@ public class ModelUtilsTest extends AbstractComponentTest {
     assertEquals("wiki:space", modelUtils.serializeRef(spaceRef));
     assertEquals("wiki:space.doc", modelUtils.serializeRef(docRef));
     assertEquals("wiki:space.doc@att.jpg", modelUtils.serializeRef(attRef));
-    try {
-      modelUtils.serializeRef(null);
-      fail("expecting failure for null value");
-    } catch (NullPointerException npe) {
-      // expected
-    }
   }
 
   @Test
@@ -124,11 +121,58 @@ public class ModelUtilsTest extends AbstractComponentTest {
     assertEquals("space", modelUtils.serializeRefLocal(spaceRef));
     assertEquals("space.doc", modelUtils.serializeRefLocal(docRef));
     assertEquals("space.doc@att.jpg", modelUtils.serializeRefLocal(attRef));
-    try {
-      modelUtils.serializeRefLocal(null);
-      fail("expecting failure for null value");
-    } catch (NullPointerException npe) {
+  }
+
+  @Test
+  public void test_serialzeRef_mode() {
+    EntityReference ref = attRef;
+    while (ref != null) {
+      assertEquals(modelUtils.serializeRef(ref), modelUtils.serializeRef(ref, GLOBAL));
+      assertEquals(modelUtils.serializeRefLocal(ref), modelUtils.serializeRef(ref, LOCAL));
+      ref = ref.getParent();
     }
+  }
+
+  @Test
+  public void test_serialzeRef_compact_sameContextWiki() {
+    assertEquals("wiki", modelUtils.serializeRef(wikiRef, COMPACT));
+    assertEquals("space", modelUtils.serializeRef(spaceRef, COMPACT));
+    assertEquals("space.doc", modelUtils.serializeRef(docRef, COMPACT));
+    assertEquals("space.doc@att.jpg", modelUtils.serializeRef(attRef, COMPACT));
+  }
+
+  @Test
+  public void test_serialzeRef_compact_differentContextWiki() {
+    getContext().setDatabase("xwikidb");
+    assertEquals("wiki", modelUtils.serializeRef(wikiRef, COMPACT));
+    assertEquals("wiki:space", modelUtils.serializeRef(spaceRef, COMPACT));
+    assertEquals("wiki:space.doc", modelUtils.serializeRef(docRef, COMPACT));
+    assertEquals("wiki:space.doc@att.jpg", modelUtils.serializeRef(attRef, COMPACT));
+  }
+
+  @Test
+  public void test_serialzeRef_null() {
+    new ExceptionAsserter<NullPointerException>(NullPointerException.class) {
+
+      @Override
+      protected void execute() throws Exception {
+        modelUtils.serializeRef(null, GLOBAL);
+      }
+    }.evaluate();
+    new ExceptionAsserter<NullPointerException>(NullPointerException.class) {
+
+      @Override
+      protected void execute() throws Exception {
+        modelUtils.serializeRef(null);
+      }
+    }.evaluate();
+    new ExceptionAsserter<NullPointerException>(NullPointerException.class) {
+
+      @Override
+      protected void execute() throws Exception {
+        modelUtils.serializeRefLocal(null);
+      }
+    }.evaluate();
   }
 
 }
