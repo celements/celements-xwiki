@@ -1,25 +1,36 @@
 package com.celements.marshalling;
 
+import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.EntityReference;
 
 import com.celements.model.util.ModelUtils;
+import com.celements.model.util.ReferenceSerializationMode;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.web.Utils;
 
 @Immutable
 public final class ReferenceMarshaller<T extends EntityReference> extends AbstractMarshaller<T> {
 
-  public ReferenceMarshaller(Class<T> token) {
+  private final ReferenceSerializationMode mode;
+
+  public ReferenceMarshaller(@NotNull Class<T> token) {
+    this(token, null);
+  }
+
+  public ReferenceMarshaller(@NotNull Class<T> token, @Nullable ReferenceSerializationMode mode) {
     super(token);
+    this.mode = firstNonNull(mode, ReferenceSerializationMode.GLOBAL);
   }
 
   @Override
   public String serialize(T val) {
-    return getModelUtils().serializeRef(val);
+    return getModelUtils().serializeRef(val, mode);
   }
 
   @Override

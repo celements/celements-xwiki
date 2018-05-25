@@ -129,6 +129,14 @@ public interface ModelUtils {
 
   /**
    * @param ref
+   * @param mode
+   * @return serialised string representation of the given reference, depending on the mode
+   */
+  @NotNull
+  String serializeRef(@NotNull EntityReference ref, @NotNull ReferenceSerializationMode mode);
+
+  /**
+   * @param ref
    * @return serialised global string representation of the given reference (e.g. "wiki:space.doc")
    */
   @NotNull
