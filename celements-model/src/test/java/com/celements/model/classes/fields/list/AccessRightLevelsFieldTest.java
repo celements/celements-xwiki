@@ -118,4 +118,11 @@ public class AccessRightLevelsFieldTest extends AbstractComponentTest {
     assertTrue(modelAccess.getXObject(doc, classRef).getStringValue(field.getName()).isEmpty());
   }
 
+  @Test
+  public void test_separator() {
+    assertEquals(AccessRightLevelsField.DEFAULT_SEPARATOR, fieldBuilder.build().getSeparator());
+    assertEquals(AccessRightLevelsField.DEFAULT_SEPARATOR, fieldBuilder.separator(
+        "-").build().getSeparator());
+  }
+
 }
