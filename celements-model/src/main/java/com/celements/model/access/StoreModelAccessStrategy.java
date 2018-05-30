@@ -10,7 +10,6 @@ import com.celements.model.access.exception.DocumentDeleteException;
 import com.celements.model.access.exception.DocumentLoadException;
 import com.celements.model.access.exception.DocumentSaveException;
 import com.celements.model.context.ModelContext;
-import com.celements.model.util.References;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -49,7 +48,8 @@ public class StoreModelAccessStrategy implements ModelAccessStrategy {
 
         @Override
         protected Boolean call() throws XWikiException {
-          return getStore().exists(newDummyDoc(docRef, lang), context.getXWikiContext());
+          return getStore().exists(docCreator.createWithoutDefaults(docRef, lang),
+              context.getXWikiContext());
         }
       }.inWiki(docRef.getWikiReference()).execute();
     } catch (XWikiException xwe) {
@@ -64,7 +64,8 @@ public class StoreModelAccessStrategy implements ModelAccessStrategy {
 
         @Override
         protected XWikiDocument call() throws XWikiException {
-          return getStore().loadXWikiDoc(newDummyDoc(docRef, lang), context.getXWikiContext());
+          return getStore().loadXWikiDoc(docCreator.createWithoutDefaults(docRef, lang),
+              context.getXWikiContext());
         }
       }.inWiki(docRef.getWikiReference()).execute();
     } catch (XWikiException xwe) {
@@ -122,19 +123,14 @@ public class StoreModelAccessStrategy implements ModelAccessStrategy {
 
         @Override
         protected List<String> call() throws XWikiException {
-          return getStore().getTranslationList(newDummyDoc(docRef, IModelAccessFacade.DEFAULT_LANG),
-              context.getXWikiContext());
+
+          return getStore().getTranslationList(docCreator.createWithoutDefaults(docRef,
+              IModelAccessFacade.DEFAULT_LANG), context.getXWikiContext());
         }
       }.inWiki(docRef.getWikiReference()).execute();
     } catch (XWikiException xwe) {
       throw new DocumentLoadException(docRef, xwe);
     }
-  }
-
-  private XWikiDocument newDummyDoc(DocumentReference docRef, String lang) {
-    XWikiDocument doc = new XWikiDocument(References.cloneRef(docRef, DocumentReference.class));
-    doc.setLanguage(lang);
-    return doc;
   }
 
 }
