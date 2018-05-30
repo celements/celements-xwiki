@@ -123,7 +123,6 @@ public class StoreModelAccessStrategy implements ModelAccessStrategy {
 
         @Override
         protected List<String> call() throws XWikiException {
-
           return getStore().getTranslationList(docCreator.createWithoutDefaults(docRef,
               IModelAccessFacade.DEFAULT_LANG), context.getXWikiContext());
         }
