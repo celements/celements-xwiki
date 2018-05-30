@@ -29,10 +29,8 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.monitor.api.MonitorPlugin;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
-import com.xpn.xwiki.util.Util;
 
 //TODO CELDEV-626 - CelHibernateStore refactoring
 public class CelHibernateStoreDocumentPart {
@@ -152,12 +150,7 @@ public class CelHibernateStoreDocumentPart {
     logXWikiDoc("loadXWikiDoc - start", doc);
     // To change body of implemented methods use Options | File Templates.
     boolean bTransaction = true;
-    MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
-      // Start monitoring timer
-      if (monitor != null) {
-        monitor.startTimer("hibernate");
-      }
       doc.setStore(store);
       store.checkHibernate(context);
 
@@ -166,19 +159,14 @@ public class CelHibernateStoreDocumentPart {
       Session session = store.getSession(context);
       session.setFlushMode(FlushMode.MANUAL);
 
-      try {
-        session.load(doc, new Long(doc.getId()));
-        doc.setDatabase(context.getDatabase());
-        doc.setNew(false);
-        doc.setMostRecent(true);
-        // Fix for XWIKI-1651
-        doc.setDate(new Date(doc.getDate().getTime()));
-        doc.setCreationDate(new Date(doc.getCreationDate().getTime()));
-        doc.setContentUpdateDate(new Date(doc.getContentUpdateDate().getTime()));
-      } catch (ObjectNotFoundException e) { // No document
-        doc.setNew(true);
-        return doc;
-      }
+      session.load(doc, new Long(doc.getId()));
+      doc.setDatabase(context.getDatabase());
+      doc.setNew(false);
+      doc.setMostRecent(true);
+      // convert java.sql.Timestamp to java.util.Date
+      doc.setDate(new Date(doc.getDate().getTime()));
+      doc.setCreationDate(new Date(doc.getCreationDate().getTime()));
+      doc.setContentUpdateDate(new Date(doc.getContentUpdateDate().getTime()));
 
       // Loading the attachment list
       if (doc.hasElement(XWikiDocument.HAS_ATTACHMENTS)) {
@@ -223,6 +211,8 @@ public class CelHibernateStoreDocumentPart {
 
       // We need to ensure that the loaded document becomes the original document
       doc.setOriginalDocument(doc.clone());
+    } catch (ObjectNotFoundException e) { // document doesn't exist
+      doc.setNew(true);
     } catch (HibernateException | XWikiException exc) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_READING_DOC,
@@ -235,13 +225,7 @@ public class CelHibernateStoreDocumentPart {
       } catch (HibernateException exc) {
         LOGGER.error("loadXWikiDoc - failed rollback for {}", doc.getDocumentReference(), exc);
       }
-
-      // End monitoring timer
-      if (monitor != null) {
-        monitor.endTimer("hibernate");
-      }
     }
-
     logXWikiDoc("loadXWikiDoc - end", doc);
     return doc;
   }
@@ -293,12 +277,7 @@ public class CelHibernateStoreDocumentPart {
     validateWikis(doc, context);
     boolean bTransaction = false;
     boolean commit = false;
-    MonitorPlugin monitor = Util.getMonitorPlugin(context);
     try {
-      // Start monitoring timer
-      if (monitor != null) {
-        monitor.startTimer("hibernate");
-      }
       store.checkHibernate(context);
       SessionFactory sfactory = store.injectCustomMappingsInSessionFactory(doc, context);
       bTransaction = store.beginTransaction(sfactory, context);
@@ -345,11 +324,6 @@ public class CelHibernateStoreDocumentPart {
       } catch (HibernateException exc) {
         LOGGER.error("deleteXWikiDoc - failed {} for {}", (commit ? "commit" : "rollback"),
             doc.getDocumentReference(), exc);
-      }
-
-      // End monitoring timer
-      if (monitor != null) {
-        monitor.endTimer("hibernate");
       }
     }
     logXWikiDoc("deleteXWikiDoc - end", doc);

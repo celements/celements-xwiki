@@ -43,21 +43,19 @@ public class CelHibernateStoreCollectionPart {
 
   public void saveXWikiCollection(BaseCollection object, XWikiContext context, boolean bTransaction)
       throws XWikiException {
+    if (object == null) {
+      return;
+    }
+    logXObject("saveXObject - start", object);
+    if (!object.hasValidId()) {
+      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
+          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
+          "Unable to save object with invalid id: " + object);
+    }
+    // We need a slightly different behavior here
+    boolean stats = (object instanceof XWikiStats);
+    boolean commit = false;
     try {
-      if (object == null) {
-        return;
-      }
-      logXObject("saveXObject - start", object);
-
-      if (!object.hasValidId()) {
-        throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-            XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
-            "Unable to save object with invalid id: " + object);
-      }
-
-      // We need a slightly different behavior here
-      boolean stats = (object instanceof XWikiStats);
-
       if (bTransaction) {
         store.checkHibernate(context);
         bTransaction = store.beginTransaction(context);
@@ -138,22 +136,17 @@ public class CelHibernateStoreCollectionPart {
         }
       }
 
-      if (bTransaction) {
-        store.endTransaction(context, true);
-      }
-    } catch (XWikiException xe) {
-      throw xe;
-    } catch (Exception e) {
+      commit = true;
+    } catch (HibernateException | XWikiException exc) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
-          "Exception while saving object: " + object, e);
-
+          "Exception while saving object: " + object, exc);
     } finally {
       try {
         if (bTransaction) {
-          store.endTransaction(context, true);
+          store.endTransaction(context, commit);
         }
-      } catch (Exception e) {
+      } catch (HibernateException e) {
         LOGGER.error("failed commit/rollback for {}", object, e);
       }
     }
@@ -172,15 +165,7 @@ public class CelHibernateStoreCollectionPart {
       Session session = store.getSession(context);
 
       if (!alreadyLoaded) {
-        try {
-          session.load(object, new Long(object1.getId()));
-        } catch (ObjectNotFoundException exc) {
-          // There is no object data saved
-          object = null;
-          LOGGER.warn("loadXWikiCollection - no data for object: {} {}_{}", object1.getId(),
-              object1.getClassName(), object1.getNumber(), exc);
-          return;
-        }
+        session.load(object, new Long(object1.getId()));
       }
 
       DocumentReference classReference = object.getXClassReference();
@@ -245,6 +230,7 @@ public class CelHibernateStoreCollectionPart {
             property.setName(name);
             store.loadXWikiProperty(property, context, false);
           } catch (Exception e) {
+            // TODO CELDEV-626 what exception are we actually handling here?
             // WORKAROUND IN CASE OF MIXMATCH BETWEEN STRING AND LARGESTRING
             try {
               if (property instanceof StringProperty) {
@@ -253,20 +239,17 @@ public class CelHibernateStoreCollectionPart {
                 property2.setName(name);
                 store.loadXWikiProperty(property2, context, false);
                 property.setValue(property2.getValue());
-
                 if (bclass != null) {
                   if (bclass.get(name) instanceof TextAreaClass) {
                     property = property2;
                   }
                 }
-
               } else if (property instanceof LargeStringProperty) {
                 StringProperty property2 = new StringProperty();
                 property2.setObject(object);
                 property2.setName(name);
                 store.loadXWikiProperty(property2, context, false);
                 property.setValue(property2.getValue());
-
                 if (bclass != null) {
                   if (bclass.get(name) instanceof StringClass) {
                     property = property2;
@@ -275,7 +258,7 @@ public class CelHibernateStoreCollectionPart {
               } else {
                 throw e;
               }
-            } catch (Throwable e2) {
+            } catch (Exception e2) {
               throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
                   XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
                   "Exception while loading property '" + name + "' for object: " + object, e);
@@ -285,22 +268,20 @@ public class CelHibernateStoreCollectionPart {
           object.addField(name, property);
         }
       }
-
-      if (bTransaction) {
-        store.endTransaction(context, false, false);
-      }
-    } catch (Exception e) {
+    } catch (ObjectNotFoundException exc) { // there is no object data saved
+      LOGGER.warn("loadXWikiCollection - no data for object: {} {}_{}", object1.getId(),
+          object1.getClassName(), object1.getNumber(), exc);
+    } catch (HibernateException exc) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-          "Exception while loading object: " + object, e);
-
+          "Exception while loading object: " + object, exc);
     } finally {
       try {
         if (bTransaction) {
           store.endTransaction(context, false, false);
         }
-      } catch (Exception e) {
-        LOGGER.error("failed commit/rollback for {}", object, e);
+      } catch (HibernateException exc) {
+        LOGGER.error("failed commit/rollback for {}", object, exc);
       }
     }
     logXObject("loadXObject - end", object);
@@ -312,6 +293,7 @@ public class CelHibernateStoreCollectionPart {
       return;
     }
     logXObject("deleteXObject - start", object);
+    boolean commit = false;
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -370,20 +352,18 @@ public class CelHibernateStoreCollectionPart {
         session.delete(object);
       }
 
-      if (bTransaction) {
-        store.endTransaction(context, true);
-      }
-    } catch (Exception e) {
+      commit = true;
+    } catch (HibernateException exc) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_DELETING_OBJECT,
-          "Exception while deleting object: " + object, e);
+          "Exception while deleting object: " + object, exc);
     } finally {
       try {
         if (bTransaction) {
-          store.endTransaction(context, false);
+          store.endTransaction(context, commit);
         }
-      } catch (Exception e) {
-        LOGGER.error("failed commit/rollback for {}", object, e);
+      } catch (HibernateException exc) {
+        LOGGER.error("failed commit/rollback for {}", object, exc);
       }
     }
     logXObject("deleteXObject - end", object);
