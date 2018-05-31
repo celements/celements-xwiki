@@ -1,6 +1,5 @@
 package com.celements.store.part;
 
-import static com.celements.model.util.References.*;
 import static com.google.common.base.Preconditions.*;
 
 import java.util.UUID;
@@ -14,9 +13,9 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.model.reference.ClassReference;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 
+import com.celements.model.access.XWikiDocumentCreator;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.store.CelHibernateStore;
@@ -29,6 +28,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.store.XWikiStoreInterface;
+import com.xpn.xwiki.web.Utils;
 
 @Immutable
 class DocumentSavePreparationCommand {
@@ -89,8 +89,7 @@ class DocumentSavePreparationCommand {
     }
 
     private XWikiDocument loadOriginalDocument(XWikiContext context) throws XWikiException {
-      XWikiDocument dummyDoc = new XWikiDocument(cloneRef(doc.getDocumentReference(),
-          DocumentReference.class));
+      XWikiDocument dummyDoc = getDocCreator().createWithoutDefaults(doc.getDocumentReference());
       dummyDoc.setLanguage(doc.getLanguage());
       if (!doc.isNew() && doc.hasElement(XWikiDocument.HAS_OBJECTS) && getPrimaryStore(
           context).exists(dummyDoc, context)) {
@@ -108,18 +107,32 @@ class DocumentSavePreparationCommand {
         if (!obj.hasValidId()) {
           Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
               new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
-          if (existingObj.isPresent()) {
+          if (existingObj.isPresent() && existingObj.get().hasValidId()) {
             obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
             LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
           } else {
             long nextId = store.getIdComputer().computeNextObjectId(doc);
             obj.setId(nextId, store.getIdComputer().getIdVersion());
             LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
+            logExistingObject(existingObj.orNull());
           }
         }
       }
     }
 
+    private void logExistingObject(BaseObject existingObj) {
+      if (existingObj != null) {
+        // observed in com.xpn.xwiki.web.ObjectAddAction, see [CELDEV-693]
+        LOGGER.warn("saveXWikiDoc - overwriting existing object [{}] because of invalid id, "
+            + "possibly due to cache poisoning before save through 'XWiki#getDocument': {}",
+            existingObj, existingObj.toXMLString(), new Throwable());
+      }
+    }
+
+  }
+
+  private XWikiDocumentCreator getDocCreator() {
+    return Utils.getComponent(XWikiDocumentCreator.class);
   }
 
   /**
