@@ -47,7 +47,6 @@ public class CelHibernateStoreDocumentPart {
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
       throws XWikiException {
-    logXWikiDoc("saveXWikiDoc - start", doc);
     boolean commit = false;
     try {
       Session session = savePrepCmd.execute(doc, bTransaction, context);
@@ -130,7 +129,6 @@ public class CelHibernateStoreDocumentPart {
       }
     }
 
-    logXWikiDoc("saveXWikiDoc - end", doc);
   }
 
   private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context)
@@ -147,7 +145,6 @@ public class CelHibernateStoreDocumentPart {
   }
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
-    logXWikiDoc("loadXWikiDoc - start", doc);
     // To change body of implemented methods use Options | File Templates.
     boolean bTransaction = true;
     try {
@@ -226,7 +223,6 @@ public class CelHibernateStoreDocumentPart {
         LOGGER.error("loadXWikiDoc - failed rollback for {}", doc.getDocumentReference(), exc);
       }
     }
-    logXWikiDoc("loadXWikiDoc - end", doc);
     return doc;
   }
 
@@ -273,7 +269,6 @@ public class CelHibernateStoreDocumentPart {
   }
 
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
-    logXWikiDoc("deleteXWikiDoc - start", doc);
     validateWikis(doc, context);
     boolean bTransaction = false;
     boolean commit = false;
@@ -326,7 +321,6 @@ public class CelHibernateStoreDocumentPart {
             doc.getDocumentReference(), exc);
       }
     }
-    logXWikiDoc("deleteXWikiDoc - end", doc);
   }
 
   private DocumentReference getXWikiGroupsClassDocRef(XWikiContext context) {
@@ -344,13 +338,6 @@ public class CelHibernateStoreDocumentPart {
     checkArgument(docWiki.equals(providedContextWiki) && docWiki.equals(executionContextWiki),
         "wikis not matching for doc [%s], providedContextWiki [%s], executionContextWiki [%s]",
         doc.getDocumentReference(), providedContextWiki, executionContextWiki);
-  }
-
-  private void logXWikiDoc(String msg, XWikiDocument doc) {
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info(msg + ": {} {}", doc.getId(), store.getModelUtils().serializeRef(
-          doc.getDocumentReference()));
-    }
   }
 
 }

@@ -29,7 +29,6 @@ public class CelHibernateStorePropertyPart {
 
   public void loadXWikiProperty(PropertyInterface property, XWikiContext context,
       boolean bTransaction) throws XWikiException {
-    logXProperty("loadXProperty - start", property);
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -53,7 +52,6 @@ public class CelHibernateStorePropertyPart {
         LOGGER.error("loadXProperty - failed rollback for {}: {}", property.getId(), property, exc);
       }
     }
-    logXProperty("loadXProperty - end", property);
   }
 
   private void executePostLoadActions(PropertyInterface property) {
@@ -75,7 +73,6 @@ public class CelHibernateStorePropertyPart {
 
   public void saveXWikiProperty(PropertyInterface property, XWikiContext context,
       boolean bTransaction) throws XWikiException {
-    logXProperty("saveXProperty - start", property);
     boolean commit = false;
     try {
       if (bTransaction) {
@@ -100,7 +97,6 @@ public class CelHibernateStorePropertyPart {
             property.getId(), property, exc);
       }
     }
-    logXProperty("saveXProperty - end", property);
   }
 
   private void updateOrSaveProperty(PropertyInterface property, XWikiContext context)
@@ -121,11 +117,4 @@ public class CelHibernateStorePropertyPart {
     query.setString("name", property.getName());
     return query.uniqueResult() != null;
   }
-
-  private void logXProperty(String msg, PropertyInterface property) {
-    if (LOGGER.isTraceEnabled()) {
-      LOGGER.trace("{}: {} - {}", msg, property.getId(), property);
-    }
-  }
-
 }
