@@ -1,5 +1,7 @@
 package com.celements.store;
 
+import java.text.MessageFormat;
+
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -9,6 +11,8 @@ import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.ImmutableDocumentReference;
 
+import com.celements.logging.LogLevel;
+import com.celements.logging.LogUtils;
 import com.celements.model.context.ModelContext;
 import com.celements.model.util.ModelUtils;
 import com.celements.store.id.CelementsIdComputer;
@@ -57,16 +61,23 @@ public class CelHibernateStore extends XWikiHibernateStore {
   @Override
   public void saveXWikiDoc(XWikiDocument doc, final XWikiContext context,
       final boolean bTransaction) throws XWikiException {
-    // XWikiHibernateStore.saveXWikiDoc requires a mutable docRef
-    DocRefMutabilityExecutor<Void> exec = new DocRefMutabilityExecutor<Void>() {
+    try {
+      // XWikiHibernateStore.saveXWikiDoc requires a mutable docRef
+      DocRefMutabilityExecutor<Void> exec = new DocRefMutabilityExecutor<Void>() {
 
-      @Override
-      public Void call(XWikiDocument doc) throws XWikiException {
-        documentStorePart.saveXWikiDoc(doc, context, bTransaction);
-        return null;
-      }
-    };
-    exec.execute(doc);
+        @Override
+        public Void call(XWikiDocument doc) throws XWikiException {
+          log(LogLevel.INFO, "saveXWikiDoc - start", doc);
+          documentStorePart.saveXWikiDoc(doc, context, bTransaction);
+          log(LogLevel.INFO, "saveXWikiDoc - end", doc);
+          return null;
+        }
+      };
+      exec.execute(doc);
+    } catch (Exception exc) {
+      logError("saveXWikiDoc - error", doc, exc);
+      throw exc;
+    }
   }
 
   public CelementsIdComputer getIdComputer() {
@@ -78,20 +89,35 @@ public class CelHibernateStore extends XWikiHibernateStore {
   @Override
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, final XWikiContext context)
       throws XWikiException {
-    // XWikiHibernateStore.loadXWikiDoc requires a mutable docRef
-    DocRefMutabilityExecutor<XWikiDocument> exec = new DocRefMutabilityExecutor<XWikiDocument>() {
+    try {
+      // XWikiHibernateStore.loadXWikiDoc requires a mutable docRef
+      DocRefMutabilityExecutor<XWikiDocument> exec = new DocRefMutabilityExecutor<XWikiDocument>() {
 
-      @Override
-      public XWikiDocument call(XWikiDocument doc) throws XWikiException {
-        return documentStorePart.loadXWikiDoc(doc, context);
-      }
-    };
-    return exec.execute(doc);
+        @Override
+        public XWikiDocument call(XWikiDocument doc) throws XWikiException {
+          log(LogLevel.INFO, "loadXWikiDoc - start", doc);
+          XWikiDocument ret = documentStorePart.loadXWikiDoc(doc, context);
+          log(LogLevel.INFO, "loadXWikiDoc - end", doc);
+          return ret;
+        }
+      };
+      return exec.execute(doc);
+    } catch (Exception exc) {
+      logError("loadXWikiDoc - error", doc, exc);
+      throw exc;
+    }
   }
 
   @Override
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
-    documentStorePart.deleteXWikiDoc(doc, context);
+    try {
+      log(LogLevel.INFO, "deleteXWikiDoc - start", doc);
+      documentStorePart.deleteXWikiDoc(doc, context);
+      log(LogLevel.INFO, "deleteXWikiDoc - end", doc);
+    } catch (Exception exc) {
+      logError("deleteXWikiDoc - error", doc, exc);
+      throw exc;
+    }
   }
 
   /**
@@ -101,7 +127,14 @@ public class CelHibernateStore extends XWikiHibernateStore {
   @Deprecated
   public void saveXWikiCollection(BaseCollection object, XWikiContext context, boolean bTransaction)
       throws XWikiException {
-    collectionStorePart.saveXWikiCollection(object, context, bTransaction);
+    try {
+      log(LogLevel.DEBUG, "saveXObject - start", object);
+      collectionStorePart.saveXWikiCollection(object, context, bTransaction);
+      log(LogLevel.DEBUG, "saveXObject - end", object);
+    } catch (Exception exc) {
+      logError("saveXObject - error", object, exc);
+      throw exc;
+    }
   }
 
   /**
@@ -109,9 +142,16 @@ public class CelHibernateStore extends XWikiHibernateStore {
    */
   @Override
   @Deprecated
-  public void loadXWikiCollection(BaseCollection object1, XWikiDocument doc, XWikiContext context,
+  public void loadXWikiCollection(BaseCollection object, XWikiDocument doc, XWikiContext context,
       boolean bTransaction, boolean alreadyLoaded) throws XWikiException {
-    collectionStorePart.loadXWikiCollection(object1, doc, context, bTransaction, alreadyLoaded);
+    try {
+      log(LogLevel.DEBUG, "loadXObject - start", object);
+      collectionStorePart.loadXWikiCollection(object, doc, context, bTransaction, alreadyLoaded);
+      log(LogLevel.DEBUG, "loadXObject - end", object);
+    } catch (Exception exc) {
+      logError("loadXObject - error", object, exc);
+      throw exc;
+    }
   }
 
   /**
@@ -121,7 +161,14 @@ public class CelHibernateStore extends XWikiHibernateStore {
   @Deprecated
   public void deleteXWikiCollection(BaseCollection object, XWikiContext context,
       boolean bTransaction, boolean evict) throws XWikiException {
-    collectionStorePart.deleteXWikiCollection(object, context, bTransaction, evict);
+    try {
+      log(LogLevel.DEBUG, "deleteXObject - start", object);
+      collectionStorePart.deleteXWikiCollection(object, context, bTransaction, evict);
+      log(LogLevel.DEBUG, "deleteXObject - end", object);
+    } catch (Exception exc) {
+      logError("deleteXObject - error", object, exc);
+      throw exc;
+    }
   }
 
   /**
@@ -131,7 +178,14 @@ public class CelHibernateStore extends XWikiHibernateStore {
   @Deprecated
   public void loadXWikiProperty(PropertyInterface property, XWikiContext context,
       boolean bTransaction) throws XWikiException {
-    propertyStorePart.loadXWikiProperty(property, context, bTransaction);
+    try {
+      log(LogLevel.TRACE, "loadXProperty - start", property);
+      propertyStorePart.loadXWikiProperty(property, context, bTransaction);
+      log(LogLevel.TRACE, "loadXProperty - end", property);
+    } catch (Exception exc) {
+      logError("loadXProperty - error", property, exc);
+      throw exc;
+    }
   }
 
   /**
@@ -141,7 +195,14 @@ public class CelHibernateStore extends XWikiHibernateStore {
   @Deprecated
   public void saveXWikiProperty(final PropertyInterface property, final XWikiContext context,
       final boolean runInOwnTransaction) throws XWikiException {
-    propertyStorePart.saveXWikiProperty(property, context, runInOwnTransaction);
+    try {
+      log(LogLevel.TRACE, "saveXProperty - start", property);
+      propertyStorePart.saveXWikiProperty(property, context, runInOwnTransaction);
+      log(LogLevel.TRACE, "saveXProperty - end", property);
+    } catch (Exception exc) {
+      logError("saveXProperty - error", property, exc);
+      throw exc;
+    }
   }
 
   /**
@@ -172,6 +233,29 @@ public class CelHibernateStore extends XWikiHibernateStore {
   public void saveXWikiClassProperty(PropertyClass property, XWikiContext context,
       boolean bTransaction) throws XWikiException {
     throw new UnsupportedOperationException("Celements doesn't support class tables");
+  }
+
+  public void log(LogLevel level, String msg, Object obj) {
+    if (LogUtils.isLevelEnabled(LOGGER, level)) {
+      LogUtils.log(LOGGER, level, buildLogMessage(msg, obj));
+    }
+  }
+
+  public void logError(String msg, Object obj, Throwable cause) {
+    LOGGER.error(buildLogMessage(msg, obj), cause);
+  }
+
+  public String buildLogMessage(String msg, Object obj) {
+    if (obj instanceof XWikiDocument) {
+      XWikiDocument doc = (XWikiDocument) obj;
+      return MessageFormat.format("{0}: {1} {2}", msg, Long.toString(doc.getId()),
+          modelUtils.serializeRef(doc.getDocumentReference()));
+    } else if (obj instanceof PropertyInterface) {
+      PropertyInterface property = (PropertyInterface) obj;
+      return MessageFormat.format("{0}: {1} {2}", msg, Long.toString(property.getId()), property);
+    } else {
+      return MessageFormat.format("{0}: {1}", msg, obj);
+    }
   }
 
   public ModelUtils getModelUtils() {

@@ -46,7 +46,6 @@ public class CelHibernateStoreCollectionPart {
     if (object == null) {
       return;
     }
-    logXObject("saveXObject - start", object);
     if (!object.hasValidId()) {
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
@@ -150,13 +149,11 @@ public class CelHibernateStoreCollectionPart {
         LOGGER.error("failed commit/rollback for {}", object, e);
       }
     }
-    logXObject("saveXObject - end", object);
   }
 
   public void loadXWikiCollection(BaseCollection object1, XWikiDocument doc, XWikiContext context,
       boolean bTransaction, boolean alreadyLoaded) throws XWikiException {
     BaseCollection object = object1;
-    logXObject("loadXObject - start", object);
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -284,7 +281,6 @@ public class CelHibernateStoreCollectionPart {
         LOGGER.error("failed commit/rollback for {}", object, exc);
       }
     }
-    logXObject("loadXObject - end", object);
   }
 
   public void deleteXWikiCollection(BaseCollection object, XWikiContext context,
@@ -292,7 +288,6 @@ public class CelHibernateStoreCollectionPart {
     if (object == null) {
       return;
     }
-    logXObject("deleteXObject - start", object);
     boolean commit = false;
     try {
       if (bTransaction) {
@@ -365,13 +360,6 @@ public class CelHibernateStoreCollectionPart {
       } catch (HibernateException exc) {
         LOGGER.error("failed commit/rollback for {}", object, exc);
       }
-    }
-    logXObject("deleteXObject - end", object);
-  }
-
-  private void logXObject(String msg, BaseCollection obj) {
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("{}: {}", msg, obj);
     }
   }
 
