@@ -163,6 +163,12 @@
       <version>2.7.2</version>
       <!-- Only needed at runtime since it's a component implementation -->
       <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>jgroups</groupId>
+          <artifactId>jgroups</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
