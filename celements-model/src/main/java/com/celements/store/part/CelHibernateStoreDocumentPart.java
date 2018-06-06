@@ -22,9 +22,9 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.object.xwiki.XWikiObjectEditor;
-import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
+import com.google.common.collect.FluentIterable;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -139,7 +139,7 @@ public class CelHibernateStoreDocumentPart {
       }
       doc.setXObjectsToRemove(new ArrayList<BaseObject>());
     }
-    for (BaseObject obj : getXObjectFetcher(doc).iter()) {
+    for (BaseObject obj : fetchXObjects(doc)) {
       store.saveXWikiCollection(obj, context, false);
     }
   }
@@ -297,8 +297,8 @@ public class CelHibernateStoreDocumentPart {
         store.deleteLinks(doc.getId(), context, true);
       }
 
-      for (BaseObject object : getXObjectFetcher(doc).iter().append(firstNonNull(
-          doc.getXObjectsToRemove(), Collections.<BaseObject>emptyList()))) {
+      for (BaseObject object : fetchXObjects(doc).append(firstNonNull(doc.getXObjectsToRemove(),
+          Collections.<BaseObject>emptyList()))) {
         store.deleteXWikiObject(object, context, false);
       }
       context.getWiki().getVersioningStore().deleteArchive(doc, false, context);
@@ -327,8 +327,11 @@ public class CelHibernateStoreDocumentPart {
     return new DocumentReference(context.getDatabase(), "XWiki", "XWikiGroups");
   }
 
-  private XWikiObjectFetcher getXObjectFetcher(XWikiDocument doc) {
-    return XWikiObjectEditor.on(doc).fetch();
+  private FluentIterable<BaseObject> fetchXObjects(XWikiDocument doc) {
+    if (doc.getTranslation() == 0) {
+      return XWikiObjectEditor.on(doc).fetch().iter();
+    }
+    return FluentIterable.of();
   }
 
   private void validateWikis(XWikiDocument doc, XWikiContext context) {
