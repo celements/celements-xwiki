@@ -49,7 +49,8 @@ class DocumentSavePreparationCommand {
     // Let's update the class XML since this is the new way to store it
     updateBaseClassXml(doc, context);
     // These informations will allow to not look for objects and attachments on saving
-    doc.setElement(XWikiDocument.HAS_OBJECTS, XWikiObjectFetcher.on(doc).exists());
+    doc.setElement(XWikiDocument.HAS_OBJECTS, (doc.getTranslation() == 0) ? XWikiObjectFetcher.on(
+        doc).exists() : false);
     doc.setElement(XWikiDocument.HAS_ATTACHMENTS, (doc.getAttachmentList().size() != 0));
     // prepare object ids
     new XObjectPreparer(doc, context).execute();
@@ -99,22 +100,24 @@ class DocumentSavePreparationCommand {
     }
 
     void execute() throws IdComputationException {
-      for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter()) {
-        obj.setDocumentReference(doc.getDocumentReference());
-        if (Strings.isNullOrEmpty(obj.getGuid())) {
-          obj.setGuid(UUID.randomUUID().toString());
-        }
-        if (!obj.hasValidId()) {
-          Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
-              new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
-          if (existingObj.isPresent() && existingObj.get().hasValidId()) {
-            obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
-            LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
-          } else {
-            long nextId = store.getIdComputer().computeNextObjectId(doc);
-            obj.setId(nextId, store.getIdComputer().getIdVersion());
-            LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
-            logExistingObject(existingObj.orNull());
+      if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
+        for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter()) {
+          obj.setDocumentReference(doc.getDocumentReference());
+          if (Strings.isNullOrEmpty(obj.getGuid())) {
+            obj.setGuid(UUID.randomUUID().toString());
+          }
+          if (!obj.hasValidId()) {
+            Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
+                new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
+            if (existingObj.isPresent() && existingObj.get().hasValidId()) {
+              obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
+              LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
+            } else {
+              long nextId = store.getIdComputer().computeNextObjectId(doc);
+              obj.setId(nextId, store.getIdComputer().getIdVersion());
+              LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
+              logExistingObject(existingObj.orNull());
+            }
           }
         }
       }
