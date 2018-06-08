@@ -120,7 +120,7 @@ public abstract class BaseElement implements ElementInterface, Serializable
                 "BaseElement#getDocumentReference could not be called when a non-reference Name has been set.");
         }
 
-        return this.reference;
+        return cloneDocRef(reference);
     }
 
     /**
@@ -149,7 +149,7 @@ public abstract class BaseElement implements ElementInterface, Serializable
     public void setDocumentReference(DocumentReference reference)
     {
         // If the name is already set then reset it since we're now using a reference
-        this.reference = reference;
+        this.reference = cloneDocRef(reference);
         this.name = null;
     }
 
@@ -208,8 +208,8 @@ public abstract class BaseElement implements ElementInterface, Serializable
             DocumentReference reference = getDocumentReference();
 
             if (reference != null) {
-                reference.setWikiReference(new WikiReference(wiki));
-                setDocumentReference(reference);
+                setDocumentReference(new DocumentReference(wiki,
+                    reference.getLastSpaceReference().getName(), reference.getName()));
             } else {
                 this.reference = new DocumentReference(wiki, "Main", "WebHome");
 
@@ -349,6 +349,13 @@ public abstract class BaseElement implements ElementInterface, Serializable
         ret.append("?");
       }
       return ret.toString();
+    }
+    
+    protected final DocumentReference cloneDocRef(DocumentReference docRef) {
+      if (docRef != null) {
+        return (DocumentReference) docRef.clone();
+      }
+      return null;
     }
 
 }
