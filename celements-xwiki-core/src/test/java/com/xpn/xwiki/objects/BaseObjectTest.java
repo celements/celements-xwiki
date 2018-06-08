@@ -20,10 +20,15 @@
  */
 package com.xpn.xwiki.objects;
 
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.model.reference.WikiReference;
+
 import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.test.AbstractBridgedComponentTestCase;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Unit tests for the {@link BaseElement} class.
@@ -39,17 +44,17 @@ public class BaseObjectTest extends AbstractBridgedComponentTestCase
 
         baseObject.setWiki("otherwiki");
 
-        Assert.assertEquals("otherwiki", baseObject.getWiki());
-        Assert.assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        Assert.assertEquals("Main", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        Assert.assertEquals("WebHome", baseObject.getDocumentReference().getName());
+        assertEquals("otherwiki", baseObject.getWiki());
+        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+        assertEquals("Main", baseObject.getDocumentReference().getLastSpaceReference().getName());
+        assertEquals("WebHome", baseObject.getDocumentReference().getName());
 
         baseObject.setName("space.page");
 
-        Assert.assertEquals("otherwiki", baseObject.getWiki());
-        Assert.assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        Assert.assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        Assert.assertEquals("page", baseObject.getDocumentReference().getName());
+        assertEquals("otherwiki", baseObject.getWiki());
+        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+        assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+        assertEquals("page", baseObject.getDocumentReference().getName());
     }
 
     @Test
@@ -60,17 +65,17 @@ public class BaseObjectTest extends AbstractBridgedComponentTestCase
 
         baseObject.setName("space.page");
 
-        Assert.assertEquals(database, baseObject.getWiki());
-        Assert.assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
-        Assert.assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        Assert.assertEquals("page", baseObject.getDocumentReference().getName());
+        assertEquals(database, baseObject.getWiki());
+        assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
+        assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+        assertEquals("page", baseObject.getDocumentReference().getName());
 
         baseObject.setWiki("otherwiki");
 
-        Assert.assertEquals("otherwiki", baseObject.getWiki());
-        Assert.assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        Assert.assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        Assert.assertEquals("page", baseObject.getDocumentReference().getName());
+        assertEquals("otherwiki", baseObject.getWiki());
+        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+        assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+        assertEquals("page", baseObject.getDocumentReference().getName());
     }
 
     @Test
@@ -84,20 +89,20 @@ public class BaseObjectTest extends AbstractBridgedComponentTestCase
         try {
             getContext().setDatabase("otherwiki");
 
-            Assert.assertEquals(database, baseObject.getWiki());
-            Assert.assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
-            Assert.assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-            Assert.assertEquals("page", baseObject.getDocumentReference().getName());
+            assertEquals(database, baseObject.getWiki());
+            assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
+            assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+            assertEquals("page", baseObject.getDocumentReference().getName());
 
             baseObject.setName("otherspace.otherpage");
         } finally {
             getContext().setDatabase(database);
         }
 
-        Assert.assertEquals(database, baseObject.getWiki());
-        Assert.assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
-        Assert.assertEquals("otherspace", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        Assert.assertEquals("otherpage", baseObject.getDocumentReference().getName());
+        assertEquals(database, baseObject.getWiki());
+        assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
+        assertEquals("otherspace", baseObject.getDocumentReference().getLastSpaceReference().getName());
+        assertEquals("otherpage", baseObject.getDocumentReference().getName());
 
         baseObject = new BaseObject();
         try {
@@ -107,17 +112,17 @@ public class BaseObjectTest extends AbstractBridgedComponentTestCase
             getContext().setDatabase(database);
         }
 
-        Assert.assertEquals("otherwiki", baseObject.getWiki());
-        Assert.assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        Assert.assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        Assert.assertEquals("page", baseObject.getDocumentReference().getName());
+        assertEquals("otherwiki", baseObject.getWiki());
+        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+        assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+        assertEquals("page", baseObject.getDocumentReference().getName());
 
         baseObject.setName("otherspace.otherpage");
 
-        Assert.assertEquals("otherwiki", baseObject.getWiki());
-        Assert.assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        Assert.assertEquals("otherspace", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        Assert.assertEquals("otherpage", baseObject.getDocumentReference().getName());
+        assertEquals("otherwiki", baseObject.getWiki());
+        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+        assertEquals("otherspace", baseObject.getDocumentReference().getLastSpaceReference().getName());
+        assertEquals("otherpage", baseObject.getDocumentReference().getName());
     }
 
     @Test
@@ -125,10 +130,10 @@ public class BaseObjectTest extends AbstractBridgedComponentTestCase
       BaseObject obj = new BaseObject();
       obj.setId(5, IdVersion.XWIKI_2);
       BaseObject clone = (BaseObject) obj.clone();
-      Assert.assertEquals(obj.getGuid(), clone.getGuid());
-      Assert.assertTrue(clone.hasValidId());
-      Assert.assertEquals(obj.getId(), clone.getId());
-      Assert.assertEquals(obj.getIdVersion(), clone.getIdVersion());
+      assertEquals(obj.getGuid(), clone.getGuid());
+      assertTrue(clone.hasValidId());
+      assertEquals(obj.getId(), clone.getId());
+      assertEquals(obj.getIdVersion(), clone.getIdVersion());
     }
 
     @Test
@@ -136,9 +141,52 @@ public class BaseObjectTest extends AbstractBridgedComponentTestCase
       BaseObject obj = new BaseObject();
       obj.setId(5, IdVersion.XWIKI_2);
       BaseObject duplicate = obj.duplicate();
-      Assert.assertNotNull(duplicate.getGuid());
-      Assert.assertNotEquals(obj.getGuid(), duplicate.getGuid());
-      Assert.assertFalse(duplicate.hasValidId());
-      Assert.assertEquals(0, duplicate.getId());
+      assertNotNull(duplicate.getGuid());
+      assertNotEquals(obj.getGuid(), duplicate.getGuid());
+      assertFalse(duplicate.hasValidId());
+      assertEquals(0, duplicate.getId());
     }
+
+    @Test
+    public void test_docRef_immutability() {
+      BaseObject obj = new BaseObject();
+      DocumentReference docRef = new DocumentReference("db", "space", "doc");
+      DocumentReference docRefClone = new DocumentReference("db", "space", "doc");
+      obj.setDocumentReference(docRef);
+      destroyDocRefIntegrity(docRef);
+      destroyDocRefIntegrity(obj.getDocumentReference());
+      assertEquals(docRefClone, obj.getDocumentReference());
+    }
+
+    @Test
+    public void test_classRef_immutability() {
+      BaseObject obj = new BaseObject();
+      obj.setDocumentReference(new DocumentReference("db", "space", "doc"));
+      DocumentReference classDocRef = new DocumentReference("db", "space", "class");
+      DocumentReference classDocRefClone = new DocumentReference("db", "space", "class");
+      obj.setXClassReference(classDocRef);
+      destroyDocRefIntegrity(classDocRef);
+      destroyDocRefIntegrity(obj.getXClassReference());
+      assertEquals(classDocRefClone, obj.getXClassReference());
+    }
+
+    private void destroyDocRefIntegrity(DocumentReference docRef) {
+      docRef.setName("changed");
+      docRef.getWikiReference().setName("changed");
+      docRef.getWikiReference().setChild(null);
+      docRef.getLastSpaceReference().setName("changed");
+      docRef.getLastSpaceReference().setChild(null);
+      docRef.getLastSpaceReference().setParent(new WikiReference("changed"));
+      docRef.setName("changed");
+      docRef.setParent(new SpaceReference("changed", new WikiReference("space")));
+    }
+
+    @Test
+    public void test_classRef_relativity() {
+      BaseObject obj = new BaseObject();
+      obj.setDocumentReference(new DocumentReference("db", "space", "doc"));
+      obj.setXClassReference(new DocumentReference("otherdb", "space", "class"));
+      assertEquals("db", obj.getXClassReference().getWikiReference().getName());
+    }
+    
 }
