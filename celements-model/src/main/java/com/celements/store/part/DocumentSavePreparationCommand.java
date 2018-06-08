@@ -13,11 +13,13 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.model.reference.ClassReference;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.access.XWikiDocumentCreator;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
+import com.celements.model.util.References;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
 import com.google.common.base.Optional;
@@ -44,17 +46,16 @@ class DocumentSavePreparationCommand {
   Session execute(XWikiDocument doc, boolean bTransaction, XWikiContext context)
       throws HibernateException, XWikiException, IdComputationException {
     doc.setStore(store);
-    // Make sure the database name is stored
-    doc.getDocumentReference().setWikiReference(new WikiReference(context.getDatabase()));
-    // Let's update the class XML since this is the new way to store it
-    updateBaseClassXml(doc, context);
-    // These informations will allow to not look for objects and attachments on saving
-    doc.setElement(XWikiDocument.HAS_OBJECTS, (doc.getTranslation() == 0) ? XWikiObjectFetcher.on(
-        doc).exists() : false);
-    doc.setElement(XWikiDocument.HAS_ATTACHMENTS, (doc.getAttachmentList().size() != 0));
-    // prepare object ids
-    new XObjectPreparer(doc, context).execute();
-    // begin transaction
+    ensureDatabaseConsistency(doc, context);
+    if (doc.getTranslation() == 0) {
+      updateBaseClassXml(doc, context);
+      doc.setElement(XWikiDocument.HAS_OBJECTS, XWikiObjectFetcher.on(doc).exists());
+      doc.setElement(XWikiDocument.HAS_ATTACHMENTS, (doc.getAttachmentList().size() != 0));
+      new XObjectPreparer(doc, context).execute();
+    } else {
+      doc.setElement(XWikiDocument.HAS_OBJECTS, false);
+      doc.setElement(XWikiDocument.HAS_ATTACHMENTS, false);
+    }
     if (bTransaction) {
       store.checkHibernate(context);
       SessionFactory sfactory = store.injectCustomMappingsInSessionFactory(doc, context);
@@ -63,6 +64,18 @@ class DocumentSavePreparationCommand {
     Session session = store.getSession(context);
     session.setFlushMode(FlushMode.COMMIT);
     return session;
+  }
+
+  private void ensureDatabaseConsistency(XWikiDocument doc, XWikiContext context) {
+    WikiReference wikiRef = new WikiReference(context.getDatabase());
+    if (!wikiRef.equals(doc.getDocumentReference().getWikiReference())) {
+      LOGGER.warn("saveXWikiDoc - not matching wiki, adjusting to [{}] for doc [{}]", wikiRef,
+          doc.getDocumentReference(), new Throwable());
+      boolean isMetaDataDirty = doc.isMetaDataDirty();
+      doc.setDocumentReference(References.adjustRef(doc.getDocumentReference(),
+          DocumentReference.class, wikiRef));
+      doc.setMetaDataDirty(isMetaDataDirty);
+    }
   }
 
   private void updateBaseClassXml(XWikiDocument doc, XWikiContext context) {
@@ -91,47 +104,44 @@ class DocumentSavePreparationCommand {
 
     private XWikiDocument loadOriginalDocument(XWikiContext context) throws XWikiException {
       XWikiDocument dummyDoc = getDocCreator().createWithoutDefaults(doc.getDocumentReference());
-      dummyDoc.setLanguage(doc.getLanguage());
-      if (!doc.isNew() && doc.hasElement(XWikiDocument.HAS_OBJECTS) && getPrimaryStore(
-          context).exists(dummyDoc, context)) {
+      // XXX do not check doc.isNew() here, it is not reliably set. see [CELDEV-701]
+      if (doc.hasElement(XWikiDocument.HAS_OBJECTS) && getPrimaryStore(context).exists(dummyDoc,
+          context)) {
         return getPrimaryStore(context).loadXWikiDoc(dummyDoc, context);
       }
       return dummyDoc;
     }
 
     void execute() throws IdComputationException {
-      if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
-        for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter()) {
-          obj.setDocumentReference(doc.getDocumentReference());
-          if (Strings.isNullOrEmpty(obj.getGuid())) {
-            obj.setGuid(UUID.randomUUID().toString());
-          }
-          if (!obj.hasValidId()) {
-            Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
-                new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
-            if (existingObj.isPresent() && existingObj.get().hasValidId()) {
-              obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
-              LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
-            } else {
-              long nextId = store.getIdComputer().computeNextObjectId(doc);
-              obj.setId(nextId, store.getIdComputer().getIdVersion());
-              LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
-              logExistingObject(existingObj.orNull());
-            }
+      for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter()) {
+        obj.setDocumentReference(doc.getDocumentReference());
+        if (Strings.isNullOrEmpty(obj.getGuid())) {
+          obj.setGuid(UUID.randomUUID().toString());
+        }
+        if (!obj.hasValidId()) {
+          Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
+              new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
+          if (existingObj.isPresent() && existingObj.get().hasValidId()) {
+            obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
+            LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
+          } else {
+            long nextId = store.getIdComputer().computeNextObjectId(doc);
+            obj.setId(nextId, store.getIdComputer().getIdVersion());
+            LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
+            logExistingObject(existingObj.orNull());
           }
         }
       }
     }
+  }
 
-    private void logExistingObject(BaseObject existingObj) {
-      if (existingObj != null) {
-        // observed in com.xpn.xwiki.web.ObjectAddAction, see [CELDEV-693]
-        LOGGER.warn("saveXWikiDoc - overwriting existing object [{}] because of invalid id, "
-            + "possibly due to cache poisoning before save through 'XWiki#getDocument': {}",
-            existingObj, existingObj.toXMLString(), new Throwable());
-      }
+  private void logExistingObject(BaseObject existingObj) {
+    if (existingObj != null) {
+      // observed in com.xpn.xwiki.web.ObjectAddAction, see [CELDEV-693]
+      LOGGER.warn("saveXWikiDoc - overwriting existing object [{}] because of invalid id, "
+          + "possibly due to cache poisoning before save through 'XWiki#getDocument': {}",
+          existingObj, existingObj.toXMLString(), new Throwable());
     }
-
   }
 
   private XWikiDocumentCreator getDocCreator() {
