@@ -1,15 +1,12 @@
 package com.celements.store.part;
 
 import static com.google.common.base.Preconditions.*;
+import static com.xpn.xwiki.XWikiException.*;
 
 import java.util.UUID;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.hibernate.FlushMode;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.model.reference.ClassReference;
@@ -41,8 +38,7 @@ class DocumentSavePreparationCommand {
     this.store = checkNotNull(store);
   }
 
-  Session execute(XWikiDocument doc, boolean bTransaction, XWikiContext context)
-      throws HibernateException, XWikiException, IdComputationException {
+  void execute(XWikiDocument doc, XWikiContext context) throws XWikiException {
     doc.setStore(store);
     // Make sure the database name is stored
     doc.getDocumentReference().setWikiReference(new WikiReference(context.getDatabase()));
@@ -52,17 +48,13 @@ class DocumentSavePreparationCommand {
     doc.setElement(XWikiDocument.HAS_OBJECTS, (doc.getTranslation() == 0) ? XWikiObjectFetcher.on(
         doc).exists() : false);
     doc.setElement(XWikiDocument.HAS_ATTACHMENTS, (doc.getAttachmentList().size() != 0));
-    // prepare object ids
-    new XObjectPreparer(doc, context).execute();
-    // begin transaction
-    if (bTransaction) {
-      store.checkHibernate(context);
-      SessionFactory sfactory = store.injectCustomMappingsInSessionFactory(doc, context);
-      store.beginTransaction(sfactory, context);
+    try {
+      // prepare object ids
+      new XObjectPreparer(doc, context).execute();
+    } catch (IdComputationException exc) {
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
+          "unable to compute id", exc);
     }
-    Session session = store.getSession(context);
-    session.setFlushMode(FlushMode.COMMIT);
-    return session;
   }
 
   private void updateBaseClassXml(XWikiDocument doc, XWikiContext context) {
