@@ -1,5 +1,7 @@
 package com.celements.store.part;
 
+import static com.xpn.xwiki.XWikiException.*;
+
 import java.io.Serializable;
 
 import org.hibernate.HibernateException;
@@ -27,30 +29,23 @@ public class CelHibernateStorePropertyPart {
     this.store = Preconditions.checkNotNull(store);
   }
 
-  public void loadXWikiProperty(PropertyInterface property, XWikiContext context,
+  public void loadXWikiProperty(final PropertyInterface property, final XWikiContext context,
       boolean bTransaction) throws XWikiException {
-    try {
-      if (bTransaction) {
-        store.checkHibernate(context);
-        bTransaction = store.beginTransaction(false, context);
+    StoreTransactionExecutor executor = new StoreTransactionExecutor(store) {
+
+      @Override
+      protected void call(Session session) throws HibernateException, XWikiException {
+        session.load(property, (Serializable) property);
+        executePostLoadActions(property);
       }
-      Session session = store.getSession(context);
-      session.load(property, (Serializable) property);
-      executePostLoadActions(property);
+    };
+    try {
+      executor.withTransaction(bTransaction).execute(context);
     } catch (ObjectNotFoundException exc) {
       LOGGER.warn("loadXProperty - no data for {}: {}", property.getId(), property, exc);
     } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT, "loadXProperty - failed for "
-              + property.getId() + " :" + property, exc);
-    } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, false, false);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("loadXProperty - failed rollback for {}: {}", property.getId(), property, exc);
-      }
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
+          "loadXProperty - failed for " + property.getId() + " :" + property, exc);
     }
   }
 
@@ -71,31 +66,21 @@ public class CelHibernateStorePropertyPart {
     }
   }
 
-  public void saveXWikiProperty(PropertyInterface property, XWikiContext context,
+  public void saveXWikiProperty(final PropertyInterface property, final XWikiContext context,
       boolean bTransaction) throws XWikiException {
-    boolean commit = false;
+    StoreTransactionExecutor executor = new StoreTransactionExecutor(store) {
+
+      @Override
+      protected void call(Session session) throws HibernateException, XWikiException {
+        updateOrSaveProperty(property, context);
+      }
+    };
     try {
-      if (bTransaction) {
-        store.checkHibernate(context);
-        bTransaction = store.beginTransaction(context);
-      }
-      updateOrSaveProperty(property, context);
-      commit = true;
+      executor.withTransaction(bTransaction).withCommit().execute(context);
     } catch (HibernateException | XWikiException exc) {
-      // something went wrong, collect some information
       String propertyStr = property.getId() + " :" + property;
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT, "saveXProperty - failed for "
-              + propertyStr, exc);
-    } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, commit);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("saveXProperty - failed {} for {}: {}", (commit ? "commit" : "rollback"),
-            property.getId(), property, exc);
-      }
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
+          "saveXProperty - failed for " + propertyStr, exc);
     }
   }
 

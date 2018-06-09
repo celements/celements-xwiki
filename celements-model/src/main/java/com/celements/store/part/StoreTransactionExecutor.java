@@ -7,28 +7,22 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
-import com.celements.common.Callable;
 import com.celements.store.CelHibernateStore;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 
-public class StoreTransactionExecutor {
+public abstract class StoreTransactionExecutor {
 
   protected final CelHibernateStore store;
-  protected final XWikiContext context;
-  protected final Callable<Session, Void, XWikiException> callable;
 
-  private FlushMode flushMode = FlushMode.COMMIT;
+  private FlushMode flushMode = null;
   private boolean withTransaction = true;
   private boolean withCommit = false;
   private XWikiDocument doc = null;
 
-  StoreTransactionExecutor(CelHibernateStore store, XWikiContext context,
-      Callable<Session, Void, XWikiException> callable) {
+  StoreTransactionExecutor(CelHibernateStore store) {
     this.store = checkNotNull(store);
-    this.context = checkNotNull(context);
-    this.callable = checkNotNull(callable);
   }
 
   public StoreTransactionExecutor flushMode(FlushMode flushMode) {
@@ -51,7 +45,7 @@ public class StoreTransactionExecutor {
     return this;
   }
 
-  public void execute() throws HibernateException, XWikiException {
+  public void execute(XWikiContext context) throws HibernateException, XWikiException {
     boolean bTransaction = withTransaction;
     boolean commit = false;
     try {
@@ -64,8 +58,10 @@ public class StoreTransactionExecutor {
         bTransaction = store.beginTransaction(sfactory, context);
       }
       Session session = store.getSession(context);
-      session.setFlushMode(flushMode);
-      callable.call(session);
+      if (flushMode != null) {
+        session.setFlushMode(flushMode);
+      }
+      call(session);
       commit = withCommit;
     } finally {
       if (bTransaction) {
@@ -73,5 +69,7 @@ public class StoreTransactionExecutor {
       }
     }
   }
+
+  protected abstract void call(Session session) throws HibernateException, XWikiException;
 
 }

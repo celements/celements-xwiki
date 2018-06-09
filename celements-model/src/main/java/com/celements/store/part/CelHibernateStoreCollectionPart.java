@@ -1,5 +1,7 @@
 package com.celements.store.part;
 
+import static com.xpn.xwiki.XWikiException.*;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -30,7 +32,6 @@ import com.xpn.xwiki.objects.classes.StringClass;
 import com.xpn.xwiki.objects.classes.TextAreaClass;
 import com.xpn.xwiki.stats.impl.XWikiStats;
 
-//TODO CELDEV-626 - CelHibernateStore refactoring
 public class CelHibernateStoreCollectionPart {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CelHibernateStore.class);
@@ -41,325 +42,307 @@ public class CelHibernateStoreCollectionPart {
     this.store = Preconditions.checkNotNull(store);
   }
 
-  public void saveXWikiCollection(BaseCollection object, XWikiContext context, boolean bTransaction)
-      throws XWikiException {
+  public void saveXWikiCollection(final BaseCollection object, final XWikiContext context,
+      final boolean bTransaction) throws XWikiException {
     if (object == null) {
       return;
     }
     if (!object.hasValidId()) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
-          "Unable to save object with invalid id: " + object);
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
+          "saveXObject - unable to save object with invalid id " + object);
     }
+    StoreTransactionExecutor executor = new StoreTransactionExecutor(store) {
+
+      @Override
+      protected void call(Session session) throws HibernateException, XWikiException {
+        saveInternal(session, object, context);
+      }
+    };
+    try {
+      executor.withTransaction(bTransaction).withCommit().execute(context);
+    } catch (HibernateException | XWikiException exc) {
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
+          "saveXObject - failed for " + object, exc);
+    }
+  }
+
+  // TODO CELDEV-626 - CelHibernateStore refactoring
+  private void saveInternal(Session session, BaseCollection object, XWikiContext context)
+      throws XWikiException {
     // We need a slightly different behavior here
     boolean stats = (object instanceof XWikiStats);
-    boolean commit = false;
-    try {
-      if (bTransaction) {
-        store.checkHibernate(context);
-        bTransaction = store.beginTransaction(context);
-      }
-      Session session = store.getSession(context);
-
-      // Verify if the property already exists
-      Query query;
+    // Verify if the property already exists
+    Query query;
+    if (stats) {
+      query = session.createQuery("select obj.id from " + object.getClass().getName()
+          + " as obj where obj.id = :id");
+    } else {
+      query = session.createQuery("select obj.id from BaseObject as obj where obj.id = :id");
+    }
+    query.setLong("id", object.getId());
+    if (query.uniqueResult() == null) {
       if (stats) {
-        query = session.createQuery("select obj.id from " + object.getClass().getName()
-            + " as obj where obj.id = :id");
+        session.save(object);
       } else {
-        query = session.createQuery("select obj.id from BaseObject as obj where obj.id = :id");
+        session.save("com.xpn.xwiki.objects.BaseObject", object);
       }
+    } else {
+      if (stats) {
+        session.update(object);
+      } else {
+        session.update("com.xpn.xwiki.objects.BaseObject", object);
+      }
+    }
+    /*
+     * if (stats) session.saveOrUpdate(object); else
+     * session.saveOrUpdate((String)"com.xpn.xwiki.objects.BaseObject", (Object)object);
+     */
+    BaseClass bclass = object.getXClass(context);
+    List<String> handledProps = new ArrayList<>();
+    if ((bclass != null) && (bclass.hasCustomMapping()) && context.getWiki().hasCustomMappings()) {
+      // save object using the custom mapping
+      Map<String, Object> objmap = object.getCustomMappingMap();
+      handledProps = bclass.getCustomMappingPropertyList(context);
+      Session dynamicSession = session.getSession(EntityMode.MAP);
+      query = session.createQuery("select obj.id from " + bclass.getName()
+          + " as obj where obj.id = :id");
       query.setLong("id", object.getId());
       if (query.uniqueResult() == null) {
-        if (stats) {
-          session.save(object);
-        } else {
-          session.save("com.xpn.xwiki.objects.BaseObject", object);
-        }
+        dynamicSession.save(bclass.getName(), objmap);
       } else {
-        if (stats) {
-          session.update(object);
-        } else {
-          session.update("com.xpn.xwiki.objects.BaseObject", object);
-        }
+        dynamicSession.update(bclass.getName(), objmap);
       }
-      /*
-       * if (stats) session.saveOrUpdate(object); else
-       * session.saveOrUpdate((String)"com.xpn.xwiki.objects.BaseObject", (Object)object);
-       */
-      BaseClass bclass = object.getXClass(context);
-      List<String> handledProps = new ArrayList<>();
-      if ((bclass != null) && (bclass.hasCustomMapping())
-          && context.getWiki().hasCustomMappings()) {
-        // save object using the custom mapping
-        Map<String, Object> objmap = object.getCustomMappingMap();
-        handledProps = bclass.getCustomMappingPropertyList(context);
-        Session dynamicSession = session.getSession(EntityMode.MAP);
-        query = session.createQuery("select obj.id from " + bclass.getName()
-            + " as obj where obj.id = :id");
-        query.setLong("id", object.getId());
-        if (query.uniqueResult() == null) {
-          dynamicSession.save(bclass.getName(), objmap);
-        } else {
-          dynamicSession.update(bclass.getName(), objmap);
-        }
-        // dynamicSession.saveOrUpdate((String) bclass.getName(), objmap);
-      }
+      // dynamicSession.saveOrUpdate((String) bclass.getName(), objmap);
+    }
 
-      if (object.getXClassReference() != null) {
-        // Remove all existing properties
-        if (object.getFieldsToRemove().size() > 0) {
-          for (int i = 0; i < object.getFieldsToRemove().size(); i++) {
-            BaseProperty prop = (BaseProperty) object.getFieldsToRemove().get(i);
-            if (!handledProps.contains(prop.getName())) {
-              session.delete(prop);
-            }
-          }
-          object.setFieldsToRemove(new ArrayList<BaseProperty>());
-        }
-
-        Iterator<String> it = object.getPropertyList().iterator();
-        while (it.hasNext()) {
-          String key = it.next();
-          BaseProperty prop = (BaseProperty) object.getField(key);
-          if (!prop.getName().equals(key)) {
-            throw new XWikiException(XWikiException.MODULE_XWIKI_CLASSES,
-                XWikiException.ERROR_XWIKI_CLASSES_FIELD_INVALID, "Field '" + key
-                    + "' has an invalid name in object: " + object);
-          }
-
-          String pname = prop.getName();
-          if ((pname != null) && !pname.trim().equals("") && !handledProps.contains(pname)) {
-            store.saveXWikiProperty(prop, context, false);
+    if (object.getXClassReference() != null) {
+      // Remove all existing properties
+      if (object.getFieldsToRemove().size() > 0) {
+        for (int i = 0; i < object.getFieldsToRemove().size(); i++) {
+          BaseProperty prop = (BaseProperty) object.getFieldsToRemove().get(i);
+          if (!handledProps.contains(prop.getName())) {
+            session.delete(prop);
           }
         }
+        object.setFieldsToRemove(new ArrayList<BaseProperty>());
       }
 
-      commit = true;
-    } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
-          "Exception while saving object: " + object, exc);
-    } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, commit);
+      Iterator<String> it = object.getPropertyList().iterator();
+      while (it.hasNext()) {
+        String key = it.next();
+        BaseProperty prop = (BaseProperty) object.getField(key);
+        if (!prop.getName().equals(key)) {
+          throw new XWikiException(MODULE_XWIKI_CLASSES, ERROR_XWIKI_CLASSES_FIELD_INVALID,
+              "Field '" + key + "' has an invalid name in object: " + object);
         }
-      } catch (HibernateException e) {
-        LOGGER.error("failed commit/rollback for {}", object, e);
+
+        String pname = prop.getName();
+        if ((pname != null) && !pname.trim().equals("") && !handledProps.contains(pname)) {
+          store.saveXWikiProperty(prop, context, false);
+        }
       }
     }
   }
 
-  public void loadXWikiCollection(BaseCollection object1, XWikiDocument doc, XWikiContext context,
-      boolean bTransaction, boolean alreadyLoaded) throws XWikiException {
-    BaseCollection object = object1;
+  public void loadXWikiCollection(final BaseCollection object, final XWikiDocument doc,
+      final XWikiContext context, final boolean bTransaction, final boolean alreadyLoaded)
+      throws XWikiException {
+    StoreTransactionExecutor executor = new StoreTransactionExecutor(store) {
+
+      @Override
+      protected void call(Session session) throws HibernateException, XWikiException {
+        loadInternal(session, object, doc, context, alreadyLoaded);
+      }
+    };
     try {
-      if (bTransaction) {
-        store.checkHibernate(context);
-        bTransaction = store.beginTransaction(false, context);
-      }
-      Session session = store.getSession(context);
-
-      if (!alreadyLoaded) {
-        session.load(object, new Long(object1.getId()));
-      }
-
-      DocumentReference classReference = object.getXClassReference();
-
-      // If the class reference is null in the loaded object then skip loading properties
-      if (classReference != null) {
-
-        BaseClass bclass = null;
-        if (!classReference.equals(object.getDocumentReference())) {
-          // Let's check if the class has a custom mapping
-          bclass = object.getXClass(context);
-        } else {
-          // We need to get it from the document otherwise
-          // we will go in an endless loop
-          if (doc != null) {
-            bclass = doc.getXClass();
-          }
-        }
-
-        List<String> handledProps = new ArrayList<>();
-        try {
-          if ((bclass != null) && (bclass.hasCustomMapping())
-              && context.getWiki().hasCustomMappings()) {
-            Session dynamicSession = session.getSession(EntityMode.MAP);
-            Map<String, ?> map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Long(
-                object.getId()));
-            // Let's make sure to look for null fields in the dynamic mapping
-            bclass.fromValueMap(map, object);
-            for (String prop : bclass.getCustomMappingPropertyList(context)) {
-              if (map.get(prop) != null) {
-                handledProps.add(prop);
-              }
-            }
-          }
-        } catch (HibernateException exc) {
-          LOGGER.error("Failed loading custom mapping for doc [{}], class [{}], nb [{}]",
-              object.getDocumentReference(), object.getXClassReference(), object.getNumber(), exc);
-        }
-
-        // Load strings, integers, dates all at once
-
-        Query query = session.createQuery(
-            "select prop.name, prop.classType from BaseProperty as prop where prop.id.id = :id");
-        query.setLong("id", object.getId());
-        List<?> list = query.list();
-        Iterator<?> it = list.iterator();
-        while (it.hasNext()) {
-          Object obj = it.next();
-          Object[] result = (Object[]) obj;
-          String name = (String) result[0];
-          // No need to load fields already loaded from
-          // custom mapping
-          if (handledProps.contains(name)) {
-            continue;
-          }
-          String classType = (String) result[1];
-          BaseProperty property = null;
-
-          try {
-            property = (BaseProperty) Class.forName(classType).newInstance();
-            property.setObject(object);
-            property.setName(name);
-            store.loadXWikiProperty(property, context, false);
-          } catch (Exception e) {
-            // TODO CELDEV-626 what exception are we actually handling here?
-            // WORKAROUND IN CASE OF MIXMATCH BETWEEN STRING AND LARGESTRING
-            try {
-              if (property instanceof StringProperty) {
-                LargeStringProperty property2 = new LargeStringProperty();
-                property2.setObject(object);
-                property2.setName(name);
-                store.loadXWikiProperty(property2, context, false);
-                property.setValue(property2.getValue());
-                if (bclass != null) {
-                  if (bclass.get(name) instanceof TextAreaClass) {
-                    property = property2;
-                  }
-                }
-              } else if (property instanceof LargeStringProperty) {
-                StringProperty property2 = new StringProperty();
-                property2.setObject(object);
-                property2.setName(name);
-                store.loadXWikiProperty(property2, context, false);
-                property.setValue(property2.getValue());
-                if (bclass != null) {
-                  if (bclass.get(name) instanceof StringClass) {
-                    property = property2;
-                  }
-                }
-              } else {
-                throw e;
-              }
-            } catch (Exception e2) {
-              throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-                  XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-                  "Exception while loading property '" + name + "' for object: " + object, e);
-            }
-          }
-
-          object.addField(name, property);
-        }
-      }
+      executor.withTransaction(bTransaction).execute(context);
     } catch (ObjectNotFoundException exc) { // there is no object data saved
-      LOGGER.warn("loadXWikiCollection - no data for object: {} {}_{}", object1.getId(),
-          object1.getClassName(), object1.getNumber(), exc);
-    } catch (HibernateException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-          "Exception while loading object: " + object, exc);
-    } finally {
+      LOGGER.warn("loadXObject - no data for object: {}", object, exc);
+    } catch (HibernateException | XWikiException exc) {
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
+          "loadXObject - failed for " + object, exc);
+    }
+  }
+
+  // TODO CELDEV-626 - CelHibernateStore refactoring
+  private void loadInternal(Session session, BaseCollection object, XWikiDocument doc,
+      XWikiContext context, boolean alreadyLoaded) throws XWikiException {
+    if (!alreadyLoaded) {
+      session.load(object, new Long(object.getId()));
+    }
+
+    DocumentReference classReference = object.getXClassReference();
+
+    // If the class reference is null in the loaded object then skip loading properties
+    if (classReference != null) {
+
+      BaseClass bclass = null;
+      if (!classReference.equals(object.getDocumentReference())) {
+        // Let's check if the class has a custom mapping
+        bclass = object.getXClass(context);
+      } else {
+        // We need to get it from the document otherwise
+        // we will go in an endless loop
+        if (doc != null) {
+          bclass = doc.getXClass();
+        }
+      }
+
+      List<String> handledProps = new ArrayList<>();
       try {
-        if (bTransaction) {
-          store.endTransaction(context, false, false);
+        if ((bclass != null) && (bclass.hasCustomMapping())
+            && context.getWiki().hasCustomMappings()) {
+          Session dynamicSession = session.getSession(EntityMode.MAP);
+          Map<String, ?> map = (Map<String, ?>) dynamicSession.load(bclass.getName(), new Long(
+              object.getId()));
+          // Let's make sure to look for null fields in the dynamic mapping
+          bclass.fromValueMap(map, object);
+          for (String prop : bclass.getCustomMappingPropertyList(context)) {
+            if (map.get(prop) != null) {
+              handledProps.add(prop);
+            }
+          }
         }
       } catch (HibernateException exc) {
-        LOGGER.error("failed commit/rollback for {}", object, exc);
+        LOGGER.error("Failed loading custom mapping for doc [{}], class [{}], nb [{}]",
+            object.getDocumentReference(), object.getXClassReference(), object.getNumber(), exc);
+      }
+
+      // Load strings, integers, dates all at once
+
+      Query query = session.createQuery(
+          "select prop.name, prop.classType from BaseProperty as prop where prop.id.id = :id");
+      query.setLong("id", object.getId());
+      List<?> list = query.list();
+      Iterator<?> it = list.iterator();
+      while (it.hasNext()) {
+        Object obj = it.next();
+        Object[] result = (Object[]) obj;
+        String name = (String) result[0];
+        // No need to load fields already loaded from
+        // custom mapping
+        if (handledProps.contains(name)) {
+          continue;
+        }
+        String classType = (String) result[1];
+        BaseProperty property = null;
+
+        try {
+          property = (BaseProperty) Class.forName(classType).newInstance();
+          property.setObject(object);
+          property.setName(name);
+          store.loadXWikiProperty(property, context, false);
+        } catch (Exception e) {
+          // TODO CELDEV-626 what exception are we actually handling here?
+          // WORKAROUND IN CASE OF MIXMATCH BETWEEN STRING AND LARGESTRING
+          try {
+            if (property instanceof StringProperty) {
+              LargeStringProperty property2 = new LargeStringProperty();
+              property2.setObject(object);
+              property2.setName(name);
+              store.loadXWikiProperty(property2, context, false);
+              property.setValue(property2.getValue());
+              if (bclass != null) {
+                if (bclass.get(name) instanceof TextAreaClass) {
+                  property = property2;
+                }
+              }
+            } else if (property instanceof LargeStringProperty) {
+              StringProperty property2 = new StringProperty();
+              property2.setObject(object);
+              property2.setName(name);
+              store.loadXWikiProperty(property2, context, false);
+              property.setValue(property2.getValue());
+              if (bclass != null) {
+                if (bclass.get(name) instanceof StringClass) {
+                  property = property2;
+                }
+              }
+            } else {
+              throw e;
+            }
+          } catch (Exception e2) {
+            throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
+                "Exception while loading property '" + name + "' for object: " + object, e);
+          }
+        }
+
+        object.addField(name, property);
       }
     }
   }
 
-  public void deleteXWikiCollection(BaseCollection object, XWikiContext context,
-      boolean bTransaction, boolean evict) throws XWikiException {
+  public void deleteXWikiCollection(final BaseCollection object, final XWikiContext context,
+      final boolean bTransaction, final boolean evict) throws XWikiException {
     if (object == null) {
       return;
     }
-    boolean commit = false;
+    StoreTransactionExecutor executor = new StoreTransactionExecutor(store) {
+
+      @Override
+      protected void call(Session session) throws HibernateException, XWikiException {
+        deleteInternal(session, object, context, evict);
+      }
+    };
     try {
-      if (bTransaction) {
-        store.checkHibernate(context);
-        bTransaction = store.beginTransaction(context);
-      }
-      Session session = store.getSession(context);
+      executor.withTransaction(bTransaction).withCommit().execute(context);
+    } catch (HibernateException | XWikiException exc) {
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_DELETING_OBJECT,
+          "deleteXObject - failed for" + object, exc);
+    }
+  }
 
-      // Let's check if the class has a custom mapping
-      BaseClass bclass = object.getXClass(context);
-      List<String> handledProps = new ArrayList<>();
-      if ((bclass != null) && (bclass.hasCustomMapping())
-          && context.getWiki().hasCustomMappings()) {
-        handledProps = bclass.getCustomMappingPropertyList(context);
-        Session dynamicSession = session.getSession(EntityMode.MAP);
-        Object map = dynamicSession.get(bclass.getName(), new Long(object.getId()));
-        if (map != null) {
+  // TODO CELDEV-626 - CelHibernateStore refactoring
+  private void deleteInternal(Session session, BaseCollection object, XWikiContext context,
+      boolean evict) throws XWikiException {
+    // Let's check if the class has a custom mapping
+    BaseClass bclass = object.getXClass(context);
+    List<String> handledProps = new ArrayList<>();
+    if ((bclass != null) && (bclass.hasCustomMapping()) && context.getWiki().hasCustomMappings()) {
+      handledProps = bclass.getCustomMappingPropertyList(context);
+      Session dynamicSession = session.getSession(EntityMode.MAP);
+      Object map = dynamicSession.get(bclass.getName(), new Long(object.getId()));
+      if (map != null) {
+        if (evict) {
+          dynamicSession.evict(map);
+        }
+        dynamicSession.delete(map);
+      }
+    }
+
+    if (object.getXClassReference() != null) {
+      for (Iterator<?> it = object.getFieldList().iterator(); it.hasNext();) {
+        BaseElement property = (BaseElement) it.next();
+        if (!handledProps.contains(property.getName())) {
           if (evict) {
-            dynamicSession.evict(map);
+            session.evict(property);
           }
-          dynamicSession.delete(map);
-        }
-      }
-
-      if (object.getXClassReference() != null) {
-        for (Iterator<?> it = object.getFieldList().iterator(); it.hasNext();) {
-          BaseElement property = (BaseElement) it.next();
-          if (!handledProps.contains(property.getName())) {
-            if (evict) {
-              session.evict(property);
-            }
-            if (session.get(property.getClass(), property) != null) {
-              session.delete(property);
-            }
+          if (session.get(property.getClass(), property) != null) {
+            session.delete(property);
           }
         }
       }
+    }
 
-      // In case of custom class we need to force it as BaseObject to delete the xwikiobject row
-      if (!"".equals(bclass.getCustomClass())) {
-        BaseObject cobject = new BaseObject();
-        cobject.setDocumentReference(object.getDocumentReference());
-        cobject.setClassName(object.getClassName());
-        cobject.setNumber(object.getNumber());
-        if (object instanceof BaseObject) {
-          cobject.setGuid(((BaseObject) object).getGuid());
-        }
-        cobject.setId(object.getId(), object.getIdVersion());
-        if (evict) {
-          session.evict(cobject);
-        }
-        session.delete(cobject);
-      } else {
-        if (evict) {
-          session.evict(object);
-        }
-        session.delete(object);
+    // In case of custom class we need to force it as BaseObject to delete the xwikiobject row
+    if (!"".equals(bclass.getCustomClass())) {
+      BaseObject cobject = new BaseObject();
+      cobject.setDocumentReference(object.getDocumentReference());
+      cobject.setClassName(object.getClassName());
+      cobject.setNumber(object.getNumber());
+      if (object instanceof BaseObject) {
+        cobject.setGuid(((BaseObject) object).getGuid());
       }
-
-      commit = true;
-    } catch (HibernateException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_DELETING_OBJECT,
-          "Exception while deleting object: " + object, exc);
-    } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, commit);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("failed commit/rollback for {}", object, exc);
+      cobject.setId(object.getId(), object.getIdVersion());
+      if (evict) {
+        session.evict(cobject);
       }
+      session.delete(cobject);
+    } else {
+      if (evict) {
+        session.evict(object);
+      }
+      session.delete(object);
     }
   }
 
