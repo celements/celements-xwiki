@@ -48,6 +48,7 @@ public class StoreModelAccessStrategy implements ModelAccessStrategy {
 
         @Override
         protected Boolean call() throws XWikiException {
+          // FIXME [CELDEV-702] XWikiHibernateStore doesn't check language
           return getStore().exists(docCreator.createWithoutDefaults(docRef, lang),
               context.getXWikiContext());
         }

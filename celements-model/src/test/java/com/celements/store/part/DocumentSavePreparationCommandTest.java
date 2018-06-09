@@ -6,7 +6,7 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
-import org.easymock.Capture;
+import org.easymock.LogicalOperator;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -48,7 +48,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
 
   @Test
   public void test_execute() throws Exception {
-    XWikiDocument doc = createDoc(false, null);
+    XWikiDocument doc = createDoc(false);
 
     replayDefault();
     Session ret = savePrepCmd.execute(doc, false, getContext());
@@ -63,7 +63,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
 
   @Test
   public void test_execute_transaction() throws Exception {
-    XWikiDocument doc = createDoc(false, null);
+    XWikiDocument doc = createDoc(false);
 
     storeMock.checkHibernate(same(getContext()));
     expectLastCall();
@@ -80,8 +80,10 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
 
   @Test
   public void test_execute_object() throws Exception {
-    XWikiDocument doc = createDoc(true, null);
+    XWikiDocument doc = createDoc(true);
     BaseObject obj = addObject(doc);
+    expect(storeMock.exists(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL), same(
+        getContext()))).andReturn(false).once();
 
     assertTrue(obj.getGuid().isEmpty());
     assertEquals(0, obj.getId());
@@ -94,38 +96,46 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_execute_object_load() throws Exception {
-    XWikiDocument doc = createDoc(false, "ch");
+  public void test_execute_translation() throws Exception {
+    XWikiDocument doc = createDoc(false);
+    doc.setLanguage("ch");
+    doc.setTranslation(1);
     BaseObject obj = addObject(doc);
-    XWikiDocument origDoc = createDoc(false, "ch");
-    BaseObject origObj = addObject(origDoc);
-    origObj.setId(1234, IdVersion.CELEMENTS_3);
-    Capture<XWikiDocument> docCaptureExists = new Capture<>();
-    Capture<XWikiDocument> docCaptureLoad = new Capture<>();
-    expect(storeMock.exists(capture(docCaptureExists), same(getContext()))).andReturn(true);
-    expect(storeMock.loadXWikiDoc(capture(docCaptureLoad), same(getContext()))).andReturn(origDoc);
 
     replayDefault();
     savePrepCmd.execute(doc, false, getContext());
     verifyDefault();
-    assertDocCapture(doc, docCaptureExists);
-    assertDocCapture(doc, docCaptureLoad);
-    assertEquals(origObj.getId(), obj.getId());
+    assertFalse(doc.hasElement(XWikiDocument.HAS_OBJECTS));
+    assertTrue(obj.getGuid().isEmpty());
+    assertEquals(0, obj.getId());
   }
 
-  private void assertDocCapture(XWikiDocument doc, Capture<XWikiDocument> docCapture) {
-    assertNotSame(doc, docCapture.getValue());
-    assertEquals(doc.getDocumentReference(), docCapture.getValue().getDocumentReference());
-    assertEquals(doc.getLanguage(), docCapture.getValue().getLanguage());
+  @Test
+  public void test_execute_object_load() throws Exception {
+    XWikiDocument doc = createDoc(false);
+    BaseObject obj = addObject(doc);
+    XWikiDocument origDoc = createDoc(false);
+    BaseObject origObj = addObject(origDoc);
+    origObj.setId(1234, IdVersion.CELEMENTS_3);
+    expect(storeMock.exists(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL), same(
+        getContext()))).andReturn(true).once();
+    expect(storeMock.loadXWikiDoc(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL),
+        same(getContext()))).andReturn(origDoc);
+
+    replayDefault();
+    savePrepCmd.execute(doc, false, getContext());
+    verifyDefault();
+    assertEquals(origObj.getId(), obj.getId());
   }
 
   @Test
   public void test_execute_object_load_noObj() throws Exception {
-    XWikiDocument doc = createDoc(false, null);
+    XWikiDocument doc = createDoc(false);
     BaseObject obj = addObject(doc);
-    expect(storeMock.exists(anyObject(XWikiDocument.class), same(getContext()))).andReturn(true);
-    expect(storeMock.loadXWikiDoc(anyObject(XWikiDocument.class), same(getContext()))).andReturn(
-        createDoc(false, null));
+    expect(storeMock.exists(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL), same(
+        getContext()))).andReturn(true).once();
+    expect(storeMock.loadXWikiDoc(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL),
+        same(getContext()))).andReturn(createDoc(false));
 
     replayDefault();
     savePrepCmd.execute(doc, false, getContext());
@@ -135,9 +145,10 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
 
   @Test
   public void test_execute_object_load_notExists() throws Exception {
-    XWikiDocument doc = createDoc(false, null);
+    XWikiDocument doc = createDoc(true);
     BaseObject obj = addObject(doc);
-    expect(storeMock.exists(anyObject(XWikiDocument.class), same(getContext()))).andReturn(false);
+    expect(storeMock.exists(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL), same(
+        getContext()))).andReturn(false).once();
 
     replayDefault();
     savePrepCmd.execute(doc, false, getContext());
@@ -147,10 +158,11 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
 
   @Test
   public void test_execute_object_load_XWE() throws Exception {
-    final XWikiDocument doc = createDoc(false, null);
+    final XWikiDocument doc = createDoc(false);
     addObject(doc);
     XWikiException cause = new XWikiException();
-    expect(storeMock.exists(anyObject(XWikiDocument.class), same(getContext()))).andThrow(cause);
+    expect(storeMock.exists(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL), same(
+        getContext()))).andThrow(cause);
 
     replayDefault();
     new ExceptionAsserter<XWikiException>(XWikiException.class, cause) {
@@ -173,7 +185,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
 
   @Test
   public void test_execute_attachment() throws Exception {
-    XWikiDocument doc = createDoc(false, null);
+    XWikiDocument doc = createDoc(false);
     doc.setAttachmentList(Arrays.asList(new XWikiAttachment(doc, "file")));
 
     replayDefault();
@@ -182,10 +194,9 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     assertTrue(doc.hasElement(XWikiDocument.HAS_ATTACHMENTS));
   }
 
-  private XWikiDocument createDoc(boolean isNew, String language) {
+  private XWikiDocument createDoc(boolean isNew) {
     DocumentReference docRef = new DocumentReference("xwikidb", "space", "doc");
     XWikiDocument doc = new XWikiDocument(docRef);
-    doc.setLanguage(language);
     doc.setNew(isNew);
     return doc;
   }

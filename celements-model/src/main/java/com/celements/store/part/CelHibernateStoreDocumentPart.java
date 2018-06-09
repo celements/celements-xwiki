@@ -24,7 +24,6 @@ import org.xwiki.model.reference.WikiReference;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
-import com.google.common.collect.FluentIterable;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -104,7 +103,9 @@ public class CelHibernateStoreDocumentPart {
         // session.saveOrUpdate(doc);
       }
 
-      deleteAndSaveXObjects(doc, context);
+      if (doc.getTranslation() == 0) {
+        deleteAndSaveXObjects(doc, context);
+      }
 
       if (context.getWiki().hasBacklinks(context)) {
         store.saveLinks(doc, context, true);
@@ -139,8 +140,10 @@ public class CelHibernateStoreDocumentPart {
       }
       doc.setXObjectsToRemove(new ArrayList<BaseObject>());
     }
-    for (BaseObject obj : fetchXObjects(doc)) {
-      store.saveXWikiCollection(obj, context, false);
+    if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
+      for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter()) {
+        store.saveXWikiCollection(obj, context, false);
+      }
     }
   }
 
@@ -296,13 +299,15 @@ public class CelHibernateStoreDocumentPart {
       if (context.getWiki().hasBacklinks(context)) {
         store.deleteLinks(doc.getId(), context, true);
       }
-
-      for (BaseObject object : fetchXObjects(doc).append(firstNonNull(doc.getXObjectsToRemove(),
-          Collections.<BaseObject>emptyList()))) {
-        store.deleteXWikiObject(object, context, false);
+      
+      if (doc.getTranslation() == 0) {
+        for (BaseObject object : XWikiObjectEditor.on(doc).fetch().iter().append(firstNonNull(
+            doc.getXObjectsToRemove(), Collections.<BaseObject>emptyList()))) {
+          store.deleteXWikiObject(object, context, false);
+        }
       }
+      
       context.getWiki().getVersioningStore().deleteArchive(doc, false, context);
-
       session.delete(doc);
       commit = true;
       // We need to ensure that the deleted document becomes the original document
@@ -325,13 +330,6 @@ public class CelHibernateStoreDocumentPart {
 
   private DocumentReference getXWikiGroupsClassDocRef(XWikiContext context) {
     return new DocumentReference(context.getDatabase(), "XWiki", "XWikiGroups");
-  }
-
-  private FluentIterable<BaseObject> fetchXObjects(XWikiDocument doc) {
-    if (doc.getTranslation() == 0) {
-      return XWikiObjectEditor.on(doc).fetch().iter();
-    }
-    return FluentIterable.of();
   }
 
   private void validateWikis(XWikiDocument doc, XWikiContext context) {

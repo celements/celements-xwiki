@@ -8,6 +8,7 @@ import static org.junit.Assert.*;
 import java.util.Collections;
 
 import org.easymock.Capture;
+import org.easymock.LogicalOperator;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -20,21 +21,26 @@ import org.xwiki.model.reference.ImmutableReference;
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.common.test.ExceptionAsserter;
 import com.celements.model.access.IModelAccessFacade;
+import com.celements.store.part.XWikiDummyDocComparator;
 import com.xpn.xwiki.XWikiConfig;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.store.XWikiHibernateStore;
 import com.xpn.xwiki.store.XWikiStoreInterface;
 import com.xpn.xwiki.web.Utils;
 
 public class CelHibernateStoreTest extends AbstractComponentTest {
 
   private SessionFactory sessionFactoryMock;
+  private XWikiHibernateStore primaryStoreMock;
 
   @Before
   public void prepareTest() throws Exception {
     registerComponentMock(IModelAccessFacade.class);
     sessionFactoryMock = createMockAndAddToDefault(SessionFactory.class);
+    primaryStoreMock = createMockAndAddToDefault(XWikiHibernateStore.class);
+    expect(getWikiMock().getStore()).andReturn(primaryStoreMock).anyTimes();
     expect(getWikiMock().getConfig()).andReturn(new XWikiConfig()).anyTimes();
     expect(getWikiMock().getPlugin("monitor", getContext())).andReturn(null).anyTimes();
     expect(getWikiMock().hasDynamicCustomMappings()).andReturn(false).anyTimes();
