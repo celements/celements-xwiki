@@ -101,9 +101,9 @@ public class CelHibernateStore extends XWikiHibernateStore {
       @Override
       public XWikiDocument call(XWikiDocument doc) throws XWikiException {
         log(LogLevel.INFO, "loadXWikiDoc - start", doc);
-        documentStorePart.loadXWikiDoc(doc, context);
+        XWikiDocument ret = documentStorePart.loadXWikiDoc(doc, context);
         log(LogLevel.INFO, "loadXWikiDoc - end", doc);
-        return doc;
+        return ret;
       }
     };
     try {
