@@ -445,8 +445,10 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase
         assertEquals(document.getXObjects(classReference), clonedDocument.getXObjects(classReference));
 
         XWikiDocument duplicatedDocument = document.duplicate(new DocumentReference("otherwiki", DOCSPACE, DOCNAME));
+        assertNull(duplicatedDocument.getXObjects(classReference));
+        assertNotNull(duplicatedDocument.getXObjects(duplicatedClassReference));
         assertNotNull(duplicatedDocument.getXObject(duplicatedClassReference, 0));
-        assertNotNull(duplicatedDocument.getXObject(classReference, 1));
+        assertNotNull(duplicatedDocument.getXObject(duplicatedClassReference, 1));
         assertNotNull(duplicatedDocument.getXObject(duplicatedClassReference, 2));
     }
 
