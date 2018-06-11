@@ -24,7 +24,6 @@ import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.store.CelHibernateStore;
-import com.celements.store.id.CelementsIdComputer.IdComputationException;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -46,7 +45,7 @@ public class CelHibernateStoreDocumentPart {
   }
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
-      throws XWikiException {
+      throws XWikiException, HibernateException {
     boolean commit = false;
     try {
       Session session = savePrepCmd.execute(doc, bTransaction, context);
@@ -116,17 +115,9 @@ public class CelHibernateStoreDocumentPart {
       doc.setNew(false);
       // We need to ensure that the saved document becomes the original document
       doc.setOriginalDocument(doc.clone());
-    } catch (HibernateException | XWikiException | IdComputationException exc) {
-      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
-          "Exception while saving document:" + doc.getDocumentReference(), exc);
     } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, commit);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("saveXWikiDoc - failed {} for {}", (commit ? "commit" : "rollback"),
-            doc.getDocumentReference(), exc);
+      if (bTransaction) {
+        store.endTransaction(context, commit);
       }
     }
 
@@ -147,7 +138,8 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
+  public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException,
+      HibernateException {
     // To change body of implemented methods use Options | File Templates.
     boolean bTransaction = true;
     try {
@@ -213,16 +205,9 @@ public class CelHibernateStoreDocumentPart {
       doc.setOriginalDocument(doc.clone());
     } catch (ObjectNotFoundException e) { // document doesn't exist
       doc.setNew(true);
-    } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_READING_DOC,
-          "Exception while reading document: " + doc.getDocumentReference(), exc);
     } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, false);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("loadXWikiDoc - failed rollback for {}", doc.getDocumentReference(), exc);
+      if (bTransaction) {
+        store.endTransaction(context, false);
       }
     }
     return doc;
@@ -270,7 +255,8 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException {
+  public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException,
+      HibernateException {
     validateWikis(doc, context);
     boolean bTransaction = false;
     boolean commit = false;
@@ -282,10 +268,9 @@ public class CelHibernateStoreDocumentPart {
       session.setFlushMode(FlushMode.COMMIT);
 
       if (doc.getStore() == null) {
-        Object[] args = { doc.getFullName() };
         throw new XWikiException(MODULE_XWIKI_STORE,
             ERROR_XWIKI_STORE_HIBERNATE_CANNOT_DELETE_UNLOADED_DOC,
-            "Impossible to delete document {0} if it is not loaded", null, args);
+            "Impossible to delete document if it is not loaded: " + doc.getDocumentReference());
       }
 
       // Let's delete any attachment this document might have
@@ -311,17 +296,9 @@ public class CelHibernateStoreDocumentPart {
       commit = true;
       // We need to ensure that the deleted document becomes the original document
       doc.setOriginalDocument(doc.clone());
-    } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_DELETING_DOC,
-          "Exception while deleting document: " + doc.getDocumentReference(), exc);
     } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, commit);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("deleteXWikiDoc - failed {} for {}", (commit ? "commit" : "rollback"),
-            doc.getDocumentReference(), exc);
+      if (bTransaction) {
+        store.endTransaction(context, commit);
       }
     }
   }

@@ -44,7 +44,7 @@ public class CelHibernateStoreCollectionPart {
   }
 
   public void saveXWikiCollection(BaseCollection object, XWikiContext context, boolean bTransaction)
-      throws XWikiException {
+      throws XWikiException, HibernateException {
     if (object == null) {
       return;
     }
@@ -136,22 +136,15 @@ public class CelHibernateStoreCollectionPart {
       }
 
       commit = true;
-    } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
-          "Exception while saving object: " + object, exc);
     } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, commit);
-        }
-      } catch (HibernateException e) {
-        LOGGER.error("failed commit/rollback for {}", object, e);
+      if (bTransaction) {
+        store.endTransaction(context, commit);
       }
     }
   }
 
   public void loadXWikiCollection(BaseCollection object1, XWikiDocument doc, XWikiContext context,
-      boolean bTransaction, boolean alreadyLoaded) throws XWikiException {
+      boolean bTransaction, boolean alreadyLoaded) throws XWikiException, HibernateException {
     BaseCollection object = object1;
     try {
       if (bTransaction) {
@@ -267,22 +260,15 @@ public class CelHibernateStoreCollectionPart {
     } catch (ObjectNotFoundException exc) { // there is no object data saved
       LOGGER.warn("loadXWikiCollection - no data for object: {} {}_{}", object1.getId(),
           object1.getClassName(), object1.getNumber(), exc);
-    } catch (HibernateException exc) {
-      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-          "Exception while loading object: " + object, exc);
     } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, false, false);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("failed commit/rollback for {}", object, exc);
+      if (bTransaction) {
+        store.endTransaction(context, false, false);
       }
     }
   }
 
   public void deleteXWikiCollection(BaseCollection object, XWikiContext context,
-      boolean bTransaction, boolean evict) throws XWikiException {
+      boolean bTransaction, boolean evict) throws XWikiException, HibernateException {
     if (object == null) {
       return;
     }
@@ -346,16 +332,9 @@ public class CelHibernateStoreCollectionPart {
       }
 
       commit = true;
-    } catch (HibernateException exc) {
-      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_DELETING_OBJECT,
-          "Exception while deleting object: " + object, exc);
     } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, commit);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("failed commit/rollback for {}", object, exc);
+      if (bTransaction) {
+        store.endTransaction(context, commit);
       }
     }
   }
