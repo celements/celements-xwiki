@@ -17,11 +17,14 @@ import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.impl.AbstractQueryImpl;
+import org.xwiki.model.reference.DocumentReference;
 
+import com.celements.model.util.ModelUtils;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
+import com.xpn.xwiki.web.Utils;
 
 public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
 
@@ -91,13 +94,17 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
     throw new UnsupportedOperationException("getLockModes not supported");
   }
 
-  public static void expectSaveDocExists(Session sessionMock, final boolean exists) {
-    String hql = "select xwikidoc.id from XWikiDocument as xwikidoc where xwikidoc.id = :id";
+  public static void expectSaveDocExists(Session sessionMock,
+      final DocumentReference existingDocRef) {
+    String hql = "select fullName from XWikiDocument where id = :id";
     Query query = new TestHibernateQuery<XWikiAttachment>(hql) {
 
       @Override
       public Object uniqueResult() throws HibernateException {
-        return exists ? 1L : null;
+        if (existingDocRef != null) {
+          return Utils.getComponent(ModelUtils.class).serializeRefLocal(existingDocRef);
+        }
+        return null;
       }
 
     };
