@@ -82,13 +82,13 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
      * that XObject would retain that relativity. This is for example useful when copying a Wiki into another Wiki
      * so that the copied XObject have a XClassReference pointing in the new wiki.
      */
-    private EntityReference xClassReference;
+    private EntityReference relativeXClassRef;
 
     /**
      * Cache the XClass reference resolved as an absolute reference for improved performance (so that we don't have to
      * resolve the relative reference every time getXClassReference() is called.
      */
-    private DocumentReference xClassReferenceCache;
+    private DocumentReference xClassDocRefCache;
 
     /**
      * List of properties (eg XClass properties, XObject properties, etc).
@@ -157,14 +157,13 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
      */
     public DocumentReference getXClassReference()
     {
-        // Ensure we always return an absolute references since we always want well-constructed to be used from outside
-        // this class.
-        if (this.xClassReferenceCache == null && getRelativeXClassReference() != null) {
-            this.xClassReferenceCache = this.currentReferenceDocumentReferenceResolver
+        // Ensure we always return an absolute references since we always want well-constructed to 
+        // be used from outside this class.
+        if (this.xClassDocRefCache == null && getRelativeXClassReference() != null) {
+            this.xClassDocRefCache = this.currentReferenceDocumentReferenceResolver
                 .resolve(getRelativeXClassReference(), getDocumentReference());
         }
-
-        return this.xClassReferenceCache;
+        return cloneDocRef(xClassDocRefCache);
     }
 
     /**
@@ -172,7 +171,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
      */
     private EntityReference getRelativeXClassReference()
     {
-        return this.xClassReference;
+        return this.relativeXClassRef;
     }
 
     /**
@@ -195,10 +194,25 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
     /**
      * @since 2.2.3
      */
-    public void setXClassReference(EntityReference xClassReference)
-    {
-        this.xClassReference = xClassReference;
-        this.xClassReferenceCache = null;
+    public void setXClassReference(EntityReference xClassReference) {
+      if (xClassReference != null) {
+        // clone as a relative reference
+        String name;
+        EntityReference docEntityRef = xClassReference.extractReference(EntityType.DOCUMENT);
+        if (docEntityRef != null) {
+          name = docEntityRef.getName();
+        } else {
+          throw new IllegalArgumentException("class reference name required");
+        }
+        EntityReference parent = null;
+        EntityReference spaceEntityRef = xClassReference.extractReference(EntityType.SPACE);
+        if (spaceEntityRef != null) {
+          parent = new EntityReference(spaceEntityRef.getName(), EntityType.SPACE);
+        }
+        xClassReference = new EntityReference(name, EntityType.DOCUMENT, parent);
+      }
+      this.relativeXClassRef = xClassReference;
+      this.xClassDocRefCache = null;
     }
 
     /**
@@ -759,8 +773,10 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     @Override
     public String toString(boolean withDefinition) {
-      String className = getXClassReference() != null ? localEntityReferenceSerializer.serialize(
-          getXClassReference()) : "?";
+      String className = "?";
+      if (getRelativeXClassReference() != null) {
+        className = localEntityReferenceSerializer.serialize(getRelativeXClassReference());
+      }
       return super.toString(withDefinition) + "_" + className + "_" + getNumber();
     }
 
@@ -792,7 +808,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
         // We force to refresh the XClass reference so that next time it's retrieved again it'll be resolved against
         // the new document reference.
-        this.xClassReferenceCache = null;
+        this.xClassDocRefCache = null;
     }
 
     /**
@@ -809,7 +825,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
         // We force to refresh the XClass reference so that next time it's retrieved again it'll be resolved against
         // the new document reference.
-        this.xClassReferenceCache = null;
+        this.xClassDocRefCache = null;
     }
 
     /**
@@ -825,7 +841,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
         // We force to refresh the XClass reference so that next time it's retrieved again it'll be resolved against
         // the new document reference.
-        this.xClassReferenceCache = null;
+        this.xClassDocRefCache = null;
     }
     
 }

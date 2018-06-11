@@ -177,6 +177,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
 
   private BaseObject addObject(XWikiDocument doc) {
     BaseObject obj = new BaseObject();
+    obj.setDocumentReference(doc.getDocumentReference());
     obj.setXClassReference(new DocumentReference("xwikidb", "space", "class"));
     obj.setGuid("");
     doc.addXObject(obj);
