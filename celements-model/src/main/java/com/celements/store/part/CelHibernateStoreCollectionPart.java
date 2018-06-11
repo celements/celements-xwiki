@@ -1,5 +1,7 @@
 package com.celements.store.part;
 
+import static com.xpn.xwiki.XWikiException.*;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -47,8 +49,7 @@ public class CelHibernateStoreCollectionPart {
       return;
     }
     if (!object.hasValidId()) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
           "Unable to save object with invalid id: " + object);
     }
     // We need a slightly different behavior here
@@ -123,9 +124,8 @@ public class CelHibernateStoreCollectionPart {
           String key = it.next();
           BaseProperty prop = (BaseProperty) object.getField(key);
           if (!prop.getName().equals(key)) {
-            throw new XWikiException(XWikiException.MODULE_XWIKI_CLASSES,
-                XWikiException.ERROR_XWIKI_CLASSES_FIELD_INVALID, "Field '" + key
-                    + "' has an invalid name in object: " + object);
+            throw new XWikiException(MODULE_XWIKI_CLASSES, ERROR_XWIKI_CLASSES_FIELD_INVALID,
+                "Field '" + key + "' has an invalid name in object: " + object);
           }
 
           String pname = prop.getName();
@@ -137,8 +137,7 @@ public class CelHibernateStoreCollectionPart {
 
       commit = true;
     } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
           "Exception while saving object: " + object, exc);
     } finally {
       try {
@@ -256,9 +255,9 @@ public class CelHibernateStoreCollectionPart {
                 throw e;
               }
             } catch (Exception e2) {
-              throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-                  XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
-                  "Exception while loading property '" + name + "' for object: " + object, e);
+              throw new XWikiException(MODULE_XWIKI_STORE,
+                  ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT, "Exception while loading property '"
+                      + name + "' for object: " + object, e);
             }
           }
 
@@ -269,8 +268,7 @@ public class CelHibernateStoreCollectionPart {
       LOGGER.warn("loadXWikiCollection - no data for object: {} {}_{}", object1.getId(),
           object1.getClassName(), object1.getNumber(), exc);
     } catch (HibernateException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
           "Exception while loading object: " + object, exc);
     } finally {
       try {
@@ -349,8 +347,7 @@ public class CelHibernateStoreCollectionPart {
 
       commit = true;
     } catch (HibernateException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_DELETING_OBJECT,
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_DELETING_OBJECT,
           "Exception while deleting object: " + object, exc);
     } finally {
       try {

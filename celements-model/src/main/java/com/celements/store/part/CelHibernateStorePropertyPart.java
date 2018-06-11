@@ -1,5 +1,7 @@
 package com.celements.store.part;
 
+import static com.xpn.xwiki.XWikiException.*;
+
 import java.io.Serializable;
 
 import org.hibernate.HibernateException;
@@ -40,9 +42,8 @@ public class CelHibernateStorePropertyPart {
     } catch (ObjectNotFoundException exc) {
       LOGGER.warn("loadXProperty - no data for {}: {}", property.getId(), property, exc);
     } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT, "loadXProperty - failed for "
-              + property.getId() + " :" + property, exc);
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
+          "loadXProperty - failed for " + property.getId() + " :" + property, exc);
     } finally {
       try {
         if (bTransaction) {
@@ -84,9 +85,8 @@ public class CelHibernateStorePropertyPart {
     } catch (HibernateException | XWikiException exc) {
       // something went wrong, collect some information
       String propertyStr = property.getId() + " :" + property;
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT, "saveXProperty - failed for "
-              + propertyStr, exc);
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT,
+          "saveXProperty - failed for " + propertyStr, exc);
     } finally {
       try {
         if (bTransaction) {

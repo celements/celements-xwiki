@@ -2,6 +2,7 @@ package com.celements.store.part;
 
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
+import static com.xpn.xwiki.XWikiException.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -116,9 +117,8 @@ public class CelHibernateStoreDocumentPart {
       // We need to ensure that the saved document becomes the original document
       doc.setOriginalDocument(doc.clone());
     } catch (HibernateException | XWikiException | IdComputationException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC, "Exception while saving document:"
-              + doc.getDocumentReference(), exc);
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
+          "Exception while saving document:" + doc.getDocumentReference(), exc);
     } finally {
       try {
         if (bTransaction) {
@@ -214,8 +214,7 @@ public class CelHibernateStoreDocumentPart {
     } catch (ObjectNotFoundException e) { // document doesn't exist
       doc.setNew(true);
     } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_READING_DOC,
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_READING_DOC,
           "Exception while reading document: " + doc.getDocumentReference(), exc);
     } finally {
       try {
@@ -284,8 +283,8 @@ public class CelHibernateStoreDocumentPart {
 
       if (doc.getStore() == null) {
         Object[] args = { doc.getFullName() };
-        throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-            XWikiException.ERROR_XWIKI_STORE_HIBERNATE_CANNOT_DELETE_UNLOADED_DOC,
+        throw new XWikiException(MODULE_XWIKI_STORE,
+            ERROR_XWIKI_STORE_HIBERNATE_CANNOT_DELETE_UNLOADED_DOC,
             "Impossible to delete document {0} if it is not loaded", null, args);
       }
 
@@ -299,22 +298,21 @@ public class CelHibernateStoreDocumentPart {
       if (context.getWiki().hasBacklinks(context)) {
         store.deleteLinks(doc.getId(), context, true);
       }
-      
+
       if (doc.getTranslation() == 0) {
         for (BaseObject object : XWikiObjectEditor.on(doc).fetch().iter().append(firstNonNull(
             doc.getXObjectsToRemove(), Collections.<BaseObject>emptyList()))) {
           store.deleteXWikiObject(object, context, false);
         }
       }
-      
+
       context.getWiki().getVersioningStore().deleteArchive(doc, false, context);
       session.delete(doc);
       commit = true;
       // We need to ensure that the deleted document becomes the original document
       doc.setOriginalDocument(doc.clone());
     } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_DELETING_DOC,
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_DELETING_DOC,
           "Exception while deleting document: " + doc.getDocumentReference(), exc);
     } finally {
       try {
