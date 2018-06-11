@@ -1,6 +1,7 @@
 package com.celements.store.part;
 
 import static com.google.common.base.Preconditions.*;
+import static com.xpn.xwiki.XWikiException.*;
 
 import java.util.UUID;
 
@@ -44,14 +45,19 @@ class DocumentSavePreparationCommand {
   }
 
   Session execute(XWikiDocument doc, boolean bTransaction, XWikiContext context)
-      throws HibernateException, XWikiException, IdComputationException {
+      throws HibernateException, XWikiException {
     doc.setStore(store);
     ensureDatabaseConsistency(doc, context);
     if (doc.getTranslation() == 0) {
       updateBaseClassXml(doc, context);
       doc.setElement(XWikiDocument.HAS_OBJECTS, XWikiObjectFetcher.on(doc).exists());
       doc.setElement(XWikiDocument.HAS_ATTACHMENTS, (doc.getAttachmentList().size() != 0));
-      new XObjectPreparer(doc, context).execute();
+      try {
+        new XObjectPreparer(doc, context).execute();
+      } catch (IdComputationException exc) {
+        throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
+            "unable to compute id", exc);
+      }
     } else {
       doc.setElement(XWikiDocument.HAS_OBJECTS, false);
       doc.setElement(XWikiDocument.HAS_ATTACHMENTS, false);
