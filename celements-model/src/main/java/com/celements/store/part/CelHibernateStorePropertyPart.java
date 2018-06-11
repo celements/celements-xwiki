@@ -28,7 +28,7 @@ public class CelHibernateStorePropertyPart {
   }
 
   public void loadXWikiProperty(PropertyInterface property, XWikiContext context,
-      boolean bTransaction) throws XWikiException {
+      boolean bTransaction) throws XWikiException, HibernateException {
     try {
       if (bTransaction) {
         store.checkHibernate(context);
@@ -39,17 +39,9 @@ public class CelHibernateStorePropertyPart {
       executePostLoadActions(property);
     } catch (ObjectNotFoundException exc) {
       LOGGER.warn("loadXProperty - no data for {}: {}", property.getId(), property, exc);
-    } catch (HibernateException | XWikiException exc) {
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT, "loadXProperty - failed for "
-              + property.getId() + " :" + property, exc);
     } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, false, false);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("loadXProperty - failed rollback for {}: {}", property.getId(), property, exc);
+      if (bTransaction) {
+        store.endTransaction(context, false, false);
       }
     }
   }
@@ -72,7 +64,7 @@ public class CelHibernateStorePropertyPart {
   }
 
   public void saveXWikiProperty(PropertyInterface property, XWikiContext context,
-      boolean bTransaction) throws XWikiException {
+      boolean bTransaction) throws XWikiException, HibernateException {
     boolean commit = false;
     try {
       if (bTransaction) {
@@ -81,20 +73,9 @@ public class CelHibernateStorePropertyPart {
       }
       updateOrSaveProperty(property, context);
       commit = true;
-    } catch (HibernateException | XWikiException exc) {
-      // something went wrong, collect some information
-      String propertyStr = property.getId() + " :" + property;
-      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
-          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_SAVING_OBJECT, "saveXProperty - failed for "
-              + propertyStr, exc);
     } finally {
-      try {
-        if (bTransaction) {
-          store.endTransaction(context, commit);
-        }
-      } catch (HibernateException exc) {
-        LOGGER.error("saveXProperty - failed {} for {}: {}", (commit ? "commit" : "rollback"),
-            property.getId(), property, exc);
+      if (bTransaction) {
+        store.endTransaction(context, commit);
       }
     }
   }
