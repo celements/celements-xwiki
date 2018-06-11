@@ -91,16 +91,18 @@ public class CelHibernateStoreDocumentPart {
         }
       }
 
-      // Verify if the document already exists
-      Query query = session.createQuery(
-          "select xwikidoc.id from XWikiDocument as xwikidoc where xwikidoc.id = :id");
-      query.setLong("id", doc.getId());
-      if (query.uniqueResult() == null) {
+      DocumentReference existingDocRef = checkExistingDoc(doc, session);
+      if (existingDocRef == null) {
         session.save(doc);
-      } else {
+      } else if (existingDocRef.equals(doc.getDocumentReference())) {
         session.update(doc);
         // TODO: this is slower!! How can it be improved?
         // session.saveOrUpdate(doc);
+      } else {
+        LOGGER.error("saveXWikiDoc - collision detected: existing doc '{}' and new doc '{}'",
+            existingDocRef, doc.getDocumentReference());
+        throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
+            "saveXWikiDoc - collision detected");
       }
 
       if (doc.getTranslation() == 0) {
@@ -121,6 +123,18 @@ public class CelHibernateStoreDocumentPart {
       }
     }
 
+  }
+
+  private DocumentReference checkExistingDoc(XWikiDocument doc, Session session) {
+    DocumentReference existingDocRef = null;
+    Query query = session.createQuery("select fullName from XWikiDocument where id = :id");
+    query.setLong("id", doc.getId());
+    String existingDocFN = (String) query.uniqueResult();
+    if (existingDocFN != null) {
+      existingDocRef = store.getModelUtils().resolveRef(existingDocFN, DocumentReference.class,
+          doc.getDocumentReference());
+    }
+    return existingDocRef;
   }
 
   private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context)

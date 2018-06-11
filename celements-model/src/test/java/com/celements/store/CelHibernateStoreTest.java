@@ -23,6 +23,7 @@ import com.celements.common.test.ExceptionAsserter;
 import com.celements.model.access.IModelAccessFacade;
 import com.celements.store.part.XWikiDummyDocComparator;
 import com.xpn.xwiki.XWikiConfig;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
@@ -81,7 +82,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     XWikiDocument doc = new XWikiDocument(docRef);
     DocRefCapture docCapture = new DocRefCapture();
     Session sessionMock = createSessionMock(doc);
-    expectSaveDocExists(sessionMock, false);
+    expectSaveDocExists(sessionMock, null);
     expect(sessionMock.save(capture(docCapture))).andReturn(null).once();
     expect(sessionMock.close()).andReturn(null);
 
@@ -95,6 +96,52 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
         docCapture.docRef instanceof ImmutableReference);
     assertTrue("after execution docRef has to be immutable",
         doc.getDocumentReference() instanceof ImmutableReference);
+  }
+
+  @Test
+  public void test_saveXWikiDoc_save() throws Exception {
+    XWikiDocument doc = new XWikiDocument(new DocumentReference("xwikidb", "space", "doc"));
+    Session sessionMock = createSessionMock(doc);
+    expectSaveDocExists(sessionMock, null);
+    expect(sessionMock.save(cmp(doc, new XWikiDummyDocComparator(),
+        LogicalOperator.EQUAL))).andReturn(null);
+    expect(sessionMock.close()).andReturn(null);
+
+    replayDefault();
+    getStore(sessionMock).saveXWikiDoc(doc, getContext());
+    verifyDefault();
+  }
+
+  @Test
+  public void test_saveXWikiDoc_update() throws Exception {
+    XWikiDocument doc = new XWikiDocument(new DocumentReference("xwikidb", "space", "doc"));
+    Session sessionMock = createSessionMock(doc);
+    expectSaveDocExists(sessionMock, doc.getDocumentReference());
+    sessionMock.update(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL));
+    expectLastCall();
+    expect(sessionMock.close()).andReturn(null);
+
+    replayDefault();
+    getStore(sessionMock).saveXWikiDoc(doc, getContext());
+    verifyDefault();
+  }
+
+  @Test
+  public void test_saveXWikiDoc_collision() throws Exception {
+    final XWikiDocument doc = new XWikiDocument(new DocumentReference("xwikidb", "space", "doc"));
+    final Session sessionMock = createSessionMock(doc);
+    expectSaveDocExists(sessionMock, new DocumentReference("xwikidb", "space", "other"));
+    expect(sessionMock.close()).andReturn(null);
+
+    replayDefault();
+    new ExceptionAsserter<XWikiException>(XWikiException.class) {
+
+      @Override
+      protected void execute() throws XWikiException {
+        getStore(sessionMock).saveXWikiDoc(doc, getContext());
+      }
+    }.evaluate();
+    verifyDefault();
   }
 
   @Test
