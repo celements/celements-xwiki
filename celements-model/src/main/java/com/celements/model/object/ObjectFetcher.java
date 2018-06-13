@@ -6,8 +6,7 @@ import java.util.Map;
 import javax.validation.constraints.NotNull;
 
 import com.celements.model.classes.ClassIdentity;
-import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
+import com.celements.model.util.Fetchable;
 
 /**
  * Fetches objects O on a document D for the defined query. Returned objects are intended for
@@ -18,35 +17,7 @@ import com.google.common.collect.FluentIterable;
  * @param <O>
  *          object type
  */
-public interface ObjectFetcher<D, O> extends ObjectHandler<D, O> {
-
-  /**
-   * @return true if an object to fetch exists
-   */
-  boolean exists();
-
-  /**
-   * @return amount of fetched objects
-   */
-  int count();
-
-  /**
-   * @return the first fetched object
-   */
-  @NotNull
-  Optional<O> first();
-
-  /**
-   * @return a {@link List} of all fetched objects
-   */
-  @NotNull
-  List<O> list();
-
-  /**
-   * @return an {@link Iterable} for all fetched objects
-   */
-  @NotNull
-  FluentIterable<O> iter();
+public interface ObjectFetcher<D, O> extends ObjectHandler<D, O>, Fetchable<O> {
 
   /**
    * @return a {@link Map} of all fetched objects indexed by their {@link ClassIdentity}
