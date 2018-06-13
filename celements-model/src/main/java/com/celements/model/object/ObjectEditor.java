@@ -5,10 +5,7 @@ import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
-import org.xwiki.model.reference.DocumentReference;
-
 import com.celements.model.classes.ClassIdentity;
-import com.celements.model.object.restriction.ObjectQuery;
 import com.google.common.base.Optional;
 
 /**
@@ -20,16 +17,7 @@ import com.google.common.base.Optional;
  * @param <O>
  *          object type
  */
-public interface ObjectEditor<D, O> {
-
-  @NotNull
-  DocumentReference getDocRef();
-
-  /**
-   * @return clone of the current query
-   */
-  @NotNull
-  ObjectQuery<O> getQuery();
+public interface ObjectEditor<D, O> extends ObjectHandler<D, O> {
 
   /**
    * creates all objects defined by the query and also sets fields if any

@@ -1,7 +1,5 @@
 package com.celements.model.object;
 
-import static com.google.common.base.Preconditions.*;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,10 +9,8 @@ import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.model.classes.ClassIdentity;
-import com.celements.model.object.restriction.ObjectQueryBuilder;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
@@ -25,22 +21,15 @@ import com.google.common.collect.Iterables;
 
 @NotThreadSafe
 public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D, O>, D, O> extends
-    ObjectQueryBuilder<R, O> implements ObjectFetcher<D, O> {
+    AbstractObjectHandler<R, D, O> implements ObjectFetcher<D, O> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ObjectFetcher.class);
 
-  protected final D doc;
   private boolean clone;
 
   protected AbstractObjectFetcher(@NotNull D doc) {
-    this.doc = checkNotNull(doc);
-    getBridge().checkDoc(doc);
+    super(doc);
     this.clone = true;
-  }
-
-  @Override
-  public DocumentReference getDocRef() {
-    return getBridge().getDocRef(doc);
   }
 
   @Override
@@ -80,13 +69,13 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   private Set<ClassIdentity> getObjectClasses() {
     Set<ClassIdentity> classes = getQuery().getObjectClasses();
     if (classes.isEmpty()) {
-      classes = ImmutableSet.copyOf(getBridge().getDocClasses(doc));
+      classes = ImmutableSet.copyOf(getBridge().getDocClasses(getDocument()));
     }
     return classes;
   }
 
   private FluentIterable<O> getObjects(ClassIdentity classId) {
-    FluentIterable<O> objIter = FluentIterable.from(getBridge().getObjects(doc, classId));
+    FluentIterable<O> objIter = FluentIterable.from(getBridge().getObjects(getDocument(), classId));
     objIter = objIter.filter(Predicates.and(getQuery().getRestrictions(classId)));
     if (clone) {
       LOGGER.debug("{} clone objects", this);
@@ -115,14 +104,5 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
       return getBridge().cloneObject(obj);
     }
   }
-
-  @Override
-  public String toString() {
-    return this.getClass().getSimpleName() + " [doc=" + getBridge().getDocRef(doc) + ", query="
-        + getQuery() + "]";
-  }
-
-  @Override
-  protected abstract @NotNull ObjectBridge<D, O> getBridge();
 
 }

@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 
 import com.celements.model.object.AbstractObjectEditor;
 import com.celements.model.object.ObjectBridge;
+import com.celements.model.object.ObjectHandler;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.web.Utils;
@@ -19,13 +20,18 @@ public class XWikiObjectEditor extends
     return new XWikiObjectEditor(checkNotNull(doc));
   }
 
+  public static XWikiObjectEditor from(
+      @NotNull ObjectHandler<XWikiDocument, BaseObject> objHandler) {
+    return XWikiObjectEditor.on(objHandler.getDocument()).with(objHandler.getQuery());
+  }
+
   private XWikiObjectEditor(XWikiDocument doc) {
     super(doc);
   }
 
   @Override
   public XWikiObjectFetcher fetch() {
-    return XWikiObjectFetcher.on(doc).with(getQuery()).disableCloning();
+    return XWikiObjectFetcher.on(getDocument()).with(getQuery()).disableCloning();
   }
 
   @Override

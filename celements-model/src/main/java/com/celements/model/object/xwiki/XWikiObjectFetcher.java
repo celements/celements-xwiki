@@ -5,6 +5,7 @@ import javax.validation.constraints.NotNull;
 
 import com.celements.model.object.AbstractObjectFetcher;
 import com.celements.model.object.ObjectBridge;
+import com.celements.model.object.ObjectHandler;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.web.Utils;
@@ -15,6 +16,11 @@ public class XWikiObjectFetcher extends
 
   public static XWikiObjectFetcher on(@NotNull XWikiDocument doc) {
     return new XWikiObjectFetcher(doc);
+  }
+
+  public static XWikiObjectFetcher from(
+      @NotNull ObjectHandler<XWikiDocument, BaseObject> objHandler) {
+    return XWikiObjectFetcher.on(objHandler.getDocument()).with(objHandler.getQuery());
   }
 
   private XWikiObjectFetcher(XWikiDocument doc) {

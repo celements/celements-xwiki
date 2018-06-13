@@ -1,6 +1,5 @@
 package com.celements.model.object;
 
-import static com.google.common.base.Preconditions.*;
 import static com.google.common.collect.FluentIterable.*;
 
 import java.util.List;
@@ -11,31 +10,21 @@ import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.object.restriction.FieldRestriction;
-import com.celements.model.object.restriction.ObjectQueryBuilder;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 
 @NotThreadSafe
 public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, O>, D, O> extends
-    ObjectQueryBuilder<R, O> implements ObjectEditor<D, O> {
+    AbstractObjectHandler<R, D, O> implements ObjectEditor<D, O> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ObjectEditor.class);
 
-  protected final D doc;
-
   protected AbstractObjectEditor(@NotNull D doc) {
-    this.doc = checkNotNull(doc);
-    getBridge().checkDoc(doc);
-  }
-
-  @Override
-  public DocumentReference getDocRef() {
-    return getBridge().getDocRef(doc);
+    super(doc);
   }
 
   @Override
@@ -86,7 +75,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
         obj = fetch().filter(classId).first().orNull();
       }
       if (obj == null) {
-        obj = getBridge().createObject(doc, classId);
+        obj = getBridge().createObject(getDocument(), classId);
         for (FieldRestriction<O, ?> restriction : getQuery().getFieldRestrictions(classId)) {
           setField(obj, restriction);
         }
@@ -123,7 +112,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
     @Override
     public boolean apply(O obj) {
-      boolean success = getBridge().deleteObject(doc, obj);
+      boolean success = getBridge().deleteObject(getDocument(), obj);
       LOGGER.info("{} deleted object {} for {}: {}", AbstractObjectEditor.this,
           getBridge().getObjectNumber(obj), getBridge().getObjectClass(obj), success);
       return success;
@@ -131,15 +120,6 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
   }
 
   @Override
-  public String toString() {
-    return this.getClass().getSimpleName() + " [doc=" + getBridge().getDocRef(doc) + ", query="
-        + getQuery() + "]";
-  }
-
-  @Override
   public abstract AbstractObjectFetcher<?, D, O> fetch();
-
-  @Override
-  protected abstract @NotNull ObjectBridge<D, O> getBridge();
 
 }
