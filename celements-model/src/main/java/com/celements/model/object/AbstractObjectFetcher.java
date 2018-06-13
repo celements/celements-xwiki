@@ -11,10 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.celements.model.classes.ClassIdentity;
+import com.celements.model.classes.fields.ClassField;
+import com.celements.model.field.FieldFetcher;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -103,6 +106,21 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
     public O apply(O obj) {
       return getBridge().cloneObject(obj);
     }
+  }
+
+  @Override
+  public <T> FieldFetcher<O, T> field(ClassField<T> field) {
+    return new FieldFetcher<>(getFieldAccessor(), iter(), field);
+  }
+
+  @Override
+  public <T> List<FieldFetcher<O, T>> fields(List<ClassField<T>> fields) {
+    FluentIterable<O> objects = iter();
+    ImmutableList.Builder<FieldFetcher<O, T>> builder = ImmutableList.builder();
+    for (ClassField<T> field : fields) {
+      builder.add(new FieldFetcher<>(getFieldAccessor(), objects, field));
+    }
+    return builder.build();
   }
 
 }

@@ -6,6 +6,8 @@ import java.util.Map;
 import javax.validation.constraints.NotNull;
 
 import com.celements.model.classes.ClassIdentity;
+import com.celements.model.classes.fields.ClassField;
+import com.celements.model.field.FieldSetter;
 import com.google.common.base.Optional;
 
 /**
@@ -66,5 +68,9 @@ public interface ObjectEditor<D, O> extends ObjectHandler<D, O> {
    */
   @NotNull
   ObjectFetcher<D, O> fetch();
+
+  <T> FieldSetter<O, T> field(ClassField<T> field);
+
+  <T> List<FieldSetter<O, T>> fields(List<ClassField<T>> fields);
 
 }

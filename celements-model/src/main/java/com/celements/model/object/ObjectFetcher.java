@@ -6,6 +6,8 @@ import java.util.Map;
 import javax.validation.constraints.NotNull;
 
 import com.celements.model.classes.ClassIdentity;
+import com.celements.model.classes.fields.ClassField;
+import com.celements.model.field.FieldFetcher;
 import com.celements.model.util.Fetchable;
 
 /**
@@ -24,5 +26,9 @@ public interface ObjectFetcher<D, O> extends ObjectHandler<D, O>, Fetchable<O> {
    */
   @NotNull
   Map<ClassIdentity, List<O>> map();
+
+  <T> FieldFetcher<O, T> field(ClassField<T> field);
+
+  <T> List<FieldFetcher<O, T>> fields(List<ClassField<T>> fields);
 
 }

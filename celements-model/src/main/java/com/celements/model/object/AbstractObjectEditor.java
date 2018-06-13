@@ -13,10 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.celements.model.classes.ClassIdentity;
+import com.celements.model.classes.fields.ClassField;
+import com.celements.model.field.FieldSetter;
 import com.celements.model.object.restriction.FieldRestriction;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 
 @NotThreadSafe
 public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, O>, D, O> extends
@@ -119,5 +123,20 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
   @Override
   public abstract AbstractObjectFetcher<?, D, O> fetch();
+
+  @Override
+  public <T> FieldSetter<O, T> field(ClassField<T> field) {
+    return new FieldSetter<>(getFieldAccessor(), fetch().iter(), field);
+  }
+
+  @Override
+  public <T> List<FieldSetter<O, T>> fields(List<ClassField<T>> fields) {
+    FluentIterable<O> objects = fetch().iter();
+    ImmutableList.Builder<FieldSetter<O, T>> builder = ImmutableList.builder();
+    for (ClassField<T> field : fields) {
+      builder.add(new FieldSetter<>(getFieldAccessor(), objects, field));
+    }
+    return builder.build();
+  }
 
 }
