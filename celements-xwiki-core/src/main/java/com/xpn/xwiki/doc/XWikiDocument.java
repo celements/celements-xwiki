@@ -118,7 +118,6 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.api.DocumentSection;
 import com.xpn.xwiki.content.Link;
 import com.xpn.xwiki.content.parsers.DocumentParser;
-import com.xpn.xwiki.content.parsers.LinkParser;
 import com.xpn.xwiki.content.parsers.RenamePageReplaceLinkHandler;
 import com.xpn.xwiki.content.parsers.ReplacementResultCollection;
 import com.xpn.xwiki.criteria.impl.RevisionCriteria;
@@ -596,14 +595,10 @@ public class XWikiDocument implements DocumentModelBridge
      * @deprecated since 2.2M1 used {@link #setDocumentReference(DocumentReference)} instead
      */
     @Deprecated
-    public void setSpace(String space)
-    {
-        if (space != null) {
-            getDocumentReference().getLastSpaceReference().setName(space);
-
-            // Clean the absolute parent reference cache to rebuild it next time getParentReference is called.
-            this.parentReferenceCache = null;
-        }
+    public void setSpace(String space) {
+      if (!getSpace().equals(space)) {
+          setDocumentReference(new DocumentReference(getDatabase(), space, getName()));
+      }
     }
 
     /**
@@ -1031,14 +1026,10 @@ public class XWikiDocument implements DocumentModelBridge
      * @deprecated since 2.2M1 used {@link #setDocumentReference(DocumentReference)} instead
      */
     @Deprecated
-    public void setName(String name)
-    {
-        if (name != null) {
-            getDocumentReference().setName(name);
-
-            // Clean the absolute parent reference cache to rebuild it next time getParentReference is called.
-            this.parentReferenceCache = null;
-        }
+    public void setName(String name) {
+      if (!getName().equals(name)) {
+        setDocumentReference(new DocumentReference(getDatabase(), getSpace(), name));
+      }
     }
 
     /**
@@ -1047,9 +1038,11 @@ public class XWikiDocument implements DocumentModelBridge
      * @see org.xwiki.bridge.DocumentModelBridge#getDocumentReference()
      * @since 2.2M1
      */
-    public DocumentReference getDocumentReference()
-    {
-        return this.documentReference;
+    public DocumentReference getDocumentReference() {
+      if (documentReference != null) {
+        return (DocumentReference) documentReference.clone();
+      }
+      return null;
     }
 
     /**
@@ -1078,19 +1071,15 @@ public class XWikiDocument implements DocumentModelBridge
      *             clone the doc, rename it or copy it.
      */
     @Deprecated
-    public void setDocumentReference(DocumentReference reference)
-    {
-        // Don't allow setting a null reference for now, ie. don't do anything to preserve backward compatibility
-        // with previous behavior (i.e. {@link #setFullName}.
-        if (reference != null) {
-            if (!reference.equals(getDocumentReference())) {
-                this.documentReference = reference;
-                setMetaDataDirty(true);
-
-                // Clean the absolute parent reference cache to rebuild it next time getParentReference is called.
-                this.parentReferenceCache = null;
-            }
+    public void setDocumentReference(DocumentReference reference) {
+      if (reference != null) {
+        boolean changed = !reference.equals(documentReference);
+        documentReference = (DocumentReference) reference.clone();
+        if (changed) {
+          setMetaDataDirty(true);
+          this.parentReferenceCache = null;
         }
+      }
     }
 
     /**
@@ -5172,14 +5161,10 @@ public class XWikiDocument implements DocumentModelBridge
      * @deprecated since 2.2M1 use {@link #setDocumentReference(DocumentReference)} instead
      */
     @Deprecated
-    public void setDatabase(String database)
-    {
-        if (database != null) {
-            getDocumentReference().getWikiReference().setName(database);
-
-            // Clean the absolute parent reference cache to rebuild it next time getParentReference is called.
-            this.parentReferenceCache = null;
-        }
+    public void setDatabase(String database) {
+      if (!getDatabase().equals(database)) {
+        setDocumentReference(new DocumentReference(database, getSpace(), getName()));
+      }
     }
 
     public String getLanguage()

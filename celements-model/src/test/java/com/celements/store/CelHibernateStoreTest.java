@@ -53,7 +53,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_loadXWikiDoc_mutability() throws Exception {
+  public void test_loadXWikiDoc_immutability() throws Exception {
     DocumentReference docRef = new ImmutableDocumentReference("xwikidb", "space", "doc");
     XWikiDocument doc = new XWikiDocument(docRef);
     DocRefCapture docCapture = new DocRefCapture();
@@ -70,14 +70,14 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     assertSame(doc, ret);
     assertSame(doc, docCapture.getValue());
     assertEquals(docRef, docCapture.docRef);
-    assertFalse("XWikiHibernateStore requires mutable docRef",
+    assertTrue("provided docRef has to be immutable",
         docCapture.docRef instanceof ImmutableReference);
     assertTrue("after execution docRef has to be immutable",
         doc.getDocumentReference() instanceof ImmutableReference);
   }
 
   @Test
-  public void test_saveXWikiDoc_mutability() throws Exception {
+  public void test_saveXWikiDoc_immutability() throws Exception {
     DocumentReference docRef = new ImmutableDocumentReference("xwikidb", "space", "doc");
     XWikiDocument doc = new XWikiDocument(docRef);
     DocRefCapture docCapture = new DocRefCapture();
@@ -92,7 +92,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
 
     assertSame(doc, docCapture.getValue());
     assertEquals(docRef, docCapture.docRef);
-    assertFalse("XWikiHibernateStore requires mutable docRef",
+    assertTrue("provided docRef has to be immutable",
         docCapture.docRef instanceof ImmutableReference);
     assertTrue("after execution docRef has to be immutable",
         doc.getDocumentReference() instanceof ImmutableReference);

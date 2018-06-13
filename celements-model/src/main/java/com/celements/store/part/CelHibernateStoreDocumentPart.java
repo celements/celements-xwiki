@@ -19,17 +19,22 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.ImmutableDocumentReference;
 import org.xwiki.model.reference.WikiReference;
 
+import com.celements.model.classes.ClassDefinition;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.store.CelHibernateStore;
+import com.celements.web.classes.oldcore.XWikiGroupsClass;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
+import com.xpn.xwiki.web.Utils;
 
 //TODO CELDEV-626 - CelHibernateStore refactoring
 public class CelHibernateStoreDocumentPart {
@@ -46,6 +51,7 @@ public class CelHibernateStoreDocumentPart {
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
       throws XWikiException, HibernateException {
+    validateWikis(doc, context);
     boolean commit = false;
     try {
       Session session = savePrepCmd.execute(doc, bTransaction, context);
@@ -154,25 +160,23 @@ public class CelHibernateStoreDocumentPart {
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException,
       HibernateException {
-    // To change body of implemented methods use Options | File Templates.
+    validateWikis(doc, context);
     boolean bTransaction = true;
     try {
+      ImmutableDocumentReference immutableDocRef = new ImmutableDocumentReference(
+          doc.getDocumentReference());
+
       doc.setStore(store);
       store.checkHibernate(context);
-
       SessionFactory sfactory = store.injectCustomMappingsInSessionFactory(doc, context);
       bTransaction = bTransaction && store.beginTransaction(sfactory, false, context);
       Session session = store.getSession(context);
       session.setFlushMode(FlushMode.MANUAL);
 
       session.load(doc, new Long(doc.getId()));
-      doc.setDatabase(context.getDatabase());
+      validateLoadedDoc(doc, immutableDocRef);
       doc.setNew(false);
       doc.setMostRecent(true);
-      // convert java.sql.Timestamp to java.util.Date
-      doc.setDate(new Date(doc.getDate().getTime()));
-      doc.setCreationDate(new Date(doc.getCreationDate().getTime()));
-      doc.setContentUpdateDate(new Date(doc.getContentUpdateDate().getTime()));
 
       // Loading the attachment list
       if (doc.hasElement(XWikiDocument.HAS_ATTACHMENTS)) {
@@ -184,7 +188,7 @@ public class CelHibernateStoreDocumentPart {
       String cxml = doc.getXClassXML();
       if (cxml != null) {
         bclass.fromXML(cxml);
-        bclass.setDocumentReference(doc.getDocumentReference());
+        bclass.setDocumentReference(immutableDocRef);
         doc.setXClass(bclass);
       }
       // Store this XWikiClass in the context so that we can use it in case of recursive usage
@@ -196,13 +200,13 @@ public class CelHibernateStoreDocumentPart {
         Map<Integer, BaseObject> groupObjs = new HashMap<>();
         while (objIter.hasNext()) {
           BaseObject loadedObject = objIter.next();
-          if (!loadedObject.getDocumentReference().equals(doc.getDocumentReference())) {
+          if (!loadedObject.getDocumentReference().equals(immutableDocRef)) {
             LOGGER.warn("loadXWikiDoc - skipping obj [{}], doc [{}] not matching", loadedObject,
-                store.getModelUtils().serializeRef(doc.getDocumentReference()));
+                store.getModelUtils().serializeRef(immutableDocRef));
             continue;
           }
           BaseObject object = copyToNewXObject(doc, loadedObject, context);
-          if (object.getXClassReference().equals(getXWikiGroupsClassDocRef(context))) {
+          if (isGroupsObject(object)) {
             // Groups objects are handled differently.
             groupObjs.put(object.getNumber(), object);
           } else {
@@ -227,6 +231,22 @@ public class CelHibernateStoreDocumentPart {
     return doc;
   }
 
+  private void validateLoadedDoc(XWikiDocument doc, ImmutableDocumentReference immutableDocRef)
+      throws XWikiException {
+    if (!doc.getDocumentReference().equals(immutableDocRef)) {
+      LOGGER.error("loadXWikiDoc - collision detected: loading doc '{}' returned doc '{}'",
+          immutableDocRef, doc.getDocumentReference());
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_READING_DOC,
+          "loadXWikiDoc - collision detected");
+    }
+    // ensure document reference immutability
+    doc.setDocumentReference(immutableDocRef);
+    // convert java.sql.Timestamp to java.util.Date
+    doc.setDate(new Date(doc.getDate().getTime()));
+    doc.setCreationDate(new Date(doc.getCreationDate().getTime()));
+    doc.setContentUpdateDate(new Date(doc.getContentUpdateDate().getTime()));
+  }
+
   @SuppressWarnings("unchecked")
   private Iterator<BaseObject> loadXObjects(XWikiDocument doc, XWikiContext context) {
     String hql = "from BaseObject as obj where obj.name = :name order by obj.className, obj.number";
@@ -244,11 +264,16 @@ public class CelHibernateStoreDocumentPart {
       object = BaseClass.newCustomClassInstance(loadedObject.getXClassReference(), context);
     }
     object.setXClassReference(loadedObject.getXClassReference());
-    object.setDocumentReference(new DocumentReference(doc.getDocumentReference()));
+    object.setDocumentReference(doc.getDocumentReference());
     object.setNumber(loadedObject.getNumber());
     object.setGuid(loadedObject.getGuid());
     object.setId(loadedObject.getId(), loadedObject.getIdVersion());
     return object;
+  }
+
+  private boolean isGroupsObject(BaseObject object) {
+    ClassReference classRef = new ClassReference(object.getXClassReference());
+    return classRef.equals(getXWikiGroupsClass().getClassReference());
   }
 
   // AFAICT this was added as an emergency patch because loading of objects has proven too slow and
@@ -317,8 +342,8 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  private DocumentReference getXWikiGroupsClassDocRef(XWikiContext context) {
-    return new DocumentReference(context.getDatabase(), "XWiki", "XWikiGroups");
+  private ClassDefinition getXWikiGroupsClass() {
+    return Utils.getComponent(ClassDefinition.class, XWikiGroupsClass.CLASS_DEF_HINT);
   }
 
   private void validateWikis(XWikiDocument doc, XWikiContext context) {

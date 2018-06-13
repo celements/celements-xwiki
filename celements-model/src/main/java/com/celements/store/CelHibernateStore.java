@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.ImmutableDocumentReference;
 
 import com.celements.logging.LogLevel;
 import com.celements.logging.LogUtils;
@@ -23,12 +21,10 @@ import com.celements.store.id.UniqueHashIdComputer;
 import com.celements.store.part.CelHibernateStoreCollectionPart;
 import com.celements.store.part.CelHibernateStoreDocumentPart;
 import com.celements.store.part.CelHibernateStorePropertyPart;
-import com.google.common.collect.Iterables;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseCollection;
-import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
@@ -60,23 +56,13 @@ public class CelHibernateStore extends XWikiHibernateStore {
     propertyStorePart = new CelHibernateStorePropertyPart(this);
   }
 
-  // TODO CELDEV-625 - CelHibernateStore reference mutation
   @Override
   public void saveXWikiDoc(XWikiDocument doc, final XWikiContext context,
       final boolean bTransaction) throws XWikiException {
-    // XWikiHibernateStore.saveXWikiDoc requires a mutable docRef
-    DocRefMutabilityExecutor<Void> exec = new DocRefMutabilityExecutor<Void>() {
-
-      @Override
-      public Void call(XWikiDocument doc) throws XWikiException {
-        log(LogLevel.INFO, "saveXWikiDoc - start", doc);
-        documentStorePart.saveXWikiDoc(doc, context, bTransaction);
-        log(LogLevel.INFO, "saveXWikiDoc - end", doc);
-        return null;
-      }
-    };
     try {
-      exec.execute(doc);
+      log(LogLevel.INFO, "saveXWikiDoc - start", doc);
+      documentStorePart.saveXWikiDoc(doc, context, bTransaction);
+      log(LogLevel.INFO, "saveXWikiDoc - end", doc);
     } catch (HibernateException | XWikiException exc) {
       throw newXWikiException("saveXWikiDoc - failed", doc, exc,
           ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC);
@@ -90,24 +76,15 @@ public class CelHibernateStore extends XWikiHibernateStore {
     return idComputer;
   }
 
-  // TODO CELDEV-625 - CelHibernateStore reference mutation
   // TODO CELDEV-531 - improve load performance
   @Override
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, final XWikiContext context)
       throws XWikiException {
-    // XWikiHibernateStore.loadXWikiDoc requires a mutable docRef
-    DocRefMutabilityExecutor<XWikiDocument> exec = new DocRefMutabilityExecutor<XWikiDocument>() {
-
-      @Override
-      public XWikiDocument call(XWikiDocument doc) throws XWikiException {
-        log(LogLevel.INFO, "loadXWikiDoc - start", doc);
-        XWikiDocument ret = documentStorePart.loadXWikiDoc(doc, context);
-        log(LogLevel.INFO, "loadXWikiDoc - end", doc);
-        return ret;
-      }
-    };
     try {
-      return exec.execute(doc);
+      log(LogLevel.INFO, "loadXWikiDoc - start", doc);
+      XWikiDocument ret = documentStorePart.loadXWikiDoc(doc, context);
+      log(LogLevel.INFO, "loadXWikiDoc - end", doc);
+      return ret;
     } catch (HibernateException | XWikiException exc) {
       throw newXWikiException("loadXWikiDoc - failed", doc, exc,
           ERROR_XWIKI_STORE_HIBERNATE_READING_DOC);
@@ -295,58 +272,6 @@ public class CelHibernateStore extends XWikiHibernateStore {
 
   public ModelContext getModelContext() {
     return modelContext;
-  }
-
-  /**
-   * DocRefMutabilityExecutor is used to execute code for an {@link XWikiDocument} within
-   * {@link #call(XWikiDocument)} with a mutable {@link DocumentReference} injected. it will be set
-   * immutable again after execution.
-   */
-  private abstract class DocRefMutabilityExecutor<T> {
-
-    public T execute(XWikiDocument doc) throws XWikiException {
-      try {
-        injectMutableDocRef(doc);
-        return call(doc);
-      } finally {
-        injectImmutableDocRef(doc);
-      }
-    }
-
-    protected abstract T call(XWikiDocument doc) throws XWikiException;
-
-    private void injectMutableDocRef(XWikiDocument doc) {
-      injectRef(doc, new DocumentReference(doc.getDocumentReference()));
-    }
-
-    private void injectImmutableDocRef(XWikiDocument doc) {
-      DocumentReference docRef = new ImmutableDocumentReference(doc.getDocumentReference());
-      injectRefInDocAndObjects(doc, docRef);
-    }
-
-    private void injectRefInDocAndObjects(XWikiDocument doc, DocumentReference docRef) {
-      injectRef(doc, docRef);
-      // inject reference in objects
-      for (BaseObject obj : Iterables.concat(doc.getXObjects().values())) {
-        if (obj != null) {
-          obj.setDocumentReference(docRef);
-        }
-      }
-      // inject reference in parent doc
-      if (doc.getOriginalDocument() != null) {
-        injectRefInDocAndObjects(doc.getOriginalDocument(), docRef);
-      }
-    }
-
-    @SuppressWarnings("deprecation")
-    private void injectRef(XWikiDocument doc, DocumentReference docRef) {
-      boolean metaDataDirty = doc.isMetaDataDirty();
-      // set invalid docRef first to circumvent equals check in setDocumentReference
-      doc.setDocumentReference(new DocumentReference("$", "$", "$"));
-      doc.setDocumentReference(docRef);
-      doc.setMetaDataDirty(metaDataDirty); // is set true by setDocumentReference
-    }
-
   }
 
 }
