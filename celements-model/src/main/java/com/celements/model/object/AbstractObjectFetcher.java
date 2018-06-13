@@ -19,7 +19,6 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 @NotThreadSafe
 public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D, O>, D, O> extends
@@ -72,16 +71,16 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
     return builder.build();
   }
 
-  private Set<ClassIdentity> getObjectClasses() {
-    Set<ClassIdentity> classes = getQuery().getObjectClasses();
+  private Set<? extends ClassIdentity> getObjectClasses() {
+    Set<? extends ClassIdentity> classes = getQuery().getObjectClasses();
     if (classes.isEmpty()) {
-      classes = ImmutableSet.copyOf(getBridge().getDocClasses(getDocument()));
+      classes = getBridge().getDocClasses(getDocument()).toSet();
     }
     return classes;
   }
 
   private FluentIterable<O> getObjects(ClassIdentity classId) {
-    FluentIterable<O> objIter = FluentIterable.from(getBridge().getObjects(getDocument(), classId));
+    FluentIterable<O> objIter = getBridge().getObjects(getDocument(), classId);
     objIter = objIter.filter(Predicates.and(getQuery().getRestrictions(classId)));
     if (clone) {
       LOGGER.debug("{} clone objects", this);
