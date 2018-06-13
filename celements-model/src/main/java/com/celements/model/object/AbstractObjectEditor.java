@@ -1,5 +1,6 @@
 package com.celements.model.object;
 
+import static com.google.common.base.Preconditions.*;
 import static com.google.common.collect.FluentIterable.*;
 
 import java.util.List;
@@ -53,11 +54,8 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
   private O createFirst(boolean ifNotExists) {
     Optional<ClassIdentity> classId = from(getQuery().getObjectClasses()).first();
-    if (classId.isPresent()) {
-      return new ObjectCreateFunction(ifNotExists).apply(classId.get());
-    } else {
-      throw new IllegalArgumentException("no class defined");
-    }
+    checkArgument(classId.isPresent(), "no class defined");
+    return new ObjectCreateFunction(ifNotExists).apply(classId.get());
   }
 
   private class ObjectCreateFunction implements Function<ClassIdentity, O> {
