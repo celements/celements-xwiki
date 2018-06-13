@@ -20,7 +20,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 
 @NotThreadSafe
 public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D, O>, D, O> extends
@@ -57,7 +56,11 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
   @Override
   public FluentIterable<O> iter() {
-    return FluentIterable.from(Iterables.concat(map().values()));
+    FluentIterable<O> iter = FluentIterable.of();
+    for (ClassIdentity classId : getObjectClasses()) {
+      iter.append(getObjects(classId));
+    }
+    return iter;
   }
 
   @Override
@@ -86,7 +89,7 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
     }
     if (LOGGER.isTraceEnabled()) {
       LOGGER.trace("{} fetched for {}: {}", this, classId, objIter);
-    } else {
+    } else if (LOGGER.isInfoEnabled()) {
       LOGGER.info("{} fetched for {} {} objects", this, classId, objIter.size());
     }
     return objIter;
