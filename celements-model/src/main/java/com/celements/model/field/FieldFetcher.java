@@ -8,19 +8,30 @@ import java.util.List;
 import javax.validation.constraints.NotNull;
 
 import com.celements.model.classes.fields.ClassField;
+import com.celements.model.object.ObjectFetcher;
 import com.celements.model.util.Fetchable;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 
 public class FieldFetcher<O, T> implements Fetchable<T> {
 
-  private final FieldGetterFunction<O, T> fieldGetterFunc;
-  private final FluentIterable<O> objects;
+  private final FieldAccessor<O> fieldAccessor;
+  private final ObjectFetcher<?, O> objFetcher;
+  private final ClassField<T> field;
 
-  public FieldFetcher(@NotNull FieldAccessor<O> fieldAccessor, @NotNull FluentIterable<O> objects,
-      @NotNull ClassField<T> field) {
-    fieldGetterFunc = new FieldGetterFunction<>(checkNotNull(fieldAccessor), checkNotNull(field));
-    this.objects = checkNotNull(objects);
+  public FieldFetcher(@NotNull FieldAccessor<O> fieldAccessor,
+      @NotNull ObjectFetcher<?, O> objFetcher, @NotNull ClassField<T> field) {
+    this.fieldAccessor = checkNotNull(fieldAccessor);
+    this.objFetcher = checkNotNull(objFetcher);
+    this.field = checkNotNull(field);
+  }
+
+  public FluentIterable<O> getObjects() {
+    return objFetcher.iter();
+  }
+
+  public ClassField<T> getField() {
+    return field;
   }
 
   @Override
@@ -38,6 +49,11 @@ public class FieldFetcher<O, T> implements Fetchable<T> {
     return iter().first();
   }
 
+  public @NotNull Optional<T> fromFirstObject() {
+    Optional<O> obj = objFetcher.first();
+    return obj.isPresent() ? fieldAccessor.getValue(obj.get(), field) : Optional.<T>absent();
+  }
+
   @Override
   public List<T> list() {
     return iter().toList();
@@ -45,7 +61,11 @@ public class FieldFetcher<O, T> implements Fetchable<T> {
 
   @Override
   public FluentIterable<T> iter() {
-    return objects.transform(fieldGetterFunc).filter(notNull());
+    return iterNullable().filter(notNull());
+  }
+
+  public @NotNull FluentIterable<T> iterNullable() {
+    return objFetcher.iter().transform(new FieldGetterFunction<>(fieldAccessor, field));
   }
 
 }
