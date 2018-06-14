@@ -48,6 +48,11 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
+  public O single() {
+    return iter().iterator().next();
+  }
+
+  @Override
   public List<O> list() {
     return iter().toList();
   }

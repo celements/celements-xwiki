@@ -1,6 +1,7 @@
 package com.celements.model.util;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import javax.validation.constraints.NotNull;
@@ -29,6 +30,14 @@ public interface Fetchable<T> {
    */
   @NotNull
   Optional<T> first();
+
+  /**
+   * @return the single element to fetch
+   * @throws NoSuchElementException
+   *           if no single object exists
+   */
+  @NotNull
+  T single();
 
   /**
    * @return a {@link List} of all fetched elements

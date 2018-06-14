@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -239,7 +240,7 @@ public class ObjectFetcherTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_fetchFirst() throws Exception {
+  public void test_fetch_first() throws Exception {
     BaseObject obj1 = addObj(classRef, null, null);
     addObj(classRef2, null, null);
     addObj(classRef, null, null);
@@ -249,9 +250,29 @@ public class ObjectFetcherTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_fetchFirst_none() throws Exception {
+  public void test_fetch_first_none() throws Exception {
     Optional<BaseObject> ret = newFetcher().first();
     assertFalse(ret.isPresent());
+  }
+
+  @Test
+  public void test_fetch_single() throws Exception {
+    BaseObject obj1 = addObj(classRef, null, null);
+    addObj(classRef2, null, null);
+    addObj(classRef, null, null);
+    BaseObject ret = newFetcher().single();
+    assertEqualObjs(obj1, ret);
+  }
+
+  @Test
+  public void test_fetch_single_none() throws Exception {
+    new ExceptionAsserter<NoSuchElementException>(NoSuchElementException.class) {
+
+      @Override
+      protected void execute() throws NoSuchElementException {
+        newFetcher().single();
+      }
+    }.evaluate();
   }
 
   @Test

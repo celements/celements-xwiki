@@ -56,6 +56,11 @@ public class FieldGetter<O, T> implements Fetchable<T> {
   }
 
   @Override
+  public T single() {
+    return iter().iterator().next();
+  }
+
+  @Override
   public List<T> list() {
     return iter().toList();
   }
