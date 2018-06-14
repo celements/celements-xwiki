@@ -32,13 +32,16 @@ public abstract class AbstractObjectHandler<R extends AbstractObjectHandler<R, D
   }
 
   @Override
-  public String toString() {
-    return this.getClass().getSimpleName() + " [doc=" + getDocRef() + ", query=" + getQuery() + "]";
-  }
-
-  @Override
   protected abstract @NotNull ObjectBridge<D, O> getBridge();
 
   protected abstract @NotNull FieldAccessor<O> getFieldAccessor();
+
+  @Override
+  public abstract AbstractObjectHandler<?, D, O> clone();
+
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName() + " [doc=" + getDocRef() + ", query=" + getQuery() + "]";
+  }
 
 }

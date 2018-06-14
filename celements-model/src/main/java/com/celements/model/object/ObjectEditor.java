@@ -69,8 +69,15 @@ public interface ObjectEditor<D, O> extends ObjectHandler<D, O> {
   @NotNull
   ObjectFetcher<D, O> fetch();
 
-  <T> FieldSetter<O, T> field(ClassField<T> field);
+  /**
+   * @param field
+   * @return {@link FieldSetter} which sets values for {@code field} on the queried objects
+   */
+  @NotNull
+  <T> FieldSetter<O, T> setField(@NotNull ClassField<T> field);
 
-  <T> List<FieldSetter<O, T>> fields(List<ClassField<T>> fields);
+  @NotNull
+  @Override
+  ObjectEditor<D, O> clone();
 
 }

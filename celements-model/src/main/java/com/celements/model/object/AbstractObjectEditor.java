@@ -19,8 +19,6 @@ import com.celements.model.object.restriction.FieldRestriction;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 
 @NotThreadSafe
 public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, O>, D, O> extends
@@ -125,18 +123,11 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
   public abstract AbstractObjectFetcher<?, D, O> fetch();
 
   @Override
-  public <T> FieldSetter<O, T> field(ClassField<T> field) {
-    return new FieldSetter<>(getFieldAccessor(), fetch().iter(), field);
+  public <T> FieldSetter<O, T> setField(ClassField<T> field) {
+    return new FieldSetter<>(getFieldAccessor(), fetch().filter(field.getClassDef()), field);
   }
 
   @Override
-  public <T> List<FieldSetter<O, T>> fields(List<ClassField<T>> fields) {
-    FluentIterable<O> objects = fetch().iter();
-    ImmutableList.Builder<FieldSetter<O, T>> builder = ImmutableList.builder();
-    for (ClassField<T> field : fields) {
-      builder.add(new FieldSetter<>(getFieldAccessor(), objects, field));
-    }
-    return builder.build();
-  }
+  public abstract AbstractObjectEditor<?, D, O> clone();
 
 }

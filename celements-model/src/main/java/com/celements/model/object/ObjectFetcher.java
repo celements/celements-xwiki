@@ -27,8 +27,15 @@ public interface ObjectFetcher<D, O> extends ObjectHandler<D, O>, Fetchable<O> {
   @NotNull
   Map<ClassIdentity, List<O>> map();
 
-  <T> FieldFetcher<O, T> field(ClassField<T> field);
+  /**
+   * @param field
+   * @return {@link FieldFetcher} which gets values for {@code field} from the queried objects
+   */
+  @NotNull
+  <T> FieldFetcher<O, T> fetchField(@NotNull ClassField<T> field);
 
-  <T> List<FieldFetcher<O, T>> fields(List<ClassField<T>> fields);
+  @NotNull
+  @Override
+  ObjectFetcher<D, O> clone();
 
 }

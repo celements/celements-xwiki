@@ -17,7 +17,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 @NotThreadSafe
@@ -57,7 +56,7 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   public FluentIterable<O> iter() {
     FluentIterable<O> iter = FluentIterable.of();
     for (ClassIdentity classId : getObjectClasses()) {
-      iter.append(getObjects(classId));
+      iter = iter.append(getObjects(classId));
     }
     return iter;
   }
@@ -111,18 +110,11 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
-  public <T> FieldFetcher<O, T> field(ClassField<T> field) {
-    return new FieldFetcher<>(getFieldAccessor(), iter(), field);
+  public <T> FieldFetcher<O, T> fetchField(ClassField<T> field) {
+    return new FieldFetcher<>(getFieldAccessor(), this.clone().filter(field.getClassDef()), field);
   }
 
   @Override
-  public <T> List<FieldFetcher<O, T>> fields(List<ClassField<T>> fields) {
-    FluentIterable<O> objects = iter();
-    ImmutableList.Builder<FieldFetcher<O, T>> builder = ImmutableList.builder();
-    for (ClassField<T> field : fields) {
-      builder.add(new FieldFetcher<>(getFieldAccessor(), objects, field));
-    }
-    return builder.build();
-  }
+  public abstract AbstractObjectFetcher<?, D, O> clone();
 
 }

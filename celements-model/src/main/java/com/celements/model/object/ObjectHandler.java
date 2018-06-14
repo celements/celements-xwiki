@@ -15,7 +15,7 @@ import com.celements.model.object.restriction.ObjectQuery;
  * @param <O>
  *          object type
  */
-public interface ObjectHandler<D, O> {
+public interface ObjectHandler<D, O> extends Cloneable {
 
   @NotNull
   DocumentReference getDocRef();
@@ -28,5 +28,8 @@ public interface ObjectHandler<D, O> {
    */
   @NotNull
   ObjectQuery<O> getQuery();
+
+  @NotNull
+  ObjectHandler<D, O> clone();
 
 }

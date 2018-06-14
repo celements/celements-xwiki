@@ -46,6 +46,11 @@ public class XWikiObjectFetcher extends
   }
 
   @Override
+  public XWikiObjectFetcher clone() {
+    return from(getThis());
+  }
+
+  @Override
   protected XWikiObjectFetcher getThis() {
     return this;
   }

@@ -48,6 +48,11 @@ public class XWikiObjectEditor extends
   }
 
   @Override
+  public XWikiObjectEditor clone() {
+    return from(getThis());
+  }
+
+  @Override
   protected XWikiObjectEditor getThis() {
     return this;
   }
