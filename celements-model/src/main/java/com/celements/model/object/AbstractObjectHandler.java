@@ -7,7 +7,6 @@ import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.DocumentReference;
 
-import com.celements.model.field.FieldAccessor;
 import com.celements.model.object.restriction.ObjectQueryBuilder;
 
 @NotThreadSafe
@@ -33,8 +32,6 @@ public abstract class AbstractObjectHandler<R extends AbstractObjectHandler<R, D
 
   @Override
   protected abstract @NotNull ObjectBridge<D, O> getBridge();
-
-  protected abstract @NotNull FieldAccessor<O> getFieldAccessor();
 
   @Override
   public abstract AbstractObjectHandler<?, D, O> clone();

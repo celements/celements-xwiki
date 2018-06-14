@@ -116,7 +116,8 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
   @Override
   public <T> FieldGetter<O, T> fetchField(ClassField<T> field) {
-    return new FieldGetter<>(getFieldAccessor(), this.clone().filter(field.getClassDef()), field);
+    return new FieldGetter<>(getBridge().getFieldAccessor(), this.clone().filter(
+        field.getClassDef()), field);
   }
 
   @Override
