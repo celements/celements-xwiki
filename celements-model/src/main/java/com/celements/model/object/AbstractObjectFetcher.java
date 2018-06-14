@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
-import com.celements.model.field.FieldFetcher;
+import com.celements.model.field.FieldGetter;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
@@ -110,8 +110,8 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
-  public <T> FieldFetcher<O, T> fetchField(ClassField<T> field) {
-    return new FieldFetcher<>(getFieldAccessor(), this.clone().filter(field.getClassDef()), field);
+  public <T> FieldGetter<O, T> fetchField(ClassField<T> field) {
+    return new FieldGetter<>(getFieldAccessor(), this.clone().filter(field.getClassDef()), field);
   }
 
   @Override

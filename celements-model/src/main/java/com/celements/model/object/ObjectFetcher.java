@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
-import com.celements.model.field.FieldFetcher;
+import com.celements.model.field.FieldGetter;
 import com.celements.model.util.Fetchable;
 
 /**
@@ -29,10 +29,10 @@ public interface ObjectFetcher<D, O> extends ObjectHandler<D, O>, Fetchable<O> {
 
   /**
    * @param field
-   * @return {@link FieldFetcher} which gets values for {@code field} from the queried objects
+   * @return {@link FieldGetter} which gets values for {@code field} from the queried objects
    */
   @NotNull
-  <T> FieldFetcher<O, T> fetchField(@NotNull ClassField<T> field);
+  <T> FieldGetter<O, T> fetchField(@NotNull ClassField<T> field);
 
   @NotNull
   @Override

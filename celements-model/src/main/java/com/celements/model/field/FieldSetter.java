@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.ObjectFetcher;
 import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
 
 public class FieldSetter<O, T> {
 
@@ -20,6 +21,14 @@ public class FieldSetter<O, T> {
     this.fieldAccessor = checkNotNull(fieldAccessor);
     this.objFetcher = checkNotNull(objFetcher);
     this.field = checkNotNull(field);
+  }
+
+  public FluentIterable<O> getObjects() {
+    return objFetcher.iter();
+  }
+
+  public ClassField<T> getField() {
+    return field;
   }
 
   public boolean first(@Nullable T value) {

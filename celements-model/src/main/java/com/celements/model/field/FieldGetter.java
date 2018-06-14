@@ -13,13 +13,13 @@ import com.celements.model.util.Fetchable;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 
-public class FieldFetcher<O, T> implements Fetchable<T> {
+public class FieldGetter<O, T> implements Fetchable<T> {
 
   private final FieldAccessor<O> fieldAccessor;
   private final ObjectFetcher<?, O> objFetcher;
   private final ClassField<T> field;
 
-  public FieldFetcher(@NotNull FieldAccessor<O> fieldAccessor,
+  public FieldGetter(@NotNull FieldAccessor<O> fieldAccessor,
       @NotNull ObjectFetcher<?, O> objFetcher, @NotNull ClassField<T> field) {
     this.fieldAccessor = checkNotNull(fieldAccessor);
     this.objFetcher = checkNotNull(objFetcher);
