@@ -4,6 +4,7 @@ import static com.celements.model.classes.TestClassDefinition.*;
 import static com.google.common.base.MoreObjects.*;
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -333,6 +334,50 @@ public class ObjectFetcherTest extends AbstractComponentTest {
       }
     }.evaluate();
     assertObjs(newFetcher(), obj);
+  }
+
+  @Test
+  public void test_fetchField_noObj() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+
+    assertEquals(newFetcher().fetchField(field).exists(), false);
+    assertEquals(newFetcher().fetchField(field).count(), 0);
+    assertEquals(newFetcher().fetchField(field).first().isPresent(), false);
+    assertEquals(newFetcher().fetchField(field).list(), Collections.emptyList());
+  }
+
+  @Test
+  public void test_fetchField_oneObj() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+    String val = "val";
+    addObj(classRef, field, val);
+
+    assertEquals(newFetcher().fetchField(field).exists(), true);
+    assertEquals(newFetcher().fetchField(field).count(), 1);
+    assertEquals(newFetcher().fetchField(field).first().get(), val);
+    assertEquals(newFetcher().fetchField(field).fromFirstObject().get(), val);
+    assertEquals(newFetcher().fetchField(field).list(), Arrays.asList(val));
+  }
+
+  @Test
+  public void test_fetchField_manyObj() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+    String val1 = "val1";
+    String val2 = "val2";
+    addObj(classRef2, field, val1);
+    addObj(classRef, null, null);
+    addObj(classRef, field, val1);
+    addObj(classRef, null, null);
+    addObj(classRef, field, val2);
+    addObj(classRef2, field, val2);
+
+    assertEquals(newFetcher().fetchField(field).exists(), true);
+    assertEquals(newFetcher().fetchField(field).count(), 2);
+    assertEquals(newFetcher().fetchField(field).first().get(), val1);
+    assertEquals(newFetcher().fetchField(field).fromFirstObject().isPresent(), false);
+    assertEquals(newFetcher().fetchField(field).list(), Arrays.asList(val1, val2));
+    assertEquals(newFetcher().fetchField(field).iterNullable().copyInto(new ArrayList<>()),
+        Arrays.asList(null, val1, null, val2));
   }
 
   private <T> BaseObject addObj(ClassReference classRef, ClassField<T> field, T value) {
