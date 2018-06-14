@@ -53,6 +53,11 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
+  public Set<O> set() {
+    return iter().toSet();
+  }
+
+  @Override
   public FluentIterable<O> iter() {
     FluentIterable<O> iter = FluentIterable.of();
     for (ClassIdentity classId : getObjectClasses()) {

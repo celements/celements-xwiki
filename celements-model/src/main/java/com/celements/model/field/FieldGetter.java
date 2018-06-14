@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Predicates.*;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 
@@ -57,6 +58,11 @@ public class FieldGetter<O, T> implements Fetchable<T> {
   @Override
   public List<T> list() {
     return iter().toList();
+  }
+
+  @Override
+  public Set<T> set() {
+    return iter().toSet();
   }
 
   @Override

@@ -1,6 +1,7 @@
 package com.celements.model.util;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 
@@ -34,6 +35,12 @@ public interface Fetchable<T> {
    */
   @NotNull
   List<T> list();
+
+  /**
+   * @return a {@link Set} of all fetched elements
+   */
+  @NotNull
+  Set<T> set();
 
   /**
    * @return an {@link Iterable} for all fetched elements
