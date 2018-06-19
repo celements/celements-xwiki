@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
@@ -84,20 +85,11 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
      */
     @Deprecated
     @Override
-    public void setName(String name)
-    {
-        DocumentReference reference = getDocumentReference();
-
-        if (reference != null) {
-            // Make sure to not modify a reference that could comes from somewhere else
-            reference = new DocumentReference(reference);
-            EntityReference relativeReference = this.relativeEntityReferenceResolver.resolve(name, EntityType.DOCUMENT);
-            reference.getLastSpaceReference().setName(relativeReference.extractReference(EntityType.SPACE).getName());
-            reference.setName(relativeReference.extractReference(EntityType.DOCUMENT).getName());
-        } else {
-            reference = this.currentMixedDocumentReferenceResolver.resolve(name);
-        }
-        setDocumentReference(reference);
+    public void setName(String name) {
+      if (StringUtils.isNotBlank(name) && !name.equals(getName())) {
+        setDocumentReference(currentMixedDocumentReferenceResolver.resolve(name,
+            getDocumentReference()));
+      }
     }
 
     /**

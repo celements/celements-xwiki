@@ -126,24 +126,13 @@ public class BaseClass extends BaseCollection implements ClassInterface
      */
     @Deprecated
     @Override
-    public void setName(String name)
-    {
-        if (this instanceof MetaClass || this instanceof PropertyMetaClass) {
-            super.setName(name);
-        } else {
-            DocumentReference reference = getDocumentReference();
-
-            if (reference != null) {
-                EntityReference relativeReference =
-                    this.relativeEntityReferenceResolver.resolve(name, EntityType.DOCUMENT);
-                reference.getLastSpaceReference()
-                    .setName(relativeReference.extractReference(EntityType.SPACE).getName());
-                reference.setName(relativeReference.extractReference(EntityType.DOCUMENT).getName());
-            } else {
-                reference = this.currentMixedDocumentReferenceResolver.resolve(name);
-            }
-            setDocumentReference(reference);
-        }
+    public void setName(String name) {
+      if (this instanceof MetaClass || this instanceof PropertyMetaClass) {
+          super.setName(name);
+      } else if (StringUtils.isNotBlank(name) && !name.equals(getName())) {
+        setDocumentReference(currentMixedDocumentReferenceResolver.resolve(name,
+            getDocumentReference()));
+      }
     }
 
     /**
