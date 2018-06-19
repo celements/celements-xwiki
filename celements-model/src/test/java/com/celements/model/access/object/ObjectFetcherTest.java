@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -244,35 +243,68 @@ public class ObjectFetcherTest extends AbstractComponentTest {
     BaseObject obj1 = addObj(classRef, null, null);
     addObj(classRef2, null, null);
     addObj(classRef, null, null);
-    Optional<BaseObject> ret = newFetcher().first();
+    Optional<BaseObject> ret = newFetcher().filter(classRef).first();
     assertTrue(ret.isPresent());
     assertEqualObjs(obj1, ret.get());
   }
 
   @Test
   public void test_fetch_first_none() throws Exception {
-    Optional<BaseObject> ret = newFetcher().first();
+    Optional<BaseObject> ret = newFetcher().filter(classRef).first();
     assertFalse(ret.isPresent());
   }
 
   @Test
-  public void test_fetch_single() throws Exception {
+  public void test_fetch_firstAssert() throws Exception {
     BaseObject obj1 = addObj(classRef, null, null);
     addObj(classRef2, null, null);
     addObj(classRef, null, null);
-    BaseObject ret = newFetcher().single();
+    BaseObject ret = newFetcher().filter(classRef).firstAssert();
     assertEqualObjs(obj1, ret);
   }
 
   @Test
-  public void test_fetch_single_none() throws Exception {
-    new ExceptionAsserter<NoSuchElementException>(NoSuchElementException.class) {
+  public void test_fetch_firstAssert_none() throws Exception {
+    addObj(classRef2, null, null);
+    assertTrue(new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
 
       @Override
-      protected void execute() throws NoSuchElementException {
-        newFetcher().single();
+      protected void execute() throws IllegalArgumentException {
+        newFetcher().filter(classRef).firstAssert();
       }
-    }.evaluate();
+    }.evaluate().getMessage().startsWith("empty"));
+  }
+
+  @Test
+  public void test_fetch_unique() throws Exception {
+    BaseObject obj1 = addObj(classRef, null, null);
+    addObj(classRef2, null, null);
+    BaseObject ret = newFetcher().filter(classRef).unique();
+    assertEqualObjs(obj1, ret);
+  }
+
+  @Test
+  public void test_fetch_unique_none() throws Exception {
+    assertTrue(new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+
+      @Override
+      protected void execute() throws IllegalArgumentException {
+        newFetcher().filter(classRef).unique();
+      }
+    }.evaluate().getMessage().startsWith("empty"));
+  }
+
+  @Test
+  public void test_fetch_unique_multiple() throws Exception {
+    addObj(classRef, null, null);
+    addObj(classRef, null, null);
+    assertTrue(new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+
+      @Override
+      protected void execute() throws IllegalArgumentException {
+        newFetcher().filter(classRef).unique();
+      }
+    }.evaluate().getMessage().startsWith("non unique"));
   }
 
   @Test
