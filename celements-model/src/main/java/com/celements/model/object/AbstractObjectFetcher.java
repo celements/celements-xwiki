@@ -1,5 +1,8 @@
 package com.celements.model.object;
 
+import static com.google.common.base.Preconditions.*;
+
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,8 +51,19 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
-  public O single() {
-    return iter().iterator().next();
+  public O firstAssert() {
+    Optional<O> ret = first();
+    checkArgument(ret.isPresent(), "empty - %s", this);
+    return ret.get();
+  }
+
+  @Override
+  public O unique() {
+    Iterator<O> iter = iter().iterator();
+    checkArgument(iter.hasNext(), "empty - %s", this);
+    O ret = iter.next();
+    checkArgument(!iter.hasNext(), "non unique - %s", this);
+    return ret;
   }
 
   @Override

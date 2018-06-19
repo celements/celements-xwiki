@@ -3,6 +3,7 @@ package com.celements.model.field;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Predicates.*;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -56,8 +57,19 @@ public class FieldGetter<O, T> implements Fetchable<T> {
   }
 
   @Override
-  public T single() {
-    return iter().iterator().next();
+  public T firstAssert() {
+    Optional<T> ret = first();
+    checkArgument(ret.isPresent(), "empty - %s", this);
+    return ret.get();
+  }
+
+  @Override
+  public T unique() {
+    Iterator<T> iter = iter().iterator();
+    checkArgument(iter.hasNext(), "empty - %s", this);
+    T ret = iter.next();
+    checkArgument(!iter.hasNext(), "non unique - %s", this);
+    return ret;
   }
 
   @Override
