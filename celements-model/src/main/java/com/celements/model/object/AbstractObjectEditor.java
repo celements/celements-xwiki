@@ -1,7 +1,9 @@
 package com.celements.model.object;
 
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.collect.FluentIterable.*;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +20,6 @@ import com.celements.model.object.restriction.FieldRestriction;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 
 @NotThreadSafe
 public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, O>, D, O> extends
@@ -44,8 +45,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
   }
 
   private Map<ClassIdentity, O> create(boolean ifNotExists) {
-    return FluentIterable.from(getQuery().getObjectClasses()).toMap(new ObjectCreateFunction(
-        ifNotExists));
+    return from(getQuery().getObjectClasses()).toMap(new ObjectCreateFunction(ifNotExists));
   }
 
   @Override
@@ -59,8 +59,8 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
   }
 
   private O createFirst(boolean ifNotExists) {
-    Optional<ClassIdentity> classId = FluentIterable.from(getQuery().getObjectClasses()).first();
-    checkArgument(classId.isPresent(), "no class defined");
+    Optional<ClassIdentity> classId = from(getQuery().getObjectClasses()).first();
+    checkArgument(classId.isPresent(), "no class defined - %s", this);
     return new ObjectCreateFunction(ifNotExists).apply(classId.get());
   }
 
@@ -81,7 +81,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
       if (obj == null) {
         obj = getBridge().createObject(getDocument(), classId);
         for (FieldRestriction<O, ?> restriction : getQuery().getFieldRestrictions(classId)) {
-          setFieldFromRestriction(obj, restriction);
+          setField(obj, restriction);
         }
         LOGGER.info("{} created object {} for {}", AbstractObjectEditor.this,
             getBridge().getObjectNumber(obj), classId);
@@ -89,8 +89,8 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
       return obj;
     }
 
-    <T> void setFieldFromRestriction(O obj, FieldRestriction<O, T> restriction) {
-      T value = FluentIterable.from(restriction.getValues()).first().get();
+    <T> void setField(O obj, FieldRestriction<O, T> restriction) {
+      T value = from(restriction.getValues()).first().get();
       getBridge().getFieldAccessor().setValue(obj, restriction.getField(), value);
       LOGGER.debug("{} set field {} on created object to value", AbstractObjectEditor.this,
           restriction.getField(), value);
@@ -100,7 +100,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
   @Override
   public List<O> delete() {
-    return FluentIterable.from(fetch().list()).filter(new ObjectDeletePredicate()).toList();
+    return from(fetch().list()).filter(new ObjectDeletePredicate()).toList();
   }
 
   @Override
@@ -128,14 +128,14 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
   @Override
   public <T> FieldEditor<T> editField(final ClassField<T> field) {
-    final FluentIterable<O> iter = fetch().filter(field.getClassDef()).iter();
+    final Iterable<O> objects = fetch().filter(field.getClassDef()).iter();
     return new FieldEditor<T>() {
 
       @Override
       public boolean first(@Nullable T value) {
-        Optional<O> obj = iter.first();
-        if (obj.isPresent()) {
-          return getBridge().getFieldAccessor().setValue(obj.get(), field, value);
+        Iterator<O> iter = objects.iterator();
+        if (iter.hasNext()) {
+          return getBridge().getFieldAccessor().setValue(iter.next(), field, value);
         }
         return false;
       }
@@ -143,7 +143,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
       @Override
       public boolean all(@Nullable final T value) {
         boolean changed = false;
-        for (O obj : iter) {
+        for (O obj : objects) {
           changed |= getBridge().getFieldAccessor().setValue(obj, field, value);
         }
         return changed;

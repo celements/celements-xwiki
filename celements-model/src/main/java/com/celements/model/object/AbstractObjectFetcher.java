@@ -133,7 +133,7 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
   @Override
   public <T> FieldFetcher<T> fetchField(final ClassField<T> field) {
-    final FluentIterable<O> iter = clone().filter(field.getClassDef()).iter();
+    final FluentIterable<O> objects = clone().filter(field.getClassDef()).iter();
     return new FieldFetcher<T>() {
 
       @Override
@@ -158,7 +158,7 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
       @Override
       public FluentIterable<T> iterNullable() {
-        return iter.transform(new FieldGetterFunction<>(getBridge().getFieldAccessor(), field));
+        return objects.transform(new FieldGetterFunction<>(getBridge().getFieldAccessor(), field));
       }
     };
   }
