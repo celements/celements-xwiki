@@ -3,11 +3,11 @@ package com.celements.model.object;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
-import com.celements.model.field.FieldSetter;
 import com.google.common.base.Optional;
 
 /**
@@ -20,6 +20,10 @@ import com.google.common.base.Optional;
  *          object type
  */
 public interface ObjectEditor<D, O> extends ObjectHandler<D, O> {
+
+  @NotNull
+  @Override
+  ObjectEditor<D, O> clone();
 
   /**
    * creates all objects defined by the query and also sets fields if any
@@ -71,13 +75,29 @@ public interface ObjectEditor<D, O> extends ObjectHandler<D, O> {
 
   /**
    * @param field
-   * @return {@link FieldSetter} which sets values for {@code field} on the queried objects
+   * @return {@link FieldEditor} which edits values for {@code field} on the queried objects
    */
   @NotNull
-  <T> FieldSetter<O, T> setField(@NotNull ClassField<T> field);
+  <T> FieldEditor<T> editField(@NotNull ClassField<T> field);
 
-  @NotNull
-  @Override
-  ObjectEditor<D, O> clone();
+  interface FieldEditor<T> {
+
+    /**
+     * sets the field to {@code value} for the first object
+     *
+     * @param value
+     * @return if the object has changed
+     */
+    public boolean first(@Nullable T value);
+
+    /**
+     * sets the field to {@code value} for all objects
+     *
+     * @param value
+     * @return if at least one object has changed
+     */
+    public boolean all(@Nullable final T value);
+
+  }
 
 }

@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.*;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.NotNull;
 
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
-import com.celements.model.field.FieldSetter;
 import com.celements.model.object.restriction.FieldRestriction;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -29,6 +29,9 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
   protected AbstractObjectEditor(@NotNull D doc) {
     super(doc);
   }
+
+  @Override
+  public abstract AbstractObjectEditor<?, D, O> clone();
 
   @Override
   public Map<ClassIdentity, O> create() {
@@ -124,12 +127,28 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
   public abstract AbstractObjectFetcher<?, D, O> fetch();
 
   @Override
-  public <T> FieldSetter<O, T> setField(ClassField<T> field) {
-    return new FieldSetter<>(getBridge().getFieldAccessor(), fetch().filter(field.getClassDef()),
-        field);
-  }
+  public <T> FieldEditor<T> editField(final ClassField<T> field) {
+    final FluentIterable<O> iter = fetch().filter(field.getClassDef()).iter();
+    return new FieldEditor<T>() {
 
-  @Override
-  public abstract AbstractObjectEditor<?, D, O> clone();
+      @Override
+      public boolean first(@Nullable T value) {
+        Optional<O> obj = iter.first();
+        if (obj.isPresent()) {
+          return getBridge().getFieldAccessor().setValue(obj.get(), field, value);
+        }
+        return false;
+      }
+
+      @Override
+      public boolean all(@Nullable final T value) {
+        boolean changed = false;
+        for (O obj : iter) {
+          changed |= getBridge().getFieldAccessor().setValue(obj, field, value);
+        }
+        return changed;
+      }
+    };
+  }
 
 }

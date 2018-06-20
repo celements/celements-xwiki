@@ -28,6 +28,11 @@ public class XWikiObjectFetcher extends
   }
 
   @Override
+  public XWikiObjectFetcher clone() {
+    return from(getThis());
+  }
+
+  @Override
   protected XWikiObjectFetcher disableCloning() {
     return super.disableCloning();
   }
@@ -35,11 +40,6 @@ public class XWikiObjectFetcher extends
   @Override
   protected XWikiObjectBridge getBridge() {
     return (XWikiObjectBridge) Utils.getComponent(ObjectBridge.class, XWikiObjectBridge.NAME);
-  }
-
-  @Override
-  public XWikiObjectFetcher clone() {
-    return from(getThis());
   }
 
   @Override

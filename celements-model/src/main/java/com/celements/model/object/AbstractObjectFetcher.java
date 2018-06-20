@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
-import com.celements.model.field.FieldGetter;
+import com.celements.model.field.FieldGetterFunction;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
@@ -34,6 +34,9 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
     super(doc);
     this.clone = true;
   }
+
+  @Override
+  public abstract AbstractObjectFetcher<?, D, O> clone();
 
   @Override
   public boolean exists() {
@@ -69,11 +72,6 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   @Override
   public List<O> list() {
     return iter().toList();
-  }
-
-  @Override
-  public Set<O> set() {
-    return iter().toSet();
   }
 
   @Override
@@ -134,12 +132,35 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
-  public <T> FieldGetter<O, T> fetchField(ClassField<T> field) {
-    return new FieldGetter<>(getBridge().getFieldAccessor(), this.clone().filter(
-        field.getClassDef()), field);
-  }
+  public <T> FieldFetcher<T> fetchField(final ClassField<T> field) {
+    final FluentIterable<O> iter = clone().filter(field.getClassDef()).iter();
+    return new FieldFetcher<T>() {
 
-  @Override
-  public abstract AbstractObjectFetcher<?, D, O> clone();
+      @Override
+      public Optional<T> first() {
+        return iter().first();
+      }
+
+      @Override
+      public List<T> list() {
+        return iter().toList();
+      }
+
+      @Override
+      public Set<T> set() {
+        return iter().toSet();
+      }
+
+      @Override
+      public FluentIterable<T> iter() {
+        return iterNullable().filter(Predicates.notNull());
+      }
+
+      @Override
+      public FluentIterable<T> iterNullable() {
+        return iter.transform(new FieldGetterFunction<>(getBridge().getFieldAccessor(), field));
+      }
+    };
+  }
 
 }

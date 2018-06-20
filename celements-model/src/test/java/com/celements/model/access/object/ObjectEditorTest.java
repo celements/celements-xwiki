@@ -357,18 +357,18 @@ public class ObjectEditorTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_setField_noObj() throws Exception {
+  public void test_editField_noObj() throws Exception {
     ClassField<String> field = FIELD_MY_STRING;
     String val = "val";
     addObj(classRef2, null, null);
 
-    assertEquals(newEditor().setField(field).first(val), false);
-    assertEquals(newEditor().setField(field).all(val), false);
+    assertEquals(newEditor().editField(field).first(val), false);
+    assertEquals(newEditor().editField(field).all(val), false);
 
   }
 
   @Test
-  public void test_setField_first() throws Exception {
+  public void test_editField_first() throws Exception {
     ClassField<String> field = FIELD_MY_STRING;
     String val = "val";
     addObj(classRef2, null, null);
@@ -377,13 +377,13 @@ public class ObjectEditorTest extends AbstractComponentTest {
     XWikiObjectEditor editor = newEditor();
 
     replayDefault();
-    assertEquals(editor.setField(field).first(val), true);
+    assertEquals(editor.editField(field).first(val), true);
     verifyDefault();
     assertEquals(editor.fetch().fetchField(field).list(), Arrays.asList(val));
   }
 
   @Test
-  public void test_setField_all() throws Exception {
+  public void test_editField_all() throws Exception {
     ClassField<String> field = FIELD_MY_STRING;
     String val = "val";
     addObj(classRef2, null, null);
@@ -392,7 +392,7 @@ public class ObjectEditorTest extends AbstractComponentTest {
     XWikiObjectEditor editor = newEditor();
 
     replayDefault();
-    assertEquals(editor.setField(field).all(val), true);
+    assertEquals(editor.editField(field).all(val), true);
     verifyDefault();
     assertEquals(editor.fetch().fetchField(field).list(), Arrays.asList(val, val));
   }

@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mutabilitydetector.internal.com.google.common.collect.ImmutableSet;
 import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
@@ -393,10 +394,9 @@ public class ObjectFetcherTest extends AbstractComponentTest {
   public void test_fetchField_noObj() throws Exception {
     ClassField<String> field = FIELD_MY_STRING;
 
-    assertEquals(newFetcher().fetchField(field).exists(), false);
-    assertEquals(newFetcher().fetchField(field).count(), 0);
     assertEquals(newFetcher().fetchField(field).first().isPresent(), false);
     assertEquals(newFetcher().fetchField(field).list(), Collections.emptyList());
+    assertEquals(newFetcher().fetchField(field).set(), Collections.emptySet());
   }
 
   @Test
@@ -405,11 +405,9 @@ public class ObjectFetcherTest extends AbstractComponentTest {
     String val = "val";
     addObj(classRef, field, val);
 
-    assertEquals(newFetcher().fetchField(field).exists(), true);
-    assertEquals(newFetcher().fetchField(field).count(), 1);
     assertEquals(newFetcher().fetchField(field).first().get(), val);
-    assertEquals(newFetcher().fetchField(field).fromFirstObject().get(), val);
     assertEquals(newFetcher().fetchField(field).list(), Arrays.asList(val));
+    assertEquals(newFetcher().fetchField(field).set(), ImmutableSet.of(val));
   }
 
   @Test
@@ -423,14 +421,13 @@ public class ObjectFetcherTest extends AbstractComponentTest {
     addObj(classRef, null, null);
     addObj(classRef, field, val2);
     addObj(classRef2, field, val2);
+    addObj(classRef, field, val1);
 
-    assertEquals(newFetcher().fetchField(field).exists(), true);
-    assertEquals(newFetcher().fetchField(field).count(), 2);
     assertEquals(newFetcher().fetchField(field).first().get(), val1);
-    assertEquals(newFetcher().fetchField(field).fromFirstObject().isPresent(), false);
-    assertEquals(newFetcher().fetchField(field).list(), Arrays.asList(val1, val2));
+    assertEquals(newFetcher().fetchField(field).list(), Arrays.asList(val1, val2, val1));
+    assertEquals(newFetcher().fetchField(field).set(), ImmutableSet.of(val1, val2));
     assertEquals(newFetcher().fetchField(field).iterNullable().copyInto(new ArrayList<>()),
-        Arrays.asList(null, val1, null, val2));
+        Arrays.asList(null, val1, null, val2, val1));
   }
 
   private <T> BaseObject addObj(ClassReference classRef, ClassField<T> field, T value) {

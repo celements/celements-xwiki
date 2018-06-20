@@ -30,6 +30,11 @@ public class XWikiObjectEditor extends
   }
 
   @Override
+  public XWikiObjectEditor clone() {
+    return from(getThis());
+  }
+
+  @Override
   public XWikiObjectFetcher fetch() {
     return XWikiObjectFetcher.on(getDocument()).with(getQuery()).disableCloning();
   }
@@ -37,11 +42,6 @@ public class XWikiObjectEditor extends
   @Override
   protected XWikiObjectBridge getBridge() {
     return (XWikiObjectBridge) Utils.getComponent(ObjectBridge.class, XWikiObjectBridge.NAME);
-  }
-
-  @Override
-  public XWikiObjectEditor clone() {
-    return from(getThis());
   }
 
   @Override
