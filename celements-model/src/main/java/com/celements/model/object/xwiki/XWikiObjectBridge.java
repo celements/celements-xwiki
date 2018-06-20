@@ -71,9 +71,9 @@ public class XWikiObjectBridge implements ObjectBridge<XWikiDocument, BaseObject
   @Override
   public FluentIterable<BaseObject> getObjects(XWikiDocument doc, ClassIdentity classId) {
     WikiReference docWiki = doc.getDocumentReference().getWikiReference();
-    List<BaseObject> objs = firstNonNull(doc.getXObjects(classId.getDocRef(docWiki)),
+    List<BaseObject> objects = firstNonNull(doc.getXObjects(classId.getDocRef(docWiki)),
         ImmutableList.<BaseObject>of());
-    return FluentIterable.from(objs).filter(Predicates.notNull());
+    return FluentIterable.from(objects).filter(Predicates.notNull());
   }
 
   @Override

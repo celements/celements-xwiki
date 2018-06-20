@@ -101,18 +101,18 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   private FluentIterable<O> getObjects(ClassIdentity classId) {
-    FluentIterable<O> objIter = getBridge().getObjects(getDocument(), classId);
-    objIter = objIter.filter(Predicates.and(getQuery().getRestrictions(classId)));
+    FluentIterable<O> objects = getBridge().getObjects(getDocument(), classId);
+    objects = objects.filter(Predicates.and(getQuery().getRestrictions(classId)));
     if (clone) {
       LOGGER.debug("{} clone objects", this);
-      objIter = objIter.transform(new ObjectCloner());
+      objects = objects.transform(new ObjectCloner());
     }
     if (LOGGER.isTraceEnabled()) {
-      LOGGER.trace("{} fetched for {}: {}", this, classId, objIter);
+      LOGGER.trace("{} fetched for {}: {}", this, classId, objects);
     } else if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("{} fetched for {} {} objects", this, classId, objIter.size());
+      LOGGER.info("{} fetched for {} {} objects", this, classId, objects.size());
     }
-    return objIter;
+    return objects;
   }
 
   /**
