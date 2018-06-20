@@ -79,7 +79,7 @@ public class DanglingObjectsMigration extends AbstractCelementsHibernateMigrator
   }
 
   static String getDeleteSql() {
-    return "delete from xwikiobjects" + getJoinAndWhereSql();
+    return "delete xwikiobjects from xwikiobjects" + getJoinAndWhereSql();
   }
 
   private static String getJoinAndWhereSql() {
