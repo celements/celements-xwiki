@@ -3,40 +3,36 @@ package com.celements.model.object;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.collect.FluentIterable.*;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.model.classes.ClassIdentity;
+import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.restriction.FieldRestriction;
-import com.celements.model.object.restriction.ObjectQueryBuilder;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 
 @NotThreadSafe
 public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, O>, D, O> extends
-    ObjectQueryBuilder<R, O> implements ObjectEditor<D, O> {
+    AbstractObjectHandler<R, D, O> implements ObjectEditor<D, O> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ObjectEditor.class);
 
-  protected final D doc;
-
   protected AbstractObjectEditor(@NotNull D doc) {
-    this.doc = checkNotNull(doc);
-    getBridge().checkDoc(doc);
+    super(doc);
   }
 
   @Override
-  public DocumentReference getDocRef() {
-    return getBridge().getDocRef(doc);
-  }
+  public abstract AbstractObjectEditor<?, D, O> clone();
 
   @Override
   public Map<ClassIdentity, O> create() {
@@ -64,11 +60,8 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
   private O createFirst(boolean ifNotExists) {
     Optional<ClassIdentity> classId = from(getQuery().getObjectClasses()).first();
-    if (classId.isPresent()) {
-      return new ObjectCreateFunction(ifNotExists).apply(classId.get());
-    } else {
-      throw new IllegalArgumentException("no class defined");
-    }
+    checkArgument(classId.isPresent(), "no class defined - %s", this);
+    return new ObjectCreateFunction(ifNotExists).apply(classId.get());
   }
 
   private class ObjectCreateFunction implements Function<ClassIdentity, O> {
@@ -86,7 +79,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
         obj = fetch().filter(classId).first().orNull();
       }
       if (obj == null) {
-        obj = getBridge().createObject(doc, classId);
+        obj = getBridge().createObject(getDocument(), classId);
         for (FieldRestriction<O, ?> restriction : getQuery().getFieldRestrictions(classId)) {
           setField(obj, restriction);
         }
@@ -123,7 +116,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
     @Override
     public boolean apply(O obj) {
-      boolean success = getBridge().deleteObject(doc, obj);
+      boolean success = getBridge().deleteObject(getDocument(), obj);
       LOGGER.info("{} deleted object {} for {}: {}", AbstractObjectEditor.this,
           getBridge().getObjectNumber(obj), getBridge().getObjectClass(obj), success);
       return success;
@@ -131,15 +124,31 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
   }
 
   @Override
-  public String toString() {
-    return this.getClass().getSimpleName() + " [doc=" + getBridge().getDocRef(doc) + ", query="
-        + getQuery() + "]";
-  }
-
-  @Override
   public abstract AbstractObjectFetcher<?, D, O> fetch();
 
   @Override
-  protected abstract @NotNull ObjectBridge<D, O> getBridge();
+  public <T> FieldEditor<T> editField(final ClassField<T> field) {
+    final Iterable<O> objects = fetch().filter(field.getClassDef()).iter();
+    return new FieldEditor<T>() {
+
+      @Override
+      public boolean first(@Nullable T value) {
+        Iterator<O> iter = objects.iterator();
+        if (iter.hasNext()) {
+          return getBridge().getFieldAccessor().setValue(iter.next(), field, value);
+        }
+        return false;
+      }
+
+      @Override
+      public boolean all(@Nullable final T value) {
+        boolean changed = false;
+        for (O obj : objects) {
+          changed |= getBridge().getFieldAccessor().setValue(obj, field, value);
+        }
+        return changed;
+      }
+    };
+  }
 
 }

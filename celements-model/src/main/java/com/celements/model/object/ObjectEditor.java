@@ -3,12 +3,11 @@ package com.celements.model.object;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
-import org.xwiki.model.reference.DocumentReference;
-
 import com.celements.model.classes.ClassIdentity;
-import com.celements.model.object.restriction.ObjectQuery;
+import com.celements.model.classes.fields.ClassField;
 import com.google.common.base.Optional;
 
 /**
@@ -20,16 +19,11 @@ import com.google.common.base.Optional;
  * @param <O>
  *          object type
  */
-public interface ObjectEditor<D, O> {
+public interface ObjectEditor<D, O> extends ObjectHandler<D, O> {
 
   @NotNull
-  DocumentReference getDocRef();
-
-  /**
-   * @return clone of the current query
-   */
-  @NotNull
-  ObjectQuery<O> getQuery();
+  @Override
+  ObjectEditor<D, O> clone();
 
   /**
    * creates all objects defined by the query and also sets fields if any
@@ -78,5 +72,32 @@ public interface ObjectEditor<D, O> {
    */
   @NotNull
   ObjectFetcher<D, O> fetch();
+
+  /**
+   * @param field
+   * @return {@link FieldEditor} which edits values for {@code field} on the queried objects
+   */
+  @NotNull
+  <T> FieldEditor<T> editField(@NotNull ClassField<T> field);
+
+  interface FieldEditor<T> {
+
+    /**
+     * sets the field to {@code value} for the first object
+     *
+     * @param value
+     * @return if the object has changed
+     */
+    public boolean first(@Nullable T value);
+
+    /**
+     * sets the field to {@code value} for all objects
+     *
+     * @param value
+     * @return if at least one object has changed
+     */
+    public boolean all(@Nullable final T value);
+
+  }
 
 }

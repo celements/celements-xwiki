@@ -4,6 +4,7 @@ import static com.celements.model.classes.TestClassDefinition.*;
 import static com.google.common.base.MoreObjects.*;
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mutabilitydetector.internal.com.google.common.collect.ImmutableSet;
 import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
@@ -238,19 +240,72 @@ public class ObjectFetcherTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_fetchFirst() throws Exception {
+  public void test_fetch_first() throws Exception {
     BaseObject obj1 = addObj(classRef, null, null);
     addObj(classRef2, null, null);
     addObj(classRef, null, null);
-    Optional<BaseObject> ret = newFetcher().first();
+    Optional<BaseObject> ret = newFetcher().filter(classRef).first();
     assertTrue(ret.isPresent());
     assertEqualObjs(obj1, ret.get());
   }
 
   @Test
-  public void test_fetchFirst_none() throws Exception {
-    Optional<BaseObject> ret = newFetcher().first();
+  public void test_fetch_first_none() throws Exception {
+    Optional<BaseObject> ret = newFetcher().filter(classRef).first();
     assertFalse(ret.isPresent());
+  }
+
+  @Test
+  public void test_fetch_firstAssert() throws Exception {
+    BaseObject obj1 = addObj(classRef, null, null);
+    addObj(classRef2, null, null);
+    addObj(classRef, null, null);
+    BaseObject ret = newFetcher().filter(classRef).firstAssert();
+    assertEqualObjs(obj1, ret);
+  }
+
+  @Test
+  public void test_fetch_firstAssert_none() throws Exception {
+    addObj(classRef2, null, null);
+    assertTrue(new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+
+      @Override
+      protected void execute() throws IllegalArgumentException {
+        newFetcher().filter(classRef).firstAssert();
+      }
+    }.evaluate().getMessage().startsWith("empty"));
+  }
+
+  @Test
+  public void test_fetch_unique() throws Exception {
+    BaseObject obj1 = addObj(classRef, null, null);
+    addObj(classRef2, null, null);
+    BaseObject ret = newFetcher().filter(classRef).unique();
+    assertEqualObjs(obj1, ret);
+  }
+
+  @Test
+  public void test_fetch_unique_none() throws Exception {
+    assertTrue(new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+
+      @Override
+      protected void execute() throws IllegalArgumentException {
+        newFetcher().filter(classRef).unique();
+      }
+    }.evaluate().getMessage().startsWith("empty"));
+  }
+
+  @Test
+  public void test_fetch_unique_multiple() throws Exception {
+    addObj(classRef, null, null);
+    addObj(classRef, null, null);
+    assertTrue(new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+
+      @Override
+      protected void execute() throws IllegalArgumentException {
+        newFetcher().filter(classRef).unique();
+      }
+    }.evaluate().getMessage().startsWith("non unique"));
   }
 
   @Test
@@ -333,6 +388,46 @@ public class ObjectFetcherTest extends AbstractComponentTest {
       }
     }.evaluate();
     assertObjs(newFetcher(), obj);
+  }
+
+  @Test
+  public void test_fetchField_noObj() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+
+    assertEquals(newFetcher().fetchField(field).first().isPresent(), false);
+    assertEquals(newFetcher().fetchField(field).list(), Collections.emptyList());
+    assertEquals(newFetcher().fetchField(field).set(), Collections.emptySet());
+  }
+
+  @Test
+  public void test_fetchField_oneObj() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+    String val = "val";
+    addObj(classRef, field, val);
+
+    assertEquals(newFetcher().fetchField(field).first().get(), val);
+    assertEquals(newFetcher().fetchField(field).list(), Arrays.asList(val));
+    assertEquals(newFetcher().fetchField(field).set(), ImmutableSet.of(val));
+  }
+
+  @Test
+  public void test_fetchField_manyObj() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+    String val1 = "val1";
+    String val2 = "val2";
+    addObj(classRef2, field, val1);
+    addObj(classRef, null, null);
+    addObj(classRef, field, val1);
+    addObj(classRef, null, null);
+    addObj(classRef, field, val2);
+    addObj(classRef2, field, val2);
+    addObj(classRef, field, val1);
+
+    assertEquals(newFetcher().fetchField(field).first().get(), val1);
+    assertEquals(newFetcher().fetchField(field).list(), Arrays.asList(val1, val2, val1));
+    assertEquals(newFetcher().fetchField(field).set(), ImmutableSet.of(val1, val2));
+    assertEquals(newFetcher().fetchField(field).iterNullable().copyInto(new ArrayList<>()),
+        Arrays.asList(null, val1, null, val2, val1));
   }
 
   private <T> BaseObject addObj(ClassReference classRef, ClassField<T> field, T value) {
