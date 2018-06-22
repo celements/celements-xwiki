@@ -15,7 +15,7 @@ then
   printUsage
 fi
 
-ver=CEL-${1}
+ver=CEL${1}
 parentDir=`realpath ${SCRIPTPATH}/..`
 newFolder=${parentDir}/${ver}
 newName=xwiki-core-2.7.2-${ver}

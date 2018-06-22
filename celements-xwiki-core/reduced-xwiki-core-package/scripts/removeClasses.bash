@@ -6,7 +6,7 @@ popd > /dev/null
 
 parentDir=`realpath ${SCRIPTPATH}/..`
 removeClasses=${parentDir}/classesToRemove.txt
-ver=CEL-${1}
+ver=CEL${1}
 newFolder=${parentDir}/${ver}
 newName=xwiki-core-2.7.2-${ver}
 newJarFile=${newFolder}/${newName}.jar
