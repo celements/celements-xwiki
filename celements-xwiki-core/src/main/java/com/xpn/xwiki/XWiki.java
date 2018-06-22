@@ -81,8 +81,6 @@ import org.apache.ecs.Filter;
 import org.apache.ecs.filter.CharacterFilter;
 import org.apache.ecs.xhtml.textarea;
 import org.apache.velocity.VelocityContext;
-import org.exoplatform.container.PortalContainer;
-import org.exoplatform.container.RootContainer;
 import org.hibernate.HibernateException;
 import org.securityfilter.filter.URLPatternMatcher;
 import org.xwiki.bridge.event.DocumentCreatedEvent;
@@ -5703,14 +5701,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
      */
     public Object getExoService(String className) throws XWikiException
     {
-        try {
-            RootContainer manager = RootContainer.getInstance();
-            return manager.getComponentInstanceOfType(Class.forName(className));
-        } catch (Exception e) {
-            Object[] args = {className};
-            throw new XWikiException(XWikiException.MODULE_XWIKI_APP, XWikiException.ERROR_XWIKI_APP_SERVICE_NOT_FOUND,
-                "Service {0} not found", e, args);
-        }
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -5733,14 +5724,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
      */
     public Object getExoPortalService(String className) throws XWikiException
     {
-        try {
-            PortalContainer manager = PortalContainer.getInstance();
-            return manager.getComponentInstanceOfType(Class.forName(className));
-        } catch (Exception e) {
-            Object[] args = {className};
-            throw new XWikiException(XWikiException.MODULE_XWIKI_APP, XWikiException.ERROR_XWIKI_APP_SERVICE_NOT_FOUND,
-                "Service {0} not found", e, args);
-        }
+      throw new UnsupportedOperationException();
     }
 
     public ZipOutputStream getZipOutputStream(XWikiContext context) throws IOException
