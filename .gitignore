@@ -16,4 +16,5 @@ xwiki.log
 **/.svn
 
 !**/reduced-xwiki-core-package/*.jar
+!**/reduced-xwiki-core-package/**/*.jar
 
