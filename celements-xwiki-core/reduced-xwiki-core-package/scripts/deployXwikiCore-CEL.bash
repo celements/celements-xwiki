@@ -26,7 +26,7 @@ then
   echo "new version folder is missing: ${newFolder}"
 fi
 
-groupId=org.xwiki.platform
+groupId=com.xpn.xwiki.platform
 artifactId=xwiki-core
 repositoryId=ssh-external-repository
 repoUrl=scpexe://maven.celements.ch/var/www-celements/externals
