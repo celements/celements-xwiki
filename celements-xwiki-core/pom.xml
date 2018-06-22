@@ -99,6 +99,11 @@
       <artifactId>commons-beanutils</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>commons-net</groupId>
+      <artifactId>commons-net</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Other XWiki modules -->
     <dependency>
