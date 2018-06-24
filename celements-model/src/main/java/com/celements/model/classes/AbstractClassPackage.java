@@ -1,13 +1,12 @@
 package com.celements.model.classes;
 
-import java.util.Collection;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.configuration.ConfigurationSource;
 
 import com.celements.configuration.CelementsPropertiesConfigurationSource;
+import com.celements.configuration.ConfigSourceUtils;
 import com.celements.model.context.ModelContext;
 
 public abstract class AbstractClassPackage implements ClassPackage {
@@ -36,13 +35,8 @@ public abstract class AbstractClassPackage implements ClassPackage {
   }
 
   private boolean isActivated(ConfigurationSource configSrc) {
-    boolean activated = false;
-    Object prop = configSrc.getProperty(CFG_SRC_KEY);
-    if (prop instanceof Collection) {
-      activated = ((Collection<?>) prop).contains(getName());
-    } else if (prop instanceof String) {
-      activated = prop.toString().trim().equals(getName());
-    }
+    boolean activated = ConfigSourceUtils.getStringListProperty(configSrc, CFG_SRC_KEY).contains(
+        getName());
     LOGGER.debug("{}: isActivated '{}' for config source '{}'", getName(), activated,
         configSrc.getClass().getSimpleName());
     return activated;
