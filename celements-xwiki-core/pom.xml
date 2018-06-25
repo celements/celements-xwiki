@@ -205,14 +205,17 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-core-container-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-query-xwql</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-csrf</artifactId>
-      <version>2.7.2</version>
       <scope>provided</scope>
     </dependency>
 
