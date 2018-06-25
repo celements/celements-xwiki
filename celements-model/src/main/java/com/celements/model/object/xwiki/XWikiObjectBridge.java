@@ -5,7 +5,6 @@ import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
@@ -64,18 +63,17 @@ public class XWikiObjectBridge implements ObjectBridge<XWikiDocument, BaseObject
   }
 
   @Override
-  public List<? extends ClassIdentity> getDocClasses(XWikiDocument doc) {
+  public FluentIterable<? extends ClassIdentity> getDocClasses(XWikiDocument doc) {
     return FluentIterable.from(doc.getXObjects().keySet()).transform(
-        ClassReference.FUNC_DOC_TO_CLASS_REF).toList();
+        ClassReference.FUNC_DOC_TO_CLASS_REF);
   }
 
   @Override
-  public List<BaseObject> getObjects(XWikiDocument doc, ClassIdentity classId) {
-    List<BaseObject> ret = new ArrayList<>();
+  public FluentIterable<BaseObject> getObjects(XWikiDocument doc, ClassIdentity classId) {
     WikiReference docWiki = doc.getDocumentReference().getWikiReference();
-    List<BaseObject> objs = firstNonNull(doc.getXObjects(classId.getDocRef(docWiki)),
+    List<BaseObject> objects = firstNonNull(doc.getXObjects(classId.getDocRef(docWiki)),
         ImmutableList.<BaseObject>of());
-    return FluentIterable.from(objs).filter(Predicates.notNull()).copyInto(ret);
+    return FluentIterable.from(objects).filter(Predicates.notNull());
   }
 
   @Override

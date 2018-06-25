@@ -2,6 +2,7 @@ package com.celements.model.object;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,37 +12,31 @@ import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.model.classes.ClassIdentity;
-import com.celements.model.object.restriction.ObjectQueryBuilder;
+import com.celements.model.classes.fields.ClassField;
+import com.celements.model.field.FieldGetterFunction;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 
 @NotThreadSafe
 public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D, O>, D, O> extends
-    ObjectQueryBuilder<R, O> implements ObjectFetcher<D, O> {
+    AbstractObjectHandler<R, D, O> implements ObjectFetcher<D, O> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ObjectFetcher.class);
 
-  protected final D doc;
   private boolean clone;
 
   protected AbstractObjectFetcher(@NotNull D doc) {
-    this.doc = checkNotNull(doc);
-    getBridge().checkDoc(doc);
+    super(doc);
     this.clone = true;
   }
 
   @Override
-  public DocumentReference getDocRef() {
-    return getBridge().getDocRef(doc);
-  }
+  public abstract AbstractObjectFetcher<?, D, O> clone();
 
   @Override
   public boolean exists() {
@@ -59,13 +54,33 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
+  public O firstAssert() {
+    Optional<O> ret = first();
+    checkArgument(ret.isPresent(), "empty - %s", this);
+    return ret.get();
+  }
+
+  @Override
+  public O unique() {
+    Iterator<O> iter = iter().iterator();
+    checkArgument(iter.hasNext(), "empty - %s", this);
+    O ret = iter.next();
+    checkArgument(!iter.hasNext(), "non unique - %s", this);
+    return ret;
+  }
+
+  @Override
   public List<O> list() {
     return iter().toList();
   }
 
   @Override
   public FluentIterable<O> iter() {
-    return FluentIterable.from(Iterables.concat(map().values()));
+    FluentIterable<O> iter = FluentIterable.of();
+    for (ClassIdentity classId : getObjectClasses()) {
+      iter = iter.append(getObjects(classId));
+    }
+    return iter;
   }
 
   @Override
@@ -77,27 +92,27 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
     return builder.build();
   }
 
-  private Set<ClassIdentity> getObjectClasses() {
-    Set<ClassIdentity> classes = getQuery().getObjectClasses();
+  private Set<? extends ClassIdentity> getObjectClasses() {
+    Set<? extends ClassIdentity> classes = getQuery().getObjectClasses();
     if (classes.isEmpty()) {
-      classes = ImmutableSet.copyOf(getBridge().getDocClasses(doc));
+      classes = getBridge().getDocClasses(getDocument()).toSet();
     }
     return classes;
   }
 
   private FluentIterable<O> getObjects(ClassIdentity classId) {
-    FluentIterable<O> objIter = FluentIterable.from(getBridge().getObjects(doc, classId));
-    objIter = objIter.filter(Predicates.and(getQuery().getRestrictions(classId)));
+    FluentIterable<O> objects = getBridge().getObjects(getDocument(), classId);
+    objects = objects.filter(Predicates.and(getQuery().getRestrictions(classId)));
     if (clone) {
       LOGGER.debug("{} clone objects", this);
-      objIter = objIter.transform(new ObjectCloner());
+      objects = objects.transform(new ObjectCloner());
     }
     if (LOGGER.isTraceEnabled()) {
-      LOGGER.trace("{} fetched for {}: {}", this, classId, objIter);
-    } else {
-      LOGGER.info("{} fetched for {} {} objects", this, classId, objIter.size());
+      LOGGER.trace("{} fetched for {}: {}", this, classId, objects);
+    } else if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("{} fetched for {} {} objects", this, classId, objects.size());
     }
-    return objIter;
+    return objects;
   }
 
   /**
@@ -117,12 +132,35 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
-  public String toString() {
-    return this.getClass().getSimpleName() + " [doc=" + getBridge().getDocRef(doc) + ", query="
-        + getQuery() + "]";
-  }
+  public <T> FieldFetcher<T> fetchField(final ClassField<T> field) {
+    final FluentIterable<O> objects = clone().filter(field.getClassDef()).iter();
+    return new FieldFetcher<T>() {
 
-  @Override
-  protected abstract @NotNull ObjectBridge<D, O> getBridge();
+      @Override
+      public Optional<T> first() {
+        return iter().first();
+      }
+
+      @Override
+      public List<T> list() {
+        return iter().toList();
+      }
+
+      @Override
+      public Set<T> set() {
+        return iter().toSet();
+      }
+
+      @Override
+      public FluentIterable<T> iter() {
+        return iterNullable().filter(Predicates.notNull());
+      }
+
+      @Override
+      public FluentIterable<T> iterNullable() {
+        return objects.transform(new FieldGetterFunction<>(getBridge().getFieldAccessor(), field));
+      }
+    };
+  }
 
 }

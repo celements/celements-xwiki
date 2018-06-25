@@ -66,7 +66,7 @@ public class DanglingPropertiesMigration extends AbstractCelementsHibernateMigra
    */
   @Override
   public XWikiDBVersion getVersion() {
-    return new XWikiDBVersion(3026);
+    return new XWikiDBVersion(3093);
   }
 
   @Override

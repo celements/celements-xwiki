@@ -1,12 +1,13 @@
 package com.celements.model.object.restriction;
 
+import static com.celements.common.MoreFunctions.*;
+
 import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
-import com.celements.common.MoreFunctions;
 import com.celements.model.object.ObjectBridge;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
@@ -21,9 +22,9 @@ public class IdentityRestriction<O> extends ObjectRestriction<O> {
     this.hashCodes = ImmutableSet.of(obj.hashCode());
   }
 
-  public IdentityRestriction(@NotNull ObjectBridge<?, O> bridge, @NotNull Iterable<O> obj) {
+  public IdentityRestriction(@NotNull ObjectBridge<?, O> bridge, @NotNull Iterable<O> objects) {
     super(bridge);
-    this.hashCodes = FluentIterable.from(obj).transform(MoreFunctions.hashCodeFunction()).toSet();
+    this.hashCodes = FluentIterable.from(objects).transform(hashCodeFunction()).toSet();
   }
 
   public Set<Integer> getHashCodes() {

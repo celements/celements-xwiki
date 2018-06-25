@@ -29,7 +29,6 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.BaseClass;
-import com.xpn.xwiki.objects.classes.StringClass;
 import com.xpn.xwiki.web.Utils;
 
 public class ObjectEditorTest extends AbstractComponentTest {
@@ -43,8 +42,14 @@ public class ObjectEditorTest extends AbstractComponentTest {
   public void prepareTest() throws Exception {
     wikiRef = new WikiReference("db");
     doc = new XWikiDocument(new DocumentReference(wikiRef.getName(), "space", "doc"));
-    classRef = Utils.getComponent(ClassDefinition.class, NAME).getClassReference();
+    ClassDefinition classDef = Utils.getComponent(ClassDefinition.class, NAME);
+    classRef = classDef.getClassReference();
+    BaseClass bClass = expectNewBaseObject(classRef.getDocRef(wikiRef));
+    for (ClassField<?> field : classDef.getFields()) {
+      expect(bClass.get(eq(field.getName()))).andReturn(field.getXField()).anyTimes();
+    }
     classRef2 = new ClassReference("class", "other");
+    expectNewBaseObject(classRef2.getDocRef(wikiRef));
   }
 
   private XWikiObjectEditor newEditor() {
@@ -97,7 +102,6 @@ public class ObjectEditorTest extends AbstractComponentTest {
 
   @Test
   public void test_create() throws Exception {
-    expectNewBaseObject(classRef.getDocRef(wikiRef));
     replayDefault();
     Map<ClassIdentity, BaseObject> ret = newEditor().filter(classRef).create();
     verifyDefault();
@@ -108,8 +112,6 @@ public class ObjectEditorTest extends AbstractComponentTest {
 
   @Test
   public void test_create_multiple() throws Exception {
-    expectNewBaseObject(classRef.getDocRef(wikiRef));
-    expectNewBaseObject(classRef2.getDocRef(wikiRef));
     replayDefault();
     Map<ClassIdentity, BaseObject> ret = newEditor().filter(classRef).filter(classRef2).create();
     verifyDefault();
@@ -121,7 +123,6 @@ public class ObjectEditorTest extends AbstractComponentTest {
 
   @Test
   public void test_create_notClone() throws Exception {
-    expectNewBaseObject(classRef.getDocRef(wikiRef));
     replayDefault();
     BaseObject ret = newEditor().filter(classRef).create().get(classRef);
     verifyDefault();
@@ -132,14 +133,10 @@ public class ObjectEditorTest extends AbstractComponentTest {
 
   @Test
   public void test_create_keyValue() throws Exception {
-    BaseClass bClassMock = expectNewBaseObject(classRef.getDocRef(wikiRef));
     ClassField<String> field1 = FIELD_MY_STRING;
-    expect(bClassMock.get(eq(field1.getName()))).andReturn(field1.getXField()).anyTimes();
     List<String> vals = Arrays.asList("val1", "val2");
     ClassField<Integer> field2 = FIELD_MY_INT;
-    expect(bClassMock.get(eq(field2.getName()))).andReturn(field2.getXField()).anyTimes();
     int val = 2;
-    expectNewBaseObject(classRef2.getDocRef(wikiRef));
     replayDefault();
     Map<ClassIdentity, BaseObject> ret = newEditor().filter(field1, vals).filter(field2,
         val).filter(classRef2).create();
@@ -162,6 +159,8 @@ public class ObjectEditorTest extends AbstractComponentTest {
 
   @Test
   public void test_create_ClassDocumentLoadException() throws Exception {
+    WikiReference wikiRef = new WikiReference("other");
+    doc = new XWikiDocument(new DocumentReference(wikiRef.getName(), "space", "doc"));
     Throwable cause = new XWikiException();
     expect(createBaseClassMock(classRef.getDocRef(wikiRef)).newCustomClassInstance(same(
         getContext()))).andThrow(cause).once();
@@ -179,7 +178,6 @@ public class ObjectEditorTest extends AbstractComponentTest {
 
   @Test
   public void test_createIfNotExists_create() throws Exception {
-    expectNewBaseObject(classRef.getDocRef(wikiRef));
     replayDefault();
     Map<ClassIdentity, BaseObject> ret = newEditor().filter(classRef).createIfNotExists();
     verifyDefault();
@@ -193,8 +191,6 @@ public class ObjectEditorTest extends AbstractComponentTest {
     ClassField<String> field = FIELD_MY_STRING;
     String val = "val";
     BaseObject obj = addObj(classRef, field, "otherval");
-    BaseClass bClass = expectNewBaseObject(classRef.getDocRef(wikiRef));
-    expect(bClass.get(field.getName())).andReturn(new StringClass()).once();
     replayDefault();
     Map<ClassIdentity, BaseObject> ret = newEditor().filter(field, val).createIfNotExists();
     verifyDefault();
@@ -239,7 +235,6 @@ public class ObjectEditorTest extends AbstractComponentTest {
 
   @Test
   public void test_createFirst() throws Exception {
-    expectNewBaseObject(classRef.getDocRef(wikiRef));
     replayDefault();
     BaseObject ret = newEditor().filter(classRef).createFirst();
     verifyDefault();
@@ -262,7 +257,6 @@ public class ObjectEditorTest extends AbstractComponentTest {
 
   @Test
   public void test_createFirstIfNotExists_create() throws Exception {
-    expectNewBaseObject(classRef.getDocRef(wikiRef));
     replayDefault();
     BaseObject ret = newEditor().filter(classRef).createFirstIfNotExists();
     verifyDefault();
@@ -360,6 +354,47 @@ public class ObjectEditorTest extends AbstractComponentTest {
   public void test_deleteFirst_none() {
     Optional<BaseObject> ret = newEditor().deleteFirst();
     assertFalse(ret.isPresent());
+  }
+
+  @Test
+  public void test_editField_noObj() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+    String val = "val";
+    addObj(classRef2, null, null);
+
+    assertEquals(newEditor().editField(field).first(val), false);
+    assertEquals(newEditor().editField(field).all(val), false);
+
+  }
+
+  @Test
+  public void test_editField_first() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+    String val = "val";
+    addObj(classRef2, null, null);
+    addObj(classRef, null, null);
+    addObj(classRef, null, null);
+    XWikiObjectEditor editor = newEditor();
+
+    replayDefault();
+    assertEquals(editor.editField(field).first(val), true);
+    verifyDefault();
+    assertEquals(editor.fetch().fetchField(field).list(), Arrays.asList(val));
+  }
+
+  @Test
+  public void test_editField_all() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+    String val = "val";
+    addObj(classRef2, null, null);
+    addObj(classRef, null, null);
+    addObj(classRef, null, null);
+    XWikiObjectEditor editor = newEditor();
+
+    replayDefault();
+    assertEquals(editor.editField(field).all(val), true);
+    verifyDefault();
+    assertEquals(editor.fetch().fetchField(field).list(), Arrays.asList(val, val));
   }
 
   private <T> BaseObject addObj(ClassReference classRef, ClassField<T> field, T value) {
