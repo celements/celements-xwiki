@@ -88,17 +88,17 @@ public class BaseClass extends BaseCollection implements ClassInterface
         Utils.getComponent(EntityReferenceSerializer.class, "local/reference");
 
     /**
-     * Used to resolve a string into a proper Document Reference using the current document's reference to fill the
+     * Used to resolve a reference into a proper Document Reference using the current document's reference to fill the
      * blanks, except for the page name for which the default page name is used instead and for the wiki name for which
      * the current wiki is used instead of the current document reference's wiki.
      */
-    private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver =
-        Utils.getComponent(DocumentReferenceResolver.class, "currentmixed");
+    private DocumentReferenceResolver<EntityReference> currentMixedDocRefResolver =
+        Utils.getComponent(DocumentReferenceResolver.class, "currentmixed/reference");
 
     /**
      * Used here to merge setName() and setWiki() calls into the DocumentReference.
      */
-    private EntityReferenceResolver<String> relativeEntityReferenceResolver = Utils.getComponent(
+    private EntityReferenceResolver<String> relativeEntityRefResolver = Utils.getComponent(
         EntityReferenceResolver.class, "relative");
 
 
@@ -130,8 +130,12 @@ public class BaseClass extends BaseCollection implements ClassInterface
       if (this instanceof MetaClass || this instanceof PropertyMetaClass) {
           super.setName(name);
       } else if (StringUtils.isNotBlank(name) && !name.equals(getName())) {
-        setDocumentReference(currentMixedDocumentReferenceResolver.resolve(name,
-            getDocumentReference()));
+        EntityReference ref = relativeEntityRefResolver.resolve(name, EntityType.DOCUMENT);
+        if (ref.extractReference(EntityType.WIKI) == null) {
+          setDocumentReference(currentMixedDocRefResolver.resolve(ref, getDocumentReference()));
+        } else {
+          throw new IllegalArgumentException("name may not contain wiki: " + name);
+        }
       }
     }
 
