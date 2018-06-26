@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,6 +35,7 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -129,6 +131,10 @@ import org.xwiki.url.standard.XWikiURLBuilder;
 import com.xpn.xwiki.api.Api;
 import com.xpn.xwiki.api.Document;
 import com.xpn.xwiki.api.User;
+import com.xpn.xwiki.cache.api.XWikiCache;
+import com.xpn.xwiki.cache.api.XWikiCacheService;
+import com.xpn.xwiki.cache.api.internal.XWikiCacheServiceStub;
+import com.xpn.xwiki.cache.api.internal.XWikiCacheStub;
 import com.xpn.xwiki.criteria.api.XWikiCriteriaService;
 import com.xpn.xwiki.doc.AttachmentDiff;
 import com.xpn.xwiki.doc.DeletedAttachment;
@@ -7586,5 +7592,233 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     public String getName()
     {
         return "xwiki-core";
+    }
+
+    /* --------------------------------------------------------------------------------------------
+     * following only deprecated methods copied from XWikiCompatibilityAspect, since 3.1
+     * FIXME find and delete unused methods
+     * --------------------------------------------------------------------------------------------
+     */
+    
+    private static Map threadMap = new HashMap();
+
+    /**
+     * Transform a text in a URL compatible text
+     *
+     * @param content text to transform
+     * @return encoded result
+     * @deprecated replaced by Util#encodeURI since 1.3M2
+     */
+    @Deprecated
+    public String getURLEncoded(String content)
+    {
+        try {
+            return URLEncoder.encode(content, this.getEncoding());            
+        } catch (UnsupportedEncodingException e) {
+            return content;
+        }
+    }
+    
+    /**
+     * @return true for multi-wiki/false for mono-wiki
+     * @deprecated replaced by {@link XWiki#isVirtualMode()} since 1.4M1.
+     */
+    @Deprecated
+    public boolean isVirtual()
+    {
+        return this.isVirtualMode();
+    }
+
+    /**
+     * @deprecated Removed since it isn't used; since 1.5M1.
+     */
+    @Deprecated
+    public static Map getThreadMap()
+    {
+        return threadMap;
+    }
+
+    /**
+     * @deprecated Removed since it isn't used; since 1.5M1.
+     */
+    @Deprecated
+    public static void setThreadMap(Map threadMap)
+    {
+        threadMap = threadMap;
+    }
+
+    /**
+     * @return the cache service.
+     * @deprecated replaced by {@link XWiki#getCacheFactory(XWikiContext)} or
+     *             {@link XWiki#getLocalCacheFactory(XWikiContext)} since 1.5M2.
+     */
+    @Deprecated
+    public XWikiCacheService getCacheService()
+    {
+        return new XWikiCacheServiceStub(getCacheFactory(), getLocalCacheFactory());
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getVirtualWikiCache(XWikiContext)} since 1.5M2.
+     */
+    @Deprecated
+    public XWikiCache getVirtualWikiMap()
+    {
+        return new XWikiCacheStub(this.virtualWikiMap);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getSpaceCopyright(XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public String getWebCopyright(XWikiContext context)
+    {
+        return this.getSpaceCopyright(context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getSpacePreference(String, XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public String getWebPreference(String preference, XWikiContext context)
+    {
+        return this.getSpacePreference(preference, context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getSpacePreference(String, String, XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public String getWebPreference(String preference, String defaultValue, XWikiContext context)
+    {
+        return this.getSpacePreference(preference, defaultValue, context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getSpacePreference(String, String, String, XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public String getWebPreference(String preference, String space, String defaultValue, XWikiContext context)
+    {
+        return this.getSpacePreference(preference, space, defaultValue, context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getSpacePreferenceAsLong(String, XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public long getWebPreferenceAsLong(String preference, XWikiContext context)
+    {
+        return this.getSpacePreferenceAsLong(preference, context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getSpacePreferenceAsLong(String, long, XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public long getWebPreferenceAsLong(String preference, long defaultValue, XWikiContext context)
+    {
+        return this.getSpacePreferenceAsLong(preference, defaultValue, context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getSpacePreferenceAsInt(String, XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public int getWebPreferenceAsInt(String preference, XWikiContext context)
+    {
+        return this.getSpacePreferenceAsInt(preference, context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getSpacePreferenceAsInt(String, int, XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public int getWebPreferenceAsInt(String preference, int defaultValue, XWikiContext context)
+    {
+        return this.getSpacePreferenceAsInt(preference, defaultValue, context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#copySpaceBetweenWikis(String, String, String, String, XWikiContext)} since
+     *             2.3M1
+     */
+    @Deprecated
+    public int copyWikiWeb(String space, String sourceWiki, String targetWiki, String language, XWikiContext context)
+        throws XWikiException
+    {
+        return this.copySpaceBetweenWikis(space, sourceWiki, targetWiki, language, context);
+    }
+
+    /**
+     * @deprecated replaced by
+     *             {@link XWiki#copySpaceBetweenWikis(String, String, String, String, boolean, XWikiContext)} since
+     *             2.3M1
+     */
+    @Deprecated
+    public int copyWikiWeb(String space, String sourceWiki, String targetWiki, String language, boolean clean,
+        XWikiContext context) throws XWikiException
+    {
+        return this.copySpaceBetweenWikis(space, sourceWiki, targetWiki, language, clean, context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#getDefaultSpace(XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public String getDefaultWeb(XWikiContext context)
+    {
+        return this.getDefaultSpace(context);
+    }
+
+    /**
+     * @deprecated replaced by {@link XWiki#skipDefaultSpaceInURLs(XWikiContext)} since 2.3M1
+     */
+    @Deprecated
+    public boolean useDefaultWeb(XWikiContext context)
+    {
+        return this.skipDefaultSpaceInURLs(context);
+    }
+
+    /**
+     * @deprecated use {@link XWikiMessageTool#get(String, List)} instead. You can access message tool using
+     *             {@link XWikiContext#getMessageTool()}.
+     */
+    @Deprecated
+    public String getMessage(String item, XWikiContext context)
+    {
+        XWikiMessageTool msg = context.getMessageTool();
+        if (msg == null) {
+            return item;
+        } else {
+            return msg.get(item);
+        }
+    }
+
+    /**
+     * @deprecated use {@link XWikiMessageTool#get(String, List)} instead. You can access message tool using
+     *             {@link XWikiContext#getMessageTool()}.
+     */
+    @Deprecated
+    public String parseMessage(String id, XWikiContext context)
+    {
+        XWikiMessageTool msg = context.getMessageTool();
+
+        return parseContent(msg.get(id), context);
+    }
+
+    /**
+     * @deprecated use {@link XWikiMessageTool#get(String, List)} instead. You can access message tool using
+     *             {@link XWikiContext#getMessageTool()}.
+     */
+    @Deprecated
+    public String parseMessage(XWikiContext context)
+    {
+        String message = (String) context.get("message");
+        if (message == null) {
+            return null;
+        }
+
+        return parseMessage(message, context);
     }
 }
