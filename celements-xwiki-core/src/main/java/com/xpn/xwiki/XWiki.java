@@ -3489,9 +3489,15 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         return bclass;
     }
 
+    /**
+     * @deprecated since Celements 3.1, instead use UserService#createNewUser
+     * 
+     * @throws UnsupportedOperationException
+     */
+    @Deprecated
     public int createUser(XWikiContext context) throws XWikiException
     {
-        return createUser(false, "edit", context);
+      throw new UnsupportedOperationException();
     }
 
     public int validateUser(boolean withConfirmEmail, XWikiContext context) throws XWikiException
@@ -3539,112 +3545,26 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         }
     }
 
+    /**
+     * @deprecated since Celements 3.1, instead use UserService#createNewUser
+     * 
+     * @throws UnsupportedOperationException
+     */
+    @Deprecated
     public int createUser(boolean withValidation, String userRights, XWikiContext context) throws XWikiException
     {
-        try {
-            XWikiRequest request = context.getRequest();
-            Map<String, String[]> map = Util.getObject(request, "register");
-
-            String content;
-            Syntax syntax;
-            if (!getDefaultDocumentSyntax().equals(XWikiDocument.XWIKI10_SYNTAXID)) {
-                content = "{{include document=\"XWiki.XWikiUserSheet\"/}}";
-                syntax = Syntax.XWIKI_2_0;
-            } else {
-                content = "#includeForm(\"XWiki.XWikiUserSheet\")";
-                syntax = Syntax.XWIKI_1_0;
-            }
-
-            String xwikiname = request.getParameter("xwikiname");
-            String password2 = request.getParameter("register2_password");
-            String password = (map.get("password"))[0];
-            String email = (map.get("email"))[0];
-            String template = request.getParameter("template");
-            String parent = request.getParameter("parent");
-            String validkey = null;
-
-            if (XWikiRightService.SUPERADMIN_USER.equalsIgnoreCase(xwikiname)) {
-                return -8;
-            }
-            try {
-                if (!context.getUtil().match(this.Param("xwiki.validusername", "/^[a-zA-Z0-9_]+$/"), xwikiname)) {
-                    return -4;
-                }
-            } catch (RuntimeException ex) {
-                LOG.warn("Invalid regular expression for xwiki.validusername", ex);
-                if (!context.getUtil().match("/^[a-zA-Z0-9_]+$/", xwikiname)) {
-                    return -4;
-                }
-            }
-
-            if ((!password.equals(password2)) || (password.trim().equals(""))) {
-                // TODO: throw wrong password exception
-                return -2;
-            }
-
-            if ((template != null) && (!template.equals(""))) {
-                XWikiDocument tdoc = getDocument(template, context);
-                if ((!tdoc.isNew())) {
-                    content = tdoc.getContent();
-                    syntax = tdoc.getSyntax();
-                }
-            }
-
-            if ((parent == null) || (parent.equals(""))) {
-                parent = "XWiki.XWikiUsers";
-            }
-
-            if (withValidation) {
-                map.put("active", new String[] {"0"});
-                validkey = generateValidationKey(16);
-                map.put("validkey", new String[] {validkey});
-
-            } else {
-                // Mark user active
-                map.put("active", new String[] {"1"});
-            }
-
-            int result =
-                createUser(xwikiname, map, this.relativeEntityReferenceResolver.resolve(parent, EntityType.DOCUMENT),
-                    content, syntax, userRights, context);
-
-            if ((result > 0) && (withValidation)) {
-                // Send the validation email
-                sendValidationEmail(xwikiname, password, email, validkey, "validation_email_content", context);
-            }
-
-            return result;
-        } catch (XWikiException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new XWikiException(XWikiException.MODULE_XWIKI_APP, XWikiException.ERROR_XWIKI_APP_CREATE_USER,
-                "Exception while creating user", e, null);
-        }
+      throw new UnsupportedOperationException();
     }
 
     /**
-     * Method allows to create an empty user with no password (he won't be able to login) This method is usefull for
-     * authentication like LDAP or App Server trusted
+     * @deprecated since Celements 3.1, instead use UserService#createNewUser
      * 
-     * @param xwikiname
-     * @param userRights
-     * @param context
-     * @return true if success
-     * @throws XWikiException
+     * @throws UnsupportedOperationException
      */
+    @Deprecated
     public boolean createEmptyUser(String xwikiname, String userRights, XWikiContext context) throws XWikiException
     {
-        Map<String, String> map = new HashMap<String, String>();
-        map.put("active", "1");
-        map.put("first_name", xwikiname);
-
-        if (createUser(xwikiname, map, userRights, context) == 1) {
-            return true;
-        } else {
-            return false;
-        }
+      throw new UnsupportedOperationException();
     }
 
     public void sendConfirmationEmail(String xwikiname, String password, String email, String message,
@@ -3846,198 +3766,84 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     }
 
     /**
-     * Create a new user.
+     * @deprecated since Celements 3.1, instead use UserService#createNewUser
      * 
-     * @param userName the name of the user (without the space)
-     * @param map extra datas to add to user profile object
-     * @param context the XWiki context
-     * @return <ul>
-     *         <li>1: ok</li>
-     *         <li>-3: user already exists</li>
-     *         </ul>
-     * @throws XWikiException failed to create the new user
+     * @throws UnsupportedOperationException
      */
+    @Deprecated
     public int createUser(String userName, Map<String, ? > map, XWikiContext context) throws XWikiException
     {
-        return createUser(userName, map, "edit", context);
+      throw new UnsupportedOperationException();
     }
 
     /**
-     * Create a new user.
+     * @deprecated since Celements 3.1, instead use UserService#createNewUser
      * 
-     * @param userName the name of the user (without the space)
-     * @param map extra datas to add to user profile object
-     * @param userRights the right of the user on his own profile page
-     * @param context the XWiki context
-     * @return <ul>
-     *         <li>1: ok</li>
-     *         <li>-3: user already exists</li>
-     *         </ul>
-     * @throws XWikiException failed to create the new user
+     * @throws UnsupportedOperationException
      */
+    @Deprecated
     public int createUser(String userName, Map<String, ? > map, String userRights, XWikiContext context)
         throws XWikiException
     {
-        BaseClass userClass = context.getWiki().getUserClass(context);
-
-        String content;
-        Syntax syntax;
-        if (!context.getWiki().getDefaultDocumentSyntax().equals(XWikiDocument.XWIKI10_SYNTAXID)) {
-            content = "{{include document=\"XWiki.XWikiUserSheet\"/}}";
-            syntax = Syntax.XWIKI_2_0;
-        } else {
-            content = "#includeForm(\"XWiki.XWikiUserSheet\")";
-            syntax = Syntax.XWIKI_1_0;
-        }
-
-        return createUser(userName, map, new EntityReference(userClass.getDocumentReference().getName(),
-            EntityType.DOCUMENT), content, syntax, userRights, context);
+      throw new UnsupportedOperationException();
     }
 
     /**
-     * @deprecated since 2.4RC1 use
-     *             {@link #createUser(String, Map, EntityReference, String, Syntax, String, XWikiContext)} instead
+     * @deprecated since Celements 3.1, instead use UserService#createNewUser
+     * 
+     * @throws UnsupportedOperationException
      */
     @Deprecated
     public int createUser(String userName, Map<String, ? > map, String parent, String content, String syntaxId,
         String userRights, XWikiContext context) throws XWikiException
     {
-        Syntax syntax;
-
-        try {
-            syntax = this.syntaxFactory.createSyntaxFromIdString(syntaxId);
-        } catch (ParseException e) {
-            try {
-                syntax = this.syntaxFactory.createSyntaxFromIdString(getDefaultDocumentSyntax());
-            } catch (ParseException e1) {
-                // Let's jope that never happen
-                LOG.warn("Failed to set parse syntax [" + getDefaultDocumentSyntax() + "]", e);
-
-                syntax = Syntax.XWIKI_2_0;
-            }
-        }
-
-        return createUser(userName, map, this.relativeEntityReferenceResolver.resolve(parent, EntityType.DOCUMENT),
-            content, syntax, userRights, context);
+      throw new UnsupportedOperationException();
     }
 
     /**
-     * Create a new user.
+     * @deprecated since Celements 3.1, instead use UserService#createNewUser
      * 
-     * @param userName the name of the user (without the space)
-     * @param map extra datas to add to user profile object
-     * @param parentReference the parent of the user profile
-     * @param content the content of the user profile
-     * @param syntax the syntax of the provided content
-     * @param userRights the right of the user on his own profile page
-     * @param context the XWiki context
-     * @return <ul>
-     *         <li>1: ok</li>
-     *         <li>-3: user already exists</li>
-     *         </ul>
-     * @throws XWikiException failed to create the new user
+     * @throws UnsupportedOperationException
      */
+    @Deprecated
     public int createUser(String userName, Map<String, ? > map, EntityReference parentReference, String content,
         Syntax syntax, String userRights, XWikiContext context) throws XWikiException
     {
-        BaseClass baseclass = getUserClass(context);
-
-        try {
-            // TODO: Verify existing user
-            XWikiDocument doc = getDocument(new DocumentReference(context.getDatabase(), "XWiki", userName), context);
-
-            if (!doc.isNew()) {
-                // TODO: throws Exception
-                return -3;
-            }
-
-            BaseObject userObject =
-                doc.newXObject(
-                    this.localReferenceEntityReferenceSerializer.serialize(baseclass.getDocumentReference()), context);
-            baseclass.fromMap(map, userObject);
-
-            doc.setParentReference(parentReference);
-            doc.setContent(content);
-            doc.setSyntax(syntax);
-            doc.setCreator(doc.getFullName());
-            doc.setAuthor(doc.getFullName());
-
-            protectUserPage(doc.getFullName(), userRights, doc, context);
-
-            saveDocument(doc, context.getMessageTool().get("core.comment.createdUser"), context);
-
-            // Now let's add the user to XWiki.XWikiAllGroup
-            setUserDefaultGroup(doc.getFullName(), context);
-
-            return 1;
-        } catch (Exception e) {
-            Object[] args = {"XWiki." + userName};
-            throw new XWikiException(XWikiException.MODULE_XWIKI_USER, XWikiException.ERROR_XWIKI_USER_CREATE,
-                "Cannot create user {0}", e, args);
-        }
+        throw new UnsupportedOperationException();
     }
 
     /**
-     * @deprecated starting with XE 1.8.1 use
-     *             {@link #createUser(String, Map, String, String, String, String, XWikiContext)} instead
+     * @deprecated since Celements 3.1, instead use UserService#createNewUser
+     * 
+     * @throws UnsupportedOperationException
      */
     @Deprecated
     public int createUser(String xwikiname, Map map, String parent, String content, String userRights,
         XWikiContext context) throws XWikiException
     {
-        return createUser(xwikiname, map, parent, content, XWikiDocument.XWIKI10_SYNTAXID, userRights, context);
-    }
-
-    public void setUserDefaultGroup(String fullwikiname, XWikiContext context) throws XWikiException
-    {
-        String groupsPreference = Param("xwiki.users.initialGroups", "XWiki.XWikiAllGroup");
-
-        if (groupsPreference != null) {
-            String[] groups = groupsPreference.split(",");
-            for (String groupName : groups) {
-                if (StringUtils.isNotBlank(groupName)) {
-                    addUserToGroup(fullwikiname, groupName.trim(), context);
-                }
-            }
-        }
-    }
-
-    protected void addUserToGroup(String userName, String groupName, XWikiContext context) throws XWikiException
-    {
-        BaseClass groupClass = getGroupClass(context);
-        XWikiDocument groupDoc = getDocument(groupName, context);
-
-        BaseObject memberObject =
-            groupDoc.newXObject(
-                this.localReferenceEntityReferenceSerializer.serialize(groupClass.getDocumentReference()), context);
-
-        memberObject.setStringValue("member", userName);
-
-        if (groupDoc.isNew()) {
-            saveDocument(groupDoc, context.getMessageTool().get("core.comment.addedUserToGroup"), context);
-        } else {
-            // TODO Fix use of deprecated call.
-            getHibernateStore().saveXWikiObject(memberObject, context, true);
-        }
-
-        try {
-            XWikiGroupService gservice = getGroupService(context);
-            gservice.addUserToGroup(userName, context.getDatabase(), groupName, context);
-        } catch (Exception e) {
-            LOG.error("Failed to update group service cache", e);
-        }
+      throw new UnsupportedOperationException();
     }
 
     /**
-     * @deprecated replaced by {@link #setUserDefaultGroup(String fullwikiname, XWikiContext context)}
-     * @param context
-     * @param fullwikiname
-     * @throws XWikiException
+     * @deprecated since Celements 3.1
+     * 
+     * @throws UnsupportedOperationException
+     */
+    @Deprecated
+    public void setUserDefaultGroup(String fullwikiname, XWikiContext context) throws XWikiException
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @deprecated since Celements 3.1
+     * 
+     * @throws UnsupportedOperationException
      */
     @Deprecated
     public void SetUserDefaultGroup(XWikiContext context, String fullwikiname) throws XWikiException
     {
-        setUserDefaultGroup(fullwikiname, context);
+      throw new UnsupportedOperationException();
     }
 
     public void protectUserPage(String userName, String userRights, XWikiDocument doc, XWikiContext context)
