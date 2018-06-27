@@ -74,6 +74,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -676,6 +677,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
     public static String getServerWikiPage(String servername)
     {
+        Validate.isTrue(StringUtils.trimToEmpty(servername).length() > 1);
         return "XWiki.XWikiServer" + StringUtils.capitalize(servername);
     }
 
@@ -4980,8 +4982,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     {
         URL serverurl = null;
         // In virtual wiki path mode the server is the standard one
-        if ("0".equals(Param("xwiki.virtual.usepath", "0")) && 
-            StringUtils.trimToEmpty(wikiName).length() > 1) {
+        if ("0".equals(Param("xwiki.virtual.usepath", "0"))) {
             String currentDatabase = context.getDatabase();
             try {
                 context.setDatabase(getDatabase());
@@ -5004,7 +5005,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
                     }
                     serverurl = new URL(protocol, host, port, "/");
                 }
-            } catch (Exception ex) {
+            } catch (XWikiException | MalformedURLException exc) {
+              LOG.error("getServerURL - failed for: " + wikiName, exc);
             } finally {
                 context.setDatabase(currentDatabase);
             }
@@ -5025,7 +5027,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
                     String server = serverobject.getStringValue("server");
                     return "wiki/" + server + "/";
                 }
-            } catch (Exception e) {
+            } catch (XWikiException e) {
                 LOG.error("Failed to get URL for provided wiki [" + wikiName + "]", e);
             } finally {
                 context.setDatabase(database);
