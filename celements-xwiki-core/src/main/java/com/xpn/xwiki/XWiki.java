@@ -4976,55 +4976,40 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         return Param("xwiki.encoding", "UTF-8");
     }
 
-    public URL getServerURL(String database, XWikiContext context) throws MalformedURLException
+    public URL getServerURL(String wikiName, XWikiContext context) throws MalformedURLException
     {
-        String serverurl = null;
-
+        URL serverurl = null;
         // In virtual wiki path mode the server is the standard one
-        if ("1".equals(Param("xwiki.virtual.usepath", "0"))) {
-            return null;
-        }
-
-        if (database != null) {
-            String db = context.getDatabase();
+        if ("0".equals(Param("xwiki.virtual.usepath", "0")) && 
+            StringUtils.trimToEmpty(wikiName).length() > 1) {
+            String currentDatabase = context.getDatabase();
             try {
                 context.setDatabase(getDatabase());
-                XWikiDocument doc =
-                    getDocument("XWiki.XWikiServer" + database.substring(0, 1).toUpperCase() + database.substring(1),
-                        context);
-                BaseObject serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE);
+                XWikiDocument doc = getDocument(getServerWikiPage(wikiName), context);
+                String host = context.getURL().getHost();
+                host = host.replaceFirst(currentDatabase, wikiName);
+                BaseObject serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE,
+                    "server", host);
                 if (serverobject != null) {
-                    String server = serverobject.getStringValue("server");
-                    if (server != null) {
-                        String protocol = context.getWiki().Param("xwiki.url.protocol", null);
-                        if (protocol == null) {
-                            int iSecure = serverobject.getIntValue("secure", -1);
-                            // Check the request object if the "secure" property is undefined.
-                            boolean secure = iSecure == 1 || (iSecure < 0 && context.getRequest().isSecure());
-                            protocol = secure ? "https" : "http";
-                        }
-                        long port = context.getURL().getPort();
-                        if (port == 80 || port == 443) {
-                            port = -1;
-                        }
-                        if (port != -1) {
-                            serverurl = protocol + "://" + server + ":" + port + "/";
-                        } else {
-                            serverurl = protocol + "://" + server + "/";
-                        }
+                    String protocol = context.getWiki().Param("xwiki.url.protocol", null);
+                    if (protocol == null) {
+                        int iSecure = serverobject.getIntValue("secure", -1);
+                        // Check the request object if the "secure" property is undefined.
+                        boolean secure = iSecure == 1 || (iSecure < 0 && context.getRequest().isSecure());
+                        protocol = secure ? "https" : "http";
                     }
+                    int port = context.getURL().getPort();
+                    if (port == 80 || port == 443) {
+                        port = -1;
+                    }
+                    serverurl = new URL(protocol, host, port, "/");
                 }
             } catch (Exception ex) {
             } finally {
-                context.setDatabase(db);
+                context.setDatabase(currentDatabase);
             }
         }
-
-        if (serverurl != null) {
-            return new URL(serverurl);
-        } else {
-            return null;
-        }
+        return serverurl;
     }
 
     public String getServletPath(String wikiName, XWikiContext context)
