@@ -14,6 +14,7 @@ import org.easymock.Capture;
 import org.junit.Before;
 import org.junit.Test;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.ImmutableDocumentReference;
 import org.xwiki.rendering.syntax.Syntax;
 
 import com.celements.common.test.AbstractComponentTest;
@@ -59,15 +60,15 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   public void prepareTest() throws Exception {
     registerComponentMock(XWikiDocumentCreator.class, "default", new TestXWikiDocumentCreator());
     modelAccess = (DefaultModelAccessFacade) Utils.getComponent(IModelAccessFacade.class);
-    doc = new XWikiDocument(new DocumentReference("db", "space", "doc"));
+    doc = new XWikiDocument(new ImmutableDocumentReference("db", "space", "doc"));
     doc.setSyntax(Syntax.XWIKI_1_0);
     doc.setMetaDataDirty(false);
     storeMock = createMockAndAddToDefault(XWikiStoreInterface.class);
     doc.setStore(storeMock);
     doc.setNew(false);
     expect(getWikiMock().getStore()).andReturn(storeMock).anyTimes();
-    classRef = new DocumentReference("db", "class", "any");
-    classRef2 = new DocumentReference("db", "class", "other");
+    classRef = new ImmutableDocumentReference("db", "class", "any");
+    classRef2 = new ImmutableDocumentReference("db", "class", "other");
     // important for unstable-2.0 set database because class references are checked for db
     getContext().setDatabase("db");
   }
@@ -536,8 +537,8 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   public void test_getXObjects_otherWikiRef() {
     BaseObject obj = addObj(classRef, null, null);
     // IMPORTANT do not use setWikiReference, because it is dropped in xwiki 4.5.4
-    classRef = new DocumentReference("otherWiki", classRef.getLastSpaceReference().getName(),
-        classRef.getName());
+    classRef = new ImmutableDocumentReference("otherWiki",
+        classRef.getLastSpaceReference().getName(), classRef.getName());
     List<BaseObject> ret = modelAccess.getXObjects(doc, classRef);
     assertEquals(1, ret.size());
     assertSame(obj, ret.get(0));
@@ -682,8 +683,8 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     expectDefaultLang(docMock);
     BaseObject obj = createObj(classRef);
     expect(docMock.newXObject(eq(classRef), same(getContext()))).andReturn(obj).once();
-    classRef = new DocumentReference("otherWiki", classRef.getLastSpaceReference().getName(),
-        classRef.getName());
+    classRef = new ImmutableDocumentReference("otherWiki",
+        classRef.getLastSpaceReference().getName(), classRef.getName());
     replayDefault();
     BaseObject ret = modelAccess.newXObject(docMock, classRef);
     verifyDefault();
@@ -1149,7 +1150,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   @Test
   public void test_setProperty_getProperty_customField() throws Exception {
     ClassField<DocumentReference> field = TestClassDefinition.FIELD_MY_DOCREF;
-    DocumentReference toStoreRef = new DocumentReference("myDB", "mySpace", "myDoc");
+    DocumentReference toStoreRef = new ImmutableDocumentReference("myDB", "mySpace", "myDoc");
 
     BaseClass bClass = expectNewBaseObject(field.getClassDef().getClassRef());
     expectPropertyClass(bClass, field.getName(), new StringClass());
