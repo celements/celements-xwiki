@@ -361,8 +361,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         DocumentReferenceResolver.class, "currentmixed");
 
     @SuppressWarnings("unchecked")
-    private EntityReferenceResolver<String> relativeEntityReferenceResolver = Utils.getComponent(
-        EntityReferenceResolver.class, "relative");
+    private DocumentReferenceResolver<String> docRefResolver = Utils.getComponent(DocumentReferenceResolver.class);
 
     private SyntaxFactory syntaxFactory = Utils.getComponent(SyntaxFactory.class);
 
@@ -4814,7 +4813,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     }
     
     private BaseObject getServerObject(String wikiName, XWikiContext context) throws XWikiException {
-      XWikiDocument doc = getDocument(getServerWikiPage(wikiName), context);
+      XWikiDocument doc = getDocument(docRefResolver.resolve(getServerWikiPage(wikiName),
+          new WikiReference(getDatabase())), context);
       String server = context.getURL().getHost().replaceFirst(context.getDatabase(), wikiName);
       BaseObject serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE,
           "server", server);
