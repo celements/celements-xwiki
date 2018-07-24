@@ -10,7 +10,6 @@ import com.celements.model.access.exception.DocumentDeleteException;
 import com.celements.model.access.exception.DocumentLoadException;
 import com.celements.model.access.exception.DocumentSaveException;
 import com.celements.model.context.ModelContext;
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.store.XWikiStoreInterface;
@@ -28,14 +27,6 @@ public class StoreModelAccessStrategy implements ModelAccessStrategy {
 
   @Requirement
   protected XWikiDocumentCreator docCreator;
-
-  /**
-   * @deprecated refactor calls to {@link #getStore()}
-   */
-  @Deprecated
-  private XWiki getWiki() {
-    return context.getXWikiContext().getWiki();
-  }
 
   private XWikiStoreInterface getStore() {
     return context.getXWikiContext().getWiki().getStore();
@@ -80,16 +71,14 @@ public class StoreModelAccessStrategy implements ModelAccessStrategy {
   }
 
   @Override
-  public void saveDocument(final XWikiDocument doc, final String comment, final boolean isMinorEdit)
-      throws DocumentSaveException {
+  public void saveDocument(final XWikiDocument doc) throws DocumentSaveException {
     DocumentReference docRef = doc.getDocumentReference();
     try {
       new ContextExecutor<Void, XWikiException>() {
 
         @Override
         protected Void call() throws XWikiException {
-          // TODO access store directly
-          getWiki().saveDocument(doc, comment, isMinorEdit, context.getXWikiContext());
+          getStore().saveXWikiDoc(doc, context.getXWikiContext());
           return null;
         }
       }.inWiki(docRef.getWikiReference()).execute();
@@ -99,16 +88,14 @@ public class StoreModelAccessStrategy implements ModelAccessStrategy {
   }
 
   @Override
-  public void deleteDocument(final XWikiDocument doc, final boolean totrash)
-      throws DocumentDeleteException {
+  public void deleteDocument(final XWikiDocument doc) throws DocumentDeleteException {
     DocumentReference docRef = doc.getDocumentReference();
     try {
       new ContextExecutor<Void, XWikiException>() {
 
         @Override
         protected Void call() throws XWikiException {
-          // TODO access store directly
-          getWiki().deleteDocument(doc, totrash, context.getXWikiContext());
+          getStore().deleteXWikiDoc(doc, context.getXWikiContext());
           return null;
         }
       }.inWiki(docRef.getWikiReference()).execute();

@@ -53,19 +53,18 @@ public class LegacyModelAccessStrategy implements ModelAccessStrategy {
   }
 
   @Override
-  public void saveDocument(XWikiDocument doc, String comment, boolean isMinorEdit)
-      throws DocumentSaveException {
+  public void saveDocument(XWikiDocument doc) throws DocumentSaveException {
     try {
-      getWiki().saveDocument(doc, comment, isMinorEdit, context.getXWikiContext());
+      getWiki().saveDocument(doc, doc.getComment(), doc.isMinorEdit(), context.getXWikiContext());
     } catch (XWikiException xwe) {
       throw new DocumentSaveException(doc.getDocumentReference(), xwe);
     }
   }
 
   @Override
-  public void deleteDocument(XWikiDocument doc, boolean totrash) throws DocumentDeleteException {
+  public void deleteDocument(XWikiDocument doc) throws DocumentDeleteException {
     try {
-      getWiki().deleteDocument(doc, totrash, context.getXWikiContext());
+      getWiki().deleteDocument(doc, false, context.getXWikiContext());
     } catch (XWikiException xwe) {
       throw new DocumentDeleteException(doc.getDocumentReference(), xwe);
     }
