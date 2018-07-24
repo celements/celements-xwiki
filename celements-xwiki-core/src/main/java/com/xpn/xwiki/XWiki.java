@@ -4815,13 +4815,11 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     
     private BaseObject getServerObject(String wikiName, XWikiContext context) throws XWikiException {
       XWikiDocument doc = getDocument(getServerWikiPage(wikiName), context);
-      String host = context.getURL().getHost();
-      host = host.replaceFirst(context.getDatabase(), wikiName);
+      String server = context.getURL().getHost().replaceFirst(context.getDatabase(), wikiName);
       BaseObject serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE,
-          "server", host);
+          "server", server);
       if (serverobject == null) {
         serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE);
-        host = serverobject.getStringValue("server");
       }
       return serverobject;
     }
