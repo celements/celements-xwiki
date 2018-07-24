@@ -4789,14 +4789,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         URL serverurl = null;
         // In virtual wiki path mode the server is the standard one
         if ("0".equals(Param("xwiki.virtual.usepath", "0"))) {
-            String currentDatabase = context.getDatabase();
             try {
-                context.setDatabase(getDatabase());
-                XWikiDocument doc = getDocument(getServerWikiPage(wikiName), context);
-                String host = context.getURL().getHost();
-                host = host.replaceFirst(currentDatabase, wikiName);
-                BaseObject serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE,
-                    "server", host);
+                BaseObject serverobject = getServerObject(wikiName, context);
                 if (serverobject != null) {
                     String protocol = context.getWiki().Param("xwiki.url.protocol", null);
                     if (protocol == null) {
@@ -4805,6 +4799,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
                         boolean secure = iSecure == 1 || (iSecure < 0 && context.getRequest().isSecure());
                         protocol = secure ? "https" : "http";
                     }
+                    String host = serverobject.getStringValue("server");
                     int port = context.getURL().getPort();
                     if (port == 80 || port == 443) {
                         port = -1;
@@ -4813,11 +4808,22 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
                 }
             } catch (XWikiException | MalformedURLException exc) {
               LOG.error("getServerURL - failed for: " + wikiName, exc);
-            } finally {
-                context.setDatabase(currentDatabase);
             }
         }
         return serverurl;
+    }
+    
+    private BaseObject getServerObject(String wikiName, XWikiContext context) throws XWikiException {
+      XWikiDocument doc = getDocument(getServerWikiPage(wikiName), context);
+      String host = context.getURL().getHost();
+      host = host.replaceFirst(context.getDatabase(), wikiName);
+      BaseObject serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE,
+          "server", host);
+      if (serverobject == null) {
+        serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE);
+        host = serverobject.getStringValue("server");
+      }
+      return serverobject;
     }
 
     public String getServletPath(String wikiName, XWikiContext context)
