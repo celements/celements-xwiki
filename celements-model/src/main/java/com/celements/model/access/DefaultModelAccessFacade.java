@@ -1,5 +1,6 @@
 package com.celements.model.access;
 
+import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 
 import java.util.ArrayList;
@@ -14,12 +15,20 @@ import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xwiki.bridge.event.AbstractDocumentEvent;
+import org.xwiki.bridge.event.DocumentCreatedEvent;
+import org.xwiki.bridge.event.DocumentCreatingEvent;
+import org.xwiki.bridge.event.DocumentDeletedEvent;
+import org.xwiki.bridge.event.DocumentDeletingEvent;
+import org.xwiki.bridge.event.DocumentUpdatedEvent;
+import org.xwiki.bridge.event.DocumentUpdatingEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.observation.ObservationManager;
 
 import com.celements.model.access.exception.AttachmentNotExistsException;
 import com.celements.model.access.exception.DocumentAlreadyExistsException;
@@ -52,6 +61,7 @@ import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
+import com.xpn.xwiki.store.XWikiRecycleBinStoreInterface;
 import com.xpn.xwiki.util.Util;
 
 @Component
@@ -61,6 +71,15 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
 
   @Requirement
   protected ModelAccessStrategy strategy;
+
+  @Requirement
+  protected XWikiDocumentCreator docCreator;
+
+  @Requirement
+  protected ObservationManager observationManager;
+
+  @Requirement
+  protected XWikiRecycleBinStoreInterface recycleBin;
 
   @Requirement
   protected IRightsAccessFacadeRole rightsAccess;
@@ -107,6 +126,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       throws DocumentNotExistsException {
     checkNotNull(docRef);
     lang = normalizeLang(lang);
+    // TODO in ContextExecutor
     if (exists(docRef, lang)) {
       return strategy.getDocument(docRef, lang);
     } else {
@@ -143,6 +163,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   public boolean exists(DocumentReference docRef, String lang) {
     boolean exists = false;
     if (docRef != null) {
+      // TODO in ContextExecutor
       lang = normalizeLang(lang);
       exists = strategy.exists(docRef, lang);
     }
@@ -163,11 +184,6 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   public void saveDocument(XWikiDocument doc, String comment, boolean isMinorEdit)
       throws DocumentSaveException {
     checkNotNull(doc);
-    String username = context.getUserName();
-    doc.setAuthor(username);
-    if (doc.isNew()) {
-      doc.setCreator(username);
-    }
     LOGGER.debug("saveDocument: doc '{}, {}', comment '{}', isMinorEdit '{}'",
         modelUtils.serializeRef(doc.getDocumentReference()), doc.getLanguage(), comment,
         isMinorEdit);
@@ -175,7 +191,25 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       LOGGER.trace("saveDocument: context db '{}' and StackTrace:", context.getWikiRef(),
           new Throwable());
     }
-    strategy.saveDocument(doc, comment, isMinorEdit);
+    // TODO in ContextExecutor
+    prepareDocForSave(doc, comment, isMinorEdit);
+    boolean isNewDoc = doc.isNew();
+    XWikiDocument origDocBeforeSave = firstNonNull(doc.getOriginalDocument(),
+        docCreator.createWithoutDefaults(doc.getDocumentReference()));
+    notifyEvent(isNewDoc ? DocumentCreatingEvent.class : DocumentUpdatingEvent.class, doc);
+    strategy.saveDocument(doc);
+    doc = doc.clone(); // avoid mutating doc in notify after save
+    doc.setOriginalDocument(origDocBeforeSave);
+    notifyEvent(isNewDoc ? DocumentCreatedEvent.class : DocumentUpdatedEvent.class, doc);
+  }
+
+  private void prepareDocForSave(XWikiDocument doc, String comment, boolean isMinorEdit) {
+    doc.setAuthor(context.getUserName());
+    if (doc.isNew()) {
+      doc.setCreator(context.getUserName());
+    }
+    doc.setComment(Strings.nullToEmpty(comment));
+    doc.setMinorEdit(isMinorEdit);
   }
 
   @Override
@@ -220,8 +254,25 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       LOGGER.trace("deleteDocument: context db '{}' and StackTrace:", context.getWikiRef(),
           new Throwable());
     }
-    strategy.deleteDocument(doc, totrash);
+    // TODO in ContextExecutor
+    notifyEvent(DocumentDeletingEvent.class, doc);
+    if (totrash) {
+      saveToRecycleBin(doc);
+    }
+    strategy.deleteDocument(doc);
+    XWikiDocument dummyDoc = docCreator.createWithoutDefaults(doc.getDocumentReference());
+    dummyDoc.setOriginalDocument(doc);
+    notifyEvent(DocumentDeletedEvent.class, dummyDoc);
+  }
 
+  private void saveToRecycleBin(XWikiDocument doc) throws DocumentDeleteException {
+    try {
+      // TODO check xwiki.cfg xwiki.recyclebin, see XWiki#hasRecycleBin
+      recycleBin.saveToRecycleBin(doc, context.getUserName(), new Date(), context.getXWikiContext(),
+          true);
+    } catch (XWikiException xwe) {
+      throw new DocumentDeleteException(doc.getDocumentReference(), xwe);
+    }
   }
 
   @Override
@@ -242,6 +293,18 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   @Override
   public boolean isTranslation(XWikiDocument doc) {
     return checkNotNull(doc).getTranslation() == 1;
+  }
+
+  private void notifyEvent(Class<? extends AbstractDocumentEvent> eventClass, XWikiDocument doc)
+      throws IllegalArgumentException {
+    try {
+      checkArgument(observationManager != null);
+      AbstractDocumentEvent event = eventClass.getConstructor(DocumentReference.class).newInstance(
+          doc.getDocumentReference());
+      observationManager.notify(event, doc, context.getXWikiContext());
+    } catch (ReflectiveOperationException exc) {
+      throw new IllegalArgumentException(exc);
+    }
   }
 
   /**
