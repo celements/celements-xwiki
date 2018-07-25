@@ -1224,10 +1224,10 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase
     }
 
     /**
-     * Verify that no ConcurrentModificationException is thrown
+     * Verify that no ConcurrentModificationException is thrown, see CELDEV-725
      */
     public void testMergeObjectsConcurrentModificationException() throws Exception {
-      XWikiDocument doc = new XWikiDocument(new DocumentReference(DOCWIKI, "somespace", "somepage"));
+      XWikiDocument doc = new XWikiDocument(new DocumentReference("somewiki", "somespace", "somepage"));
       doc.newObject(CLASSNAME, getContext());
       doc.mergeXObjects(this.document);
       assertEquals(2, doc.getObjects(CLASSNAME).size());
