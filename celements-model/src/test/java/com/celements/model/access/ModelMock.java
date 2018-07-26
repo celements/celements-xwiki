@@ -143,8 +143,7 @@ public class ModelMock implements ModelAccessStrategy {
   }
 
   @Override
-  public void saveDocument(XWikiDocument doc, String comment, boolean isMinorEdit)
-      throws DocumentSaveException {
+  public void saveDocument(XWikiDocument doc) throws DocumentSaveException {
     expectSave(doc.getDocumentReference(), doc.getLanguage());
   }
 
@@ -158,7 +157,7 @@ public class ModelMock implements ModelAccessStrategy {
   }
 
   @Override
-  public void deleteDocument(XWikiDocument doc, boolean totrash) throws DocumentDeleteException {
+  public void deleteDocument(XWikiDocument doc) throws DocumentDeleteException {
     expectDelete(doc.getDocumentReference(), doc.getLanguage());
   }
 

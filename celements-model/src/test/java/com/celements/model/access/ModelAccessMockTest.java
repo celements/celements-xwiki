@@ -48,17 +48,17 @@ public class ModelAccessMockTest extends AbstractComponentTest {
     assertFalse(doc.wasSaved());
     assertEquals(0, doc.getSavedCount());
 
-    modelAccess.saveDocument(doc.doc(), "", false);
+    modelAccess.saveDocument(doc.doc());
     assertTrue(doc.wasSaved());
     assertEquals(1, doc.getSavedCount());
 
-    modelAccess.saveDocument(doc.doc(), "", false);
+    modelAccess.saveDocument(doc.doc());
     assertTrue(doc.wasSaved());
     assertEquals(2, doc.getSavedCount());
 
     modelAccess.getDocRecord(docRef).setThrowSaveException(true);
     try {
-      modelAccess.saveDocument(doc.doc(), "", false);
+      modelAccess.saveDocument(doc.doc());
       fail("expecting DocumentSaveException");
     } catch (DocumentSaveException exc) {
       // expected
@@ -72,17 +72,17 @@ public class ModelAccessMockTest extends AbstractComponentTest {
     assertFalse(doc.wasDeleted());
     assertEquals(0, doc.getDeletedCount());
 
-    modelAccess.deleteDocument(doc.doc(), true);
+    modelAccess.deleteDocument(doc.doc());
     assertTrue(doc.wasDeleted());
     assertEquals(1, doc.getDeletedCount());
 
-    modelAccess.deleteDocument(doc.doc(), false);
+    modelAccess.deleteDocument(doc.doc());
     assertTrue(doc.wasDeleted());
     assertEquals(2, doc.getDeletedCount());
 
     modelAccess.getDocRecord(docRef).setThrowDeleteException(true);
     try {
-      modelAccess.deleteDocument(doc.doc(), false);
+      modelAccess.deleteDocument(doc.doc());
       fail("expecting DocumentDeleteException");
     } catch (DocumentDeleteException exc) {
       // expected
