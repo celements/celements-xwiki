@@ -923,30 +923,29 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         }
     }
 
+    public XWikiCacheStoreInterface getCacheStore()
+    {
+        if (getStore() != null) {
+          return getStore().getStore(XWikiCacheStoreInterface.class);
+        }
+        return null;
+    }
+
     public XWikiStoreInterface getNotCacheStore()
     {
-        XWikiStoreInterface store = getStore();
-        if (store instanceof XWikiCacheStoreInterface) {
-            store = ((XWikiCacheStoreInterface) store).getStore();
+        XWikiCacheStoreInterface cacheStore = getCacheStore();
+        if (cacheStore != null) {
+          return cacheStore.getStore();
         }
-        return store;
+        return null;
     }
 
     public XWikiHibernateStore getHibernateStore()
     {
-        XWikiStoreInterface store = getStore();
-        if (store instanceof XWikiHibernateStore) {
-            return (XWikiHibernateStore) store;
-        } else if (store instanceof XWikiCacheStoreInterface) {
-            store = ((XWikiCacheStoreInterface) store).getStore();
-            if (store instanceof XWikiHibernateStore) {
-                return (XWikiHibernateStore) store;
-            } else {
-                return null;
-            }
-        } else {
-            return null;
+        if (getStore() != null) {
+          return getStore().getStore(XWikiHibernateStore.class);
         }
+        return null;
     }
 
     public void updateDatabase(String wikiName, XWikiContext context) throws HibernateException, XWikiException
