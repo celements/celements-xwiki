@@ -49,7 +49,7 @@ public abstract class ClassDefConverter<A, B> implements Converter<A, B> {
     toAccessor.setValue(to, field, fromAccessor.getValue(from, field).orNull());
   }
 
-  private void handle(FieldAccessException exc) throws ConversionException {
+  protected void handle(FieldAccessException exc) throws ConversionException {
     if (exc instanceof FieldMissingException) {
       LOGGER.info("incompleteness detected for '{}'", this.getClass().getSimpleName(), exc);
     } else {
