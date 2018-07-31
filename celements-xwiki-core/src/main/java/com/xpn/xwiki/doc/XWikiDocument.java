@@ -2405,28 +2405,13 @@ public class XWikiDocument implements DocumentModelBridge
      */
     public void mergeXObjects(XWikiDocument templatedoc)
     {
-        // TODO: look for each object if it already exist and add it if it doesn't
-        for (Map.Entry<DocumentReference, List<BaseObject>> entry : templatedoc.getXObjects().entrySet()) {
-            List<BaseObject> myObjects = getXObjects().get(entry.getKey());
-
-            if (myObjects == null) {
-                myObjects = new ArrayList<BaseObject>();
-            }
-
-            if (!entry.getValue().isEmpty()) {
-                DocumentReference newXClassReference = null;
-                for (BaseObject otherObject : entry.getValue()) {
-                    if (otherObject != null) {
-                        BaseObject myObject = otherObject.duplicate(getDocumentReference());
-                        myObjects.add(myObject);
-                        myObject.setNumber(myObjects.size() - 1);
-                        newXClassReference = myObject.getXClassReference();
-                    }
+        for (DocumentReference classDocRef : templatedoc.getXObjects().keySet()) {
+            for (BaseObject otherObject : templatedoc.getXObjects(classDocRef)) {
+                if (otherObject != null) {
+                    addXObject(otherObject.duplicate(getDocumentReference()));
                 }
-                setXObjects(newXClassReference, myObjects);
             }
         }
-        setContentDirty(true);
     }
 
     /**
