@@ -15,9 +15,9 @@ import com.celements.model.classes.fields.ClassField;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.Utils;
 
-public class XWikiDocumentFieldAccessorTest extends AbstractComponentTest {
+public class XDocumentFieldAccessorTest extends AbstractComponentTest {
 
-  private XWikiDocumentFieldAccessor accessor;
+  private XDocumentFieldAccessor accessor;
 
   private DocumentReference documentReference = new DocumentReference("wiki", "space", "doc");
   private DocumentReference parentReference = new DocumentReference("wiki", "space", "parent");
@@ -35,13 +35,13 @@ public class XWikiDocumentFieldAccessorTest extends AbstractComponentTest {
 
   @Before
   public void prepareTest() throws Exception {
-    accessor = (XWikiDocumentFieldAccessor) Utils.getComponent(FieldAccessor.class,
-        XWikiDocumentFieldAccessor.NAME);
+    accessor = (XDocumentFieldAccessor) Utils.getComponent(FieldAccessor.class,
+        XDocumentFieldAccessor.NAME);
   }
 
   @Test
   public void test_getName() {
-    assertEquals(XWikiDocumentFieldAccessor.NAME, accessor.getName());
+    assertEquals(XDocumentFieldAccessor.NAME, accessor.getName());
   }
 
   @Test

@@ -41,4 +41,4 @@ com.celements.web.classes.oldcore.XWikiUsersClass
 com.celements.web.classes.oldcore.XWikiGroupsClass
 com.celements.model.migration.DanglingObjectsMigration
 com.celements.web.classes.oldcore.XWikiDocumentClass
-com.celements.model.field.XWikiDocumentFieldAccessor
+com.celements.model.field.XDocumentFieldAccessor

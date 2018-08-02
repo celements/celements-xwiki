@@ -22,10 +22,10 @@ import com.xpn.xwiki.doc.XWikiDocument;
 /**
  * {@link FieldAccessor} for accessing {@link XWikiDocument} properties
  */
-@Component(XWikiDocumentFieldAccessor.NAME)
-public class XWikiDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
+@Component(XDocumentFieldAccessor.NAME)
+public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(XWikiDocumentFieldAccessor.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(XDocumentFieldAccessor.class);
 
   public static final String NAME = "xdoc";
 
