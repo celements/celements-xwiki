@@ -11,7 +11,7 @@ import com.celements.model.field.XObjectFieldAccessor;
 import com.celements.web.classes.oldcore.XWikiDocumentClass;
 import com.xpn.xwiki.objects.BaseObject;
 
-public abstract class XObjectConverter<T> extends ClassDefConverter<BaseObject, T> {
+public abstract class XObjectConverter<T> extends AbstractClassDefConverter<BaseObject, T> {
 
   @Requirement(XObjectFieldAccessor.NAME)
   private FieldAccessor<BaseObject> xObjAccessor;
@@ -22,8 +22,8 @@ public abstract class XObjectConverter<T> extends ClassDefConverter<BaseObject, 
   }
 
   @Override
-  public T apply(BaseObject obj) throws ConversionException {
-    T instance = super.apply(obj);
+  public T apply(T instance, BaseObject obj) throws ConversionException {
+    instance = super.apply(instance, obj);
     if (obj != null) {
       try {
         ClassField<DocumentReference> docRefField = XWikiDocumentClass.FIELD_DOC_REF;
