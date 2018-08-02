@@ -7,16 +7,12 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 
-import com.celements.marshalling.Marshaller;
-import com.celements.marshalling.XWikiUserMarshaller;
 import com.celements.model.classes.PseudoClassDefinition;
+import com.celements.model.classes.fields.BooleanField;
 import com.celements.model.classes.fields.ClassField;
-import com.celements.model.classes.fields.CustomStringField;
 import com.celements.model.classes.fields.DateField;
 import com.celements.model.classes.fields.StringField;
-import com.celements.model.classes.fields.number.IntField;
 import com.celements.model.classes.fields.ref.DocumentReferenceField;
-import com.xpn.xwiki.user.api.XWikiUser;
 
 @Singleton
 @Component(XWikiDocumentClass.CLASS_DEF_HINT)
@@ -38,19 +34,17 @@ public class XWikiDocumentClass extends PseudoClassDefinition {
   public static final ClassField<String> FIELD_DEFAULT_LANGUAGE = new StringField.Builder(CLASS_FN,
       "defaultLanguage").build();
 
-  public static final ClassField<Integer> FIELD_TRANSLATION = new IntField.Builder(CLASS_FN,
+  public static final ClassField<Boolean> FIELD_TRANSLATION = new BooleanField.Builder(CLASS_FN,
       "translation").build();
 
-  private static final Marshaller<XWikiUser> USER_MARSHALLER = new XWikiUserMarshaller();
+  public static final ClassField<String> FIELD_CREATOR = new StringField.Builder(CLASS_FN,
+      "creator").build();
 
-  public static final ClassField<XWikiUser> FIELD_CREATOR = new CustomStringField.Builder<>(
-      CLASS_FN, "creator", USER_MARSHALLER).build();
+  public static final ClassField<String> FIELD_AUTHOR = new StringField.Builder(CLASS_FN,
+      "author").build();
 
-  public static final ClassField<XWikiUser> FIELD_AUTHOR = new CustomStringField.Builder<>(CLASS_FN,
-      "author", USER_MARSHALLER).build();
-
-  public static final ClassField<XWikiUser> FIELD_CONTENT_AUTHOR = new CustomStringField.Builder<>(
-      CLASS_FN, "contentAuthor", USER_MARSHALLER).build();
+  public static final ClassField<String> FIELD_CONTENT_AUTHOR = new StringField.Builder(CLASS_FN,
+      "contentAuthor").build();
 
   public static final ClassField<Date> FIELD_CREATION_DATE = new DateField.Builder(CLASS_FN,
       "creationDate").build();

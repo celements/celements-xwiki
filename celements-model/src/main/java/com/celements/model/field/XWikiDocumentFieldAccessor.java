@@ -13,14 +13,11 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.EntityReference;
 
-import com.celements.marshalling.Marshaller;
-import com.celements.marshalling.XWikiUserMarshaller;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.user.api.XWikiUser;
 
 /**
  * {@link FieldAccessor} for accessing {@link XWikiDocument} properties
@@ -29,8 +26,6 @@ import com.xpn.xwiki.user.api.XWikiUser;
 public class XWikiDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(XWikiDocumentFieldAccessor.class);
-
-  private static final Marshaller<XWikiUser> USER_MARSHALLER = new XWikiUserMarshaller();
 
   public static final String NAME = "xdoc";
 
@@ -65,13 +60,13 @@ public class XWikiDocumentFieldAccessor implements FieldAccessor<XWikiDocument> 
     } else if (field == FIELD_DEFAULT_LANGUAGE) {
       value = (V) emptyToNull(doc.getDefaultLanguage());
     } else if (field == FIELD_TRANSLATION) {
-      value = (V) (Integer) doc.getTranslation();
+      value = (V) (Boolean) (doc.getTranslation() != 0);
     } else if (field == FIELD_CREATOR) {
-      value = (V) USER_MARSHALLER.resolve(doc.getCreator()).orNull();
+      value = (V) emptyToNull(doc.getCreator());
     } else if (field == FIELD_AUTHOR) {
-      value = (V) USER_MARSHALLER.resolve(doc.getAuthor()).orNull();
+      value = (V) emptyToNull(doc.getAuthor());
     } else if (field == FIELD_CONTENT_AUTHOR) {
-      value = (V) USER_MARSHALLER.resolve(doc.getContentAuthor()).orNull();
+      value = (V) emptyToNull(doc.getContentAuthor());
     } else if (field == FIELD_CREATION_DATE) {
       value = (V) doc.getCreationDate();
     } else if (field == FIELD_UPDATE_DATE) {
@@ -112,13 +107,13 @@ public class XWikiDocumentFieldAccessor implements FieldAccessor<XWikiDocument> 
       } else if (field == FIELD_DEFAULT_LANGUAGE) {
         doc.setDefaultLanguage((String) value);
       } else if (field == FIELD_TRANSLATION) {
-        doc.setTranslation((int) value);
+        doc.setTranslation((boolean) value ? 1 : 0);
       } else if (field == FIELD_CREATOR) {
-        doc.setCreator(USER_MARSHALLER.serialize((XWikiUser) value));
+        doc.setCreator((String) value);
       } else if (field == FIELD_AUTHOR) {
-        doc.setAuthor(USER_MARSHALLER.serialize((XWikiUser) value));
+        doc.setAuthor((String) value);
       } else if (field == FIELD_CONTENT_AUTHOR) {
-        doc.setContentAuthor(USER_MARSHALLER.serialize((XWikiUser) value));
+        doc.setContentAuthor((String) value);
       } else if (field == FIELD_CREATION_DATE) {
         doc.setCreationDate((Date) value);
       } else if (field == FIELD_UPDATE_DATE) {
