@@ -5,17 +5,22 @@ import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Strings.*;
 
 import java.text.MessageFormat;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
+import org.xwiki.model.reference.EntityReference;
 
+import com.celements.marshalling.Marshaller;
+import com.celements.marshalling.XWikiUserMarshaller;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.user.api.XWikiUser;
 
 /**
  * {@link FieldAccessor} for accessing {@link XWikiDocument} properties
@@ -24,6 +29,8 @@ import com.xpn.xwiki.doc.XWikiDocument;
 public class XWikiDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(XWikiDocumentFieldAccessor.class);
+
+  private static final Marshaller<XWikiUser> USER_MARSHALLER = new XWikiUserMarshaller();
 
   public static final String NAME = "xdoc";
 
@@ -51,6 +58,26 @@ public class XWikiDocumentFieldAccessor implements FieldAccessor<XWikiDocument> 
     V value;
     if (field == FIELD_DOC_REF) {
       value = (V) doc.getDocumentReference();
+    } else if (field == FIELD_PARENT_REF) {
+      value = (V) doc.getParentReference();
+    } else if (field == FIELD_LANGUAGE) {
+      value = (V) emptyToNull(doc.getLanguage());
+    } else if (field == FIELD_DEFAULT_LANGUAGE) {
+      value = (V) emptyToNull(doc.getDefaultLanguage());
+    } else if (field == FIELD_TRANSLATION) {
+      value = (V) (Integer) doc.getTranslation();
+    } else if (field == FIELD_CREATOR) {
+      value = (V) USER_MARSHALLER.resolve(doc.getCreator()).orNull();
+    } else if (field == FIELD_AUTHOR) {
+      value = (V) USER_MARSHALLER.resolve(doc.getAuthor()).orNull();
+    } else if (field == FIELD_CONTENT_AUTHOR) {
+      value = (V) USER_MARSHALLER.resolve(doc.getContentAuthor()).orNull();
+    } else if (field == FIELD_CREATION_DATE) {
+      value = (V) doc.getCreationDate();
+    } else if (field == FIELD_UPDATE_DATE) {
+      value = (V) doc.getDate();
+    } else if (field == FIELD_CONTENT_UPDATE_DATE) {
+      value = (V) doc.getContentUpdateDate();
     } else if (field == FIELD_TITLE) {
       value = (V) emptyToNull(doc.getTitle().trim());
     } else if (field == FIELD_CONTENT) {
@@ -78,6 +105,26 @@ public class XWikiDocumentFieldAccessor implements FieldAccessor<XWikiDocument> 
     if (dirty) {
       if (field == FIELD_DOC_REF) {
         throw new IllegalArgumentException("docRef should never be set");
+      } else if (field == FIELD_PARENT_REF) {
+        doc.setParentReference((EntityReference) value);
+      } else if (field == FIELD_LANGUAGE) {
+        doc.setLanguage((String) value);
+      } else if (field == FIELD_DEFAULT_LANGUAGE) {
+        doc.setDefaultLanguage((String) value);
+      } else if (field == FIELD_TRANSLATION) {
+        doc.setTranslation((int) value);
+      } else if (field == FIELD_CREATOR) {
+        doc.setCreator(USER_MARSHALLER.serialize((XWikiUser) value));
+      } else if (field == FIELD_AUTHOR) {
+        doc.setAuthor(USER_MARSHALLER.serialize((XWikiUser) value));
+      } else if (field == FIELD_CONTENT_AUTHOR) {
+        doc.setContentAuthor(USER_MARSHALLER.serialize((XWikiUser) value));
+      } else if (field == FIELD_CREATION_DATE) {
+        doc.setCreationDate((Date) value);
+      } else if (field == FIELD_UPDATE_DATE) {
+        doc.setDate((Date) value);
+      } else if (field == FIELD_CONTENT_UPDATE_DATE) {
+        doc.setContentUpdateDate((Date) value);
       } else if (field == FIELD_TITLE) {
         doc.setTitle((String) value);
       } else if (field == FIELD_CONTENT) {
