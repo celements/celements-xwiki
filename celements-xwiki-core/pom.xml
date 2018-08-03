@@ -29,9 +29,14 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>celements-xwiki-core</artifactId>
   <version>3.5-SNAPSHOT</version>
-  <description>Celements XWiki</description>
+  <description>Celements XWiki Core</description>
   <dependencies>
     <!-- Add here all your dependencies -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
