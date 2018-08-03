@@ -15,6 +15,8 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @ComponentRole
 public interface ModelAccessStrategy {
 
+  public static final String DEFAULT_LANG = "";
+
   public boolean exists(@NotNull DocumentReference docRef, @NotNull String lang);
 
   @NotNull
