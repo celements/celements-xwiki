@@ -65,7 +65,7 @@ public class ModelMock implements ModelAccessStrategy {
   }
 
   public boolean isRegistered(DocumentReference docRef) {
-    return isRegistered(docRef, IModelAccessFacade.DEFAULT_LANG);
+    return isRegistered(docRef, ModelAccessStrategy.DEFAULT_LANG);
   }
 
   public DocRecord getDocRecord(DocumentReference docRef, String lang) {
@@ -74,7 +74,7 @@ public class ModelMock implements ModelAccessStrategy {
   }
 
   public DocRecord getDocRecord(DocumentReference docRef) {
-    return getDocRecord(docRef, IModelAccessFacade.DEFAULT_LANG);
+    return getDocRecord(docRef, ModelAccessStrategy.DEFAULT_LANG);
   }
 
   public DocRecord registerDoc(DocumentReference docRef, String lang, XWikiDocument doc) {
@@ -85,7 +85,7 @@ public class ModelMock implements ModelAccessStrategy {
   }
 
   public DocRecord registerDoc(DocumentReference docRef, XWikiDocument doc) {
-    return registerDoc(docRef, IModelAccessFacade.DEFAULT_LANG, doc);
+    return registerDoc(docRef, ModelAccessStrategy.DEFAULT_LANG, doc);
   }
 
   public DocRecord registerDoc(DocumentReference docRef, String lang) {
@@ -93,7 +93,7 @@ public class ModelMock implements ModelAccessStrategy {
   }
 
   public DocRecord registerDoc(DocumentReference docRef) {
-    return registerDoc(docRef, IModelAccessFacade.DEFAULT_LANG);
+    return registerDoc(docRef, ModelAccessStrategy.DEFAULT_LANG);
   }
 
   public DocRecord removeRegisteredDoc(DocumentReference docRef, String lang) {
@@ -102,7 +102,7 @@ public class ModelMock implements ModelAccessStrategy {
   }
 
   public DocRecord removeRegisteredDoc(DocumentReference docRef) {
-    return removeRegisteredDoc(docRef, IModelAccessFacade.DEFAULT_LANG);
+    return removeRegisteredDoc(docRef, ModelAccessStrategy.DEFAULT_LANG);
   }
 
   public void removeAllRegisteredDocs() {
