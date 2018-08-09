@@ -6,6 +6,7 @@ import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.component.phase.Initializable;
 
+import com.celements.common.reflect.ReflectiveInstanceSupplier;
 import com.celements.component.ComponentInstanceSupplier;
 import com.celements.convert.Converter;
 import com.google.common.base.Supplier;
@@ -27,7 +28,7 @@ public interface BeanConverter<A, B> extends Converter<A, B> {
    * initialize the converter with a bean B supplier for creating instances
    *
    * @param instanceSupplier
-   *          e.g. {@link ComponentInstanceSupplier}
+   *          e.g. {@link ReflectiveInstanceSupplier} or {@link ComponentInstanceSupplier}
    */
   void initialize(@NotNull Supplier<B> instanceSupplier);
 
