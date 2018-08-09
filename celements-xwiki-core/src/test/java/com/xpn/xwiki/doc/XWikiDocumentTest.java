@@ -953,10 +953,10 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase
         // "database:space.name" (no change)
 
         DocumentReference sourceReference = new DocumentReference(this.document.getDocumentReference());
-    	this.document.setContent("[[pageinsamespace]]");
-    	this.document.setSyntax(Syntax.XWIKI_2_0);
+        this.document.setContent("[[pageinsamespace]]");
+        this.document.setSyntax(Syntax.XWIKI_2_0);
         DocumentReference targetReference = new DocumentReference("newwikiname", "newspace", "newpage");
-    	XWikiDocument targetDocument = this.document.duplicate(targetReference);
+        XWikiDocument targetDocument = this.document.duplicate(targetReference);
 
         DocumentReference reference1 = new DocumentReference(DOCWIKI, DOCSPACE, "Page1");
         XWikiDocument doc1 = new XWikiDocument(reference1);
@@ -997,7 +997,7 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase
             Arrays.asList(reference1, reference2, reference3), Arrays.asList(reference4, reference5), getContext());
 
         // Test links
-		assertEquals("[[Wiki:Space.pageinsamespace]]", this.document.getContent());
+        assertEquals("[[Wiki:Space.pageinsamespace]]", this.document.getContent());
         assertEquals("[[newwikiname:newspace.newpage]] " + "[[someName>>newwikiname:newspace.newpage]] "
             + "[[newwikiname:newspace.newpage]]", doc1.getContent());
         assertEquals("[[newspace.newpage]]", doc2.getContent());
@@ -1221,6 +1221,16 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase
                 assertFalse("Non unique object GUID found!", originalGuids.contains(baseObject.getGuid()));
             }
         }
+    }
+
+    /**
+     * Verify that no ConcurrentModificationException is thrown, see CELDEV-725
+     */
+    public void testMergeObjectsConcurrentModificationException() throws Exception {
+      XWikiDocument doc = new XWikiDocument(new DocumentReference("somewiki", "somespace", "somepage"));
+      doc.newObject(CLASSNAME, getContext());
+      doc.mergeXObjects(this.document);
+      assertEquals(2, doc.getObjects(CLASSNAME).size());
     }
 
     /** Check that a new empty document has empty content (used to have a new line before 2.5). */
