@@ -11,6 +11,7 @@ import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.ClassReference;
 
 import com.celements.model.access.IModelAccessFacade;
+import com.celements.model.classes.PseudoClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.objects.BaseObject;
@@ -57,6 +58,10 @@ public class XObjectFieldAccessor implements FieldAccessor<BaseObject> {
   private void checkClassRef(BaseObject obj, ClassField<?> field) throws FieldAccessException {
     checkNotNull(obj);
     checkNotNull(field);
+    if (field.getClassDef() instanceof PseudoClassDefinition) {
+      throw new FieldAccessException(MessageFormat.format(
+          "BaseObject uneligible for pseudo class field ''{0}''", field));
+    }
     ClassReference classRef = new ClassReference(obj.getXClassReference());
     if (!classRef.equals(field.getClassDef().getClassReference())) {
       throw new FieldAccessException(MessageFormat.format(
