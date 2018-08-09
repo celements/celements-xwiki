@@ -9,6 +9,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.common.test.ExceptionAsserter;
+import com.celements.model.access.IModelAccessFacade;
 import com.celements.store.DocumentCacheStore;
 import com.google.common.base.Supplier;
 import com.xpn.xwiki.store.XWikiStoreInterface;
@@ -18,11 +19,11 @@ public class ComponentInstanceSupplierTest extends AbstractComponentTest {
 
   @Test
   public void test_get() {
-    Supplier<XWikiStoreInterface> supplier = new ComponentInstanceSupplier<>(
-        XWikiStoreInterface.class);
-    XWikiStoreInterface store = supplier.get();
-    assertSame(Utils.getComponent(XWikiStoreInterface.class), store);
-    assertSame(supplier.get(), store);
+    Supplier<IModelAccessFacade> supplier = new ComponentInstanceSupplier<>(
+        IModelAccessFacade.class);
+    IModelAccessFacade modelAccess = supplier.get();
+    assertSame(Utils.getComponent(IModelAccessFacade.class), modelAccess);
+    assertSame(supplier.get(), modelAccess);
   }
 
   @Test
