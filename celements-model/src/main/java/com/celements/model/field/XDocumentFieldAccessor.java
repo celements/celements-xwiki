@@ -1,6 +1,7 @@
 package com.celements.model.field;
 
 import static com.celements.web.classes.oldcore.XWikiDocumentClass.*;
+import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Strings.*;
 
@@ -107,7 +108,7 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
       } else if (field == FIELD_DEFAULT_LANGUAGE) {
         doc.setDefaultLanguage((String) value);
       } else if (field == FIELD_TRANSLATION) {
-        doc.setTranslation((boolean) value ? 1 : 0);
+        doc.setTranslation(firstNonNull((Boolean) value, false) ? 1 : 0);
       } else if (field == FIELD_CREATOR) {
         doc.setCreator((String) value);
       } else if (field == FIELD_AUTHOR) {
