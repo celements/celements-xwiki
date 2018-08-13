@@ -1,37 +1,45 @@
 package com.celements.convert.classes;
 
+import static com.google.common.base.Preconditions.*;
+
 import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.celements.convert.ConversionException;
-import com.celements.convert.Converter;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.field.FieldAccessException;
 import com.celements.model.field.FieldAccessor;
 import com.celements.model.field.FieldMissingException;
+import com.google.common.base.Supplier;
 
-/**
- * abstract {@link Converter} simplifying conversions based on a specific {@link ClassDefinition} by
- * using {@link FieldAccessor} implementations.
- */
-public abstract class ClassDefConverter<A, B> implements Converter<A, B> {
+public abstract class AbstractClassDefConverter<A, B> implements ClassDefinitionConverter<A, B> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClassDefConverter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractClassDefConverter.class);
 
-  protected abstract @NotNull ClassDefinition getClassDef();
+  private ClassDefinition classDef;
 
-  protected abstract @NotNull B createInstance();
+  @Override
+  public void initialize(ClassDefinition classDef) {
+    checkState(this.classDef == null, "already initialized");
+    this.classDef = checkNotNull(classDef);
+  }
 
-  protected abstract @NotNull FieldAccessor<A> getFromFieldAccessor();
-
-  protected abstract @NotNull FieldAccessor<B> getToFieldAccessor();
+  @Override
+  public ClassDefinition getClassDef() {
+    checkState(classDef != null, "not initialized");
+    return classDef;
+  }
 
   @Override
   public B apply(A data) throws ConversionException {
-    B instance = createInstance();
+    return apply(getInstanceSupplier().get(), data);
+  }
+
+  @Override
+  public B apply(B instance, A data) throws ConversionException {
     if (data != null) {
       for (ClassField<?> field : getClassDef().getFields()) {
         try {
@@ -49,12 +57,14 @@ public abstract class ClassDefConverter<A, B> implements Converter<A, B> {
     toAccessor.setValue(to, field, fromAccessor.getValue(from, field).orNull());
   }
 
-  private void handle(FieldAccessException exc) throws ConversionException {
+  protected void handle(FieldAccessException exc) throws ConversionException {
     if (exc instanceof FieldMissingException) {
       LOGGER.info("incompleteness detected for '{}'", this.getClass().getSimpleName(), exc);
     } else {
       throw new ConversionException(exc);
     }
   }
+
+  protected abstract @NotNull Supplier<B> getInstanceSupplier();
 
 }

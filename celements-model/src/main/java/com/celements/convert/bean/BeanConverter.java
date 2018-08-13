@@ -1,23 +1,35 @@
 package com.celements.convert.bean;
 
+import javax.validation.constraints.NotNull;
+
 import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.component.phase.Initializable;
 
+import com.celements.common.reflect.ReflectiveInstanceSupplier;
+import com.celements.component.ComponentInstanceSupplier;
 import com.celements.convert.Converter;
-import com.celements.model.classes.ClassDefinition;
+import com.google.common.base.Supplier;
 
 /**
  * <p>
- * interface for Converters handling beans to initialize needed parameters
+ * Interface for {@link Converter} handling beans to initialize needed parameters.
  * </p>
- * IMPORTANT: call {@link #initialize(ClassDefinition, Class)} exactly once per component
- * instantiation, otherwise {@link #apply(A)} will throw an {@link IllegalStateException}. When used
- * as a {@link Requirement}, using {@link Initializable} is suitable.
+ * <p>
+ * IMPORTANT: call {@link #initialize(Supplier)} exactly once per component instantiation, else
+ * {@link #apply(A)} will throw {@link IllegalStateException}. When used as a {@link Requirement},
+ * implementing {@link Initializable} is suitable.
+ * </p>
  */
 @ComponentRole
 public interface BeanConverter<A, B> extends Converter<A, B> {
 
-  public BeanConverter<A, B> initialize(ClassDefinition classDef, Class<B> token);
+  /**
+   * initialize the converter with a bean B supplier for creating instances
+   *
+   * @param instanceSupplier
+   *          e.g. {@link ReflectiveInstanceSupplier} or {@link ComponentInstanceSupplier}
+   */
+  void initialize(@NotNull Supplier<B> instanceSupplier);
 
 }

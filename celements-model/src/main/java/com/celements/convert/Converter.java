@@ -14,9 +14,19 @@ import com.google.common.base.Function;
 @ComponentRole
 public interface Converter<A, B> extends Function<A, B> {
 
-  public @NotNull String getName();
+  @NotNull
+  String getName();
 
+  @NotNull
   @Override
-  public @NotNull B apply(@Nullable A input) throws ConversionException;
+  B apply(@Nullable A data) throws ConversionException;
+
+  /**
+   * @param instance
+   *          instance converted to
+   * @return same as instance
+   */
+  @NotNull
+  B apply(@NotNull B instance, @Nullable A data) throws ConversionException;
 
 }

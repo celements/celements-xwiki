@@ -4,23 +4,23 @@ import org.xwiki.component.annotation.Requirement;
 
 import com.celements.model.field.FieldAccessor;
 import com.celements.model.field.XObjectFieldAccessor;
+import com.celements.model.object.xwiki.XWikiObjectSupplier;
+import com.google.common.base.Supplier;
 import com.xpn.xwiki.objects.BaseObject;
 
-public abstract class XObjectDeconverter<T> extends ClassDefConverter<T, BaseObject> {
+public abstract class XObjectDeconverter<T> extends AbstractClassDefConverter<T, BaseObject> {
 
   @Requirement(XObjectFieldAccessor.NAME)
   private FieldAccessor<BaseObject> xObjAccessor;
 
   @Override
-  public BaseObject createInstance() {
-    BaseObject obj = new BaseObject();
-    obj.setXClassReference(getClassDef().getClassRef());
-    return obj;
+  public FieldAccessor<BaseObject> getToFieldAccessor() {
+    return xObjAccessor;
   }
 
   @Override
-  public FieldAccessor<BaseObject> getToFieldAccessor() {
-    return xObjAccessor;
+  protected Supplier<BaseObject> getInstanceSupplier() {
+    return new XWikiObjectSupplier(getClassDef().getClassReference());
   }
 
 }
