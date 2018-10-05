@@ -12,10 +12,10 @@ import org.apache.commons.lang.StringUtils;
 
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.util.ModelUtils;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
+import com.google.common.collect.FluentIterable;
 import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 import com.xpn.xwiki.web.Utils;
@@ -68,17 +68,26 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
   protected AbstractClassField(@NotNull Builder<?, T> builder) {
     this.classDefName = builder.classDefName;
     this.name = builder.name;
-    this.prettyName = Optional.fromNullable(builder.prettyName).or(new Supplier<String>() {
-
-      @Override
-      public String get() {
-        // lazy evaluation
-        return Joiner.on(' ').join(StringUtils.splitByCharacterTypeCamelCase(name));
-      }
-    });
+    if (builder.prettyName != null) {
+      this.prettyName = builder.prettyName;
+    } else {
+      this.prettyName = generatePrettyName(builder.name);
+    }
     this.validationRegExp = builder.validationRegExp;
     this.validationMessage = firstNonNull(builder.validationMessage, builder.classDefName + "_"
         + builder.name);
+  }
+
+  private static String generatePrettyName(String name) {
+    return FluentIterable.from(StringUtils.splitByCharacterTypeCamelCase(name)).transform(
+        new Function<String, String>() {
+
+          @Override
+          public String apply(String s) {
+            return StringUtils.capitalize(s);
+          }
+
+        }).join(Joiner.on(' '));
   }
 
   @Override
