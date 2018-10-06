@@ -61,35 +61,35 @@ public class DefaultXClassCreator implements XClassCreator {
 
   @Override
   public void createXClasses() {
-    LOGGER.info("create classes for database '{}'", context.getWikiRef());
+    LOGGER.info("create classes for database [{}]", context.getWikiRef());
     for (ClassPackage classPackage : classPackages) {
       if (classPackage.isActivated()) {
         try {
           createXClasses(classPackage);
         } catch (XClassCreateException exc) {
-          LOGGER.error("failed to create classes for package '{}'", classPackage.getName(), exc);
+          LOGGER.error("failed to create classes for package [{}]", classPackage.getName(), exc);
         }
       } else {
-        LOGGER.info("skipping package '{}'", classPackage.getName());
+        LOGGER.info("skipping package [{}]", classPackage.getName());
       }
     }
   }
 
   @Override
   public void createXClasses(ClassPackage classPackage) throws XClassCreateException {
-    LOGGER.debug("creating package '{}'", classPackage.getName());
+    LOGGER.debug("creating package [{}]", classPackage.getName());
     for (ClassDefinition classDef : classPackage.getClassDefinitions()) {
       if (!classDef.isBlacklisted()) {
         createXClass(classDef);
       } else {
-        LOGGER.info("skipping blacklisted class '{}'", classDef.getName());
+        LOGGER.info("skipping blacklisted class [{}]", classDef.getName());
       }
     }
   }
 
   @Override
   public void createXClass(ClassDefinition classDef) throws XClassCreateException {
-    LOGGER.debug("creating class '{}'", classDef.getName());
+    LOGGER.debug("creating class [{}]", classDef.getName());
     XWikiDocument classDoc = modelAccess.getOrCreateDocument(
         classDef.getClassReference().getDocRef());
     BaseClass bClass = generateXClass(classDef);
@@ -116,13 +116,14 @@ public class DefaultXClassCreator implements XClassCreator {
           PropertyClass genXField = (PropertyClass) genXClass.get(fieldName);
           PropertyClass actXField = (PropertyClass) actXClass.get(fieldName);
           if (!Objects.equals(genXField, actXField)) {
-            LOGGER.debug("field '{}' changed: {} - {}", fieldName, genXField, actXField);
+            LOGGER.debug("field [{}] changed: [{}] - [{}]", fieldName, genXField, actXField);
             for (String propName : Sets.union(genXField.getPropertyList(),
                 actXField.getPropertyList())) {
               BaseProperty genXProp = (BaseProperty) genXField.get(propName);
               BaseProperty actXProp = (BaseProperty) actXField.get(propName);
               if (!Objects.equals(genXProp, actXProp)) {
-                LOGGER.debug("property '{}' changed: {} - {}", propName, genXProp, actXProp);
+                LOGGER.debug("property [{}] changed: [{}] - [{}]", propName, genXProp, actXProp);
+                LOGGER.debug("values: [{}] - [{}]", genXProp.getValue(), actXProp.getValue());
               }
             }
           }
