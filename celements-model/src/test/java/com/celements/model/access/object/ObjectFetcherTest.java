@@ -430,6 +430,15 @@ public class ObjectFetcherTest extends AbstractComponentTest {
         Arrays.asList(null, val1, null, val2, val1));
   }
 
+  @Test
+  public void test_EmptyFetcher() throws Exception {
+    assertFalse(XWikiObjectFetcher.empty().first().isPresent());
+    assertTrue(XWikiObjectFetcher.empty().iter().isEmpty());
+    assertTrue(XWikiObjectFetcher.empty().list().isEmpty());
+    assertTrue(XWikiObjectFetcher.empty().map().isEmpty());
+    assertTrue(XWikiObjectFetcher.empty().count() == 0);
+  }
+
   private <T> BaseObject addObj(ClassReference classRef, ClassField<T> field, T value) {
     BaseObject obj = createObj(classRef, field, value);
     doc.addXObject(obj);

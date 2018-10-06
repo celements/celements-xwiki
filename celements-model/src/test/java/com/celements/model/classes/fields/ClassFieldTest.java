@@ -103,6 +103,14 @@ public class ClassFieldTest extends AbstractComponentTest {
         field.getName()).build().hashCode());
   }
 
+  @Test
+  public void test_defaults() throws Exception {
+    assertEquals("This Is Camel Case", new TestClassField.Builder(field.getClassDef().getName(),
+        "thisIsCamelCase").build().getPrettyName());
+    assertEquals("Classes.TestClass_name", getBuilder().validationRegExp(
+        "r").build().getValidationMessage());
+  }
+
   private TestClassField.Builder getBuilder() {
     return new TestClassField.Builder(field.getClassDef().getName(), field.getName());
   }
