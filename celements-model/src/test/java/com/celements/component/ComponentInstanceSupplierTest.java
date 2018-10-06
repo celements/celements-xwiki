@@ -37,16 +37,27 @@ public class ComponentInstanceSupplierTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_get_notComponent() {
+  public void test_get_noComponent() {
     Throwable cause = new ExceptionAsserter<IllegalArgumentException>(
         IllegalArgumentException.class) {
 
       @Override
       protected void execute() throws Exception {
-        new ComponentInstanceSupplier<>(Date.class).get();
+        new ComponentInstanceSupplier<>(XWikiStoreInterface.class, "iDontExist").get();
       }
     }.evaluate().getCause();
     assertSame(ComponentLookupException.class, cause.getClass());
+  }
+
+  @Test
+  public void test_notComponentRole() {
+    new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+
+      @Override
+      protected void execute() throws Exception {
+        new ComponentInstanceSupplier<>(Date.class);
+      }
+    }.evaluate();
   }
 
   @Test
