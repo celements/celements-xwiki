@@ -20,6 +20,7 @@
 package com.celements.common.classes;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Singleton;
 
@@ -35,9 +36,13 @@ import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassPackage;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.context.ModelContext;
+import com.google.common.collect.Sets;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.BaseClass;
+import com.xpn.xwiki.objects.classes.PropertyClass;
 
 @Singleton
 @Component
@@ -89,11 +94,41 @@ public class DefaultXClassCreator implements XClassCreator {
         classDef.getClassReference().getDocRef());
     BaseClass bClass = generateXClass(classDef);
     if (!classDoc.getXClass().equals(bClass)) {
+      logXClassInDetails(bClass, classDoc.getXClass());
       try {
         classDoc.setXClass(bClass);
         modelAccess.saveDocument(classDoc, "created/updated XClass");
       } catch (DocumentSaveException exc) {
         throw new XClassCreateException(exc);
+      }
+    }
+  }
+
+  /**
+   * [CELDEV-742] XClassCreator#createXClass always saves
+   * required to analyse the bug
+   */
+  private void logXClassInDetails(BaseClass genXClass, BaseClass actXClass) {
+    if (LOGGER.isDebugEnabled()) {
+      try {
+        for (String fieldName : Sets.union(genXClass.getPropertyList(),
+            actXClass.getPropertyList())) {
+          PropertyClass genXField = (PropertyClass) genXClass.get(fieldName);
+          PropertyClass actXField = (PropertyClass) actXClass.get(fieldName);
+          if (!Objects.equals(genXField, actXField)) {
+            LOGGER.debug("field '{}' changed: {} - {}", fieldName, genXField, actXField);
+            for (String propName : Sets.union(genXField.getPropertyList(),
+                actXField.getPropertyList())) {
+              BaseProperty genXProp = (BaseProperty) genXField.get(propName);
+              BaseProperty actXProp = (BaseProperty) actXField.get(propName);
+              if (!Objects.equals(genXProp, actXProp)) {
+                LOGGER.debug("property '{}' changed: {} - {}", propName, genXProp, actXProp);
+              }
+            }
+          }
+        }
+      } catch (ClassCastException | XWikiException exc) {
+        LOGGER.error("should not happen: {}", exc.getMessage(), exc);
       }
     }
   }
