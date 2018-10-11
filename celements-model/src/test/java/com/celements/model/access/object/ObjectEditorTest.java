@@ -178,6 +178,18 @@ public class ObjectEditorTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_create_docField() throws Exception {
+    replayDefault();
+    new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+
+      @Override
+      protected void execute() throws IllegalArgumentException {
+        newEditor().filter(XWikiDocumentClass.FIELD_CONTENT.getClassDef()).create();
+      }
+    }.evaluate();
+  }
+
+  @Test
   public void test_createIfNotExists_create() throws Exception {
     replayDefault();
     Map<ClassIdentity, BaseObject> ret = newEditor().filter(classRef).createIfNotExists();
@@ -399,7 +411,7 @@ public class ObjectEditorTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_editField_doc_first() throws Exception {
+  public void test_editField_docField_first() throws Exception {
     ClassField<String> field = XWikiDocumentClass.FIELD_CONTENT;
     String val = "val";
 
@@ -411,7 +423,7 @@ public class ObjectEditorTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_editField_doc_all() throws Exception {
+  public void test_editField_docField_all() throws Exception {
     ClassField<String> field = XWikiDocumentClass.FIELD_CONTENT;
     String val = "val";
 

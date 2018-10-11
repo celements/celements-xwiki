@@ -432,7 +432,7 @@ public class ObjectFetcherTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_fetchField_doc() throws Exception {
+  public void test_fetchField_docField() throws Exception {
     ClassField<String> field = XWikiDocumentClass.FIELD_CONTENT;
     String val = "val";
     doc.setContent(val);
