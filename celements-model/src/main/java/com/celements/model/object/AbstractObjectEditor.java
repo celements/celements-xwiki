@@ -13,10 +13,8 @@ import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xwiki.model.reference.ClassReference;
 
 import com.celements.model.classes.ClassIdentity;
-import com.celements.model.classes.PseudoClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.restriction.FieldRestriction;
 import com.google.common.base.Function;
@@ -76,7 +74,8 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
     @Override
     public O apply(ClassIdentity classId) {
-      checkArgument(isValidObjectClass(classId));
+      checkArgument(classId.isValidObjectClass(),
+          "unable to create object with invalid class [%s] on [%s]", classId, getDocRef());
       O obj = null;
       if (ifNotExists) {
         obj = fetch().filter(classId).first().orNull();
@@ -146,7 +145,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
       private boolean edit(T value, boolean onlyFirst) {
         boolean changed = false;
-        if (isValidObjectClass(field.getClassDef())) {
+        if (field.getClassDef().isValidObjectClass()) {
           Iterator<O> iter = objects.iterator();
           boolean stop = false;
           while (!stop && iter.hasNext()) {
@@ -159,10 +158,6 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
         return changed;
       }
     };
-  }
-
-  private boolean isValidObjectClass(ClassIdentity classId) {
-    return (classId instanceof ClassReference) || !(classId instanceof PseudoClassDefinition);
   }
 
 }

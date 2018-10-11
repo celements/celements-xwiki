@@ -13,4 +13,6 @@ public interface ClassIdentity {
   @NotNull
   DocumentReference getDocRef(@NotNull WikiReference wikiRef);
 
+  boolean isValidObjectClass();
+
 }
