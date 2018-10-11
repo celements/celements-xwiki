@@ -24,6 +24,7 @@ import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
+import com.celements.web.classes.oldcore.XWikiDocumentClass;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -395,6 +396,30 @@ public class ObjectEditorTest extends AbstractComponentTest {
     assertEquals(editor.editField(field).all(val), true);
     verifyDefault();
     assertEquals(editor.fetch().fetchField(field).list(), Arrays.asList(val, val));
+  }
+
+  @Test
+  public void test_editField_doc_first() throws Exception {
+    ClassField<String> field = XWikiDocumentClass.FIELD_CONTENT;
+    String val = "val";
+
+    replayDefault();
+    assertEquals(newEditor().editField(field).first(val), true);
+    verifyDefault();
+    assertEquals(val, doc.getContent());
+    assertEquals(0, doc.getXObjects().size());
+  }
+
+  @Test
+  public void test_editField_doc_all() throws Exception {
+    ClassField<String> field = XWikiDocumentClass.FIELD_CONTENT;
+    String val = "val";
+
+    replayDefault();
+    assertEquals(newEditor().editField(field).all(val), true);
+    verifyDefault();
+    assertEquals(val, doc.getContent());
+    assertEquals(0, doc.getXObjects().size());
   }
 
   private <T> BaseObject addObj(ClassReference classRef, ClassField<T> field, T value) {
