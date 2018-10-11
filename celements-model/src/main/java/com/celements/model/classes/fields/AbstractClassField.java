@@ -68,18 +68,15 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
   protected AbstractClassField(@NotNull Builder<?, T> builder) {
     this.classDefName = builder.classDefName;
     this.name = builder.name;
-    if (builder.prettyName != null) {
-      this.prettyName = builder.prettyName;
-    } else {
-      this.prettyName = generatePrettyName(builder.name);
-    }
+    this.prettyName = ((builder.prettyName != null) ? builder.prettyName
+        : generatePrettyName(builder));
     this.validationRegExp = builder.validationRegExp;
     this.validationMessage = firstNonNull(builder.validationMessage, builder.classDefName + "_"
         + builder.name);
   }
 
-  private static String generatePrettyName(String name) {
-    return FluentIterable.from(StringUtils.splitByCharacterTypeCamelCase(name)).transform(
+  protected String generatePrettyName(Builder<?, T> builder) {
+    return FluentIterable.from(StringUtils.splitByCharacterTypeCamelCase(builder.name)).transform(
         new Function<String, String>() {
 
           @Override

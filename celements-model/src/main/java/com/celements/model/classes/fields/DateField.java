@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
+import com.google.common.base.Strings;
 import com.xpn.xwiki.objects.classes.DateClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 
@@ -57,6 +58,16 @@ public final class DateField extends AbstractClassField<Date> {
     this.size = builder.size;
     this.emptyIsToday = builder.emptyIsToday;
     this.dateFormat = builder.dateFormat;
+  }
+
+  @Override
+  protected String generatePrettyName(AbstractClassField.Builder<?, Date> builder) {
+    String prettyName = super.generatePrettyName(builder);
+    String dateFormat = ((Builder) builder).dateFormat;
+    if (!Strings.isNullOrEmpty(dateFormat)) {
+      prettyName += " (" + dateFormat + ")";
+    }
+    return prettyName;
   }
 
   @Override

@@ -23,6 +23,7 @@ import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
+import com.celements.web.classes.oldcore.XWikiDocumentClass;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -428,6 +429,18 @@ public class ObjectFetcherTest extends AbstractComponentTest {
     assertEquals(newFetcher().fetchField(field).set(), ImmutableSet.of(val1, val2));
     assertEquals(newFetcher().fetchField(field).iterNullable().copyInto(new ArrayList<>()),
         Arrays.asList(null, val1, null, val2, val1));
+  }
+
+  @Test
+  public void test_fetchField_docField() throws Exception {
+    ClassField<String> field = XWikiDocumentClass.FIELD_CONTENT;
+    String val = "val";
+    doc.setContent(val);
+
+    assertTrue(newFetcher().fetchField(field).first().isPresent());
+    assertEquals(newFetcher().fetchField(field).first().get(), val);
+    assertEquals(newFetcher().fetchField(field).list(), Arrays.asList(val));
+    assertEquals(newFetcher().fetchField(field).set(), ImmutableSet.of(val));
   }
 
   @Test

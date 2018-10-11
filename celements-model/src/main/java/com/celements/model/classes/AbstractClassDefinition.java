@@ -90,6 +90,11 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
     return ret;
   }
 
+  @Override
+  public boolean isValidObjectClass() {
+    return true;
+  }
+
   private synchronized void loadFields() {
     if (fields == null) {
       Map<String, ClassField<?>> map = new LinkedHashMap<>();
