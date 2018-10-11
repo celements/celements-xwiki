@@ -13,8 +13,10 @@ import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xwiki.model.reference.ClassReference;
 
 import com.celements.model.classes.ClassIdentity;
+import com.celements.model.classes.PseudoClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.restriction.FieldRestriction;
 import com.google.common.base.Function;
@@ -74,6 +76,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
     @Override
     public O apply(ClassIdentity classId) {
+      checkArgument(isValidObjectClass(classId));
       O obj = null;
       if (ifNotExists) {
         obj = fetch().filter(classId).first().orNull();
@@ -91,7 +94,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
     <T> void setField(O obj, FieldRestriction<O, T> restriction) {
       T value = from(restriction.getValues()).first().get();
-      getBridge().getFieldAccessor().setValue(obj, restriction.getField(), value);
+      getBridge().getObjectFieldAccessor().setValue(obj, restriction.getField(), value);
       LOGGER.debug("{} set field {} on created object to value", AbstractObjectEditor.this,
           restriction.getField(), value);
     }
@@ -133,22 +136,33 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
       @Override
       public boolean first(@Nullable T value) {
-        Iterator<O> iter = objects.iterator();
-        if (iter.hasNext()) {
-          return getBridge().getFieldAccessor().setValue(iter.next(), field, value);
-        }
-        return false;
+        return edit(value, true);
       }
 
       @Override
-      public boolean all(@Nullable final T value) {
+      public boolean all(@Nullable T value) {
+        return edit(value, false);
+      }
+
+      private boolean edit(T value, boolean onlyFirst) {
         boolean changed = false;
-        for (O obj : objects) {
-          changed |= getBridge().getFieldAccessor().setValue(obj, field, value);
+        if (isValidObjectClass(field.getClassDef())) {
+          Iterator<O> iter = objects.iterator();
+          boolean stop = false;
+          while (!stop && iter.hasNext()) {
+            changed |= getBridge().getObjectFieldAccessor().setValue(iter.next(), field, value);
+            stop = onlyFirst;
+          }
+        } else {
+          changed = getBridge().getDocumentFieldAccessor().setValue(getDocument(), field, value);
         }
         return changed;
       }
     };
+  }
+
+  private boolean isValidObjectClass(ClassIdentity classId) {
+    return (classId instanceof ClassReference) || !(classId instanceof PseudoClassDefinition);
   }
 
 }

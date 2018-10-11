@@ -12,9 +12,12 @@ import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xwiki.model.reference.ClassReference;
 
 import com.celements.model.classes.ClassIdentity;
+import com.celements.model.classes.PseudoClassDefinition;
 import com.celements.model.classes.fields.ClassField;
+import com.celements.model.field.FieldAccessor;
 import com.celements.model.field.FieldGetterFunction;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -158,9 +161,21 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
       @Override
       public FluentIterable<T> iterNullable() {
-        return objects.transform(new FieldGetterFunction<>(getBridge().getFieldAccessor(), field));
+        FluentIterable<T> iter;
+        if (isValidObjectClass(field.getClassDef())) {
+          FieldAccessor<O> accessor = getBridge().getObjectFieldAccessor();
+          iter = objects.transform(new FieldGetterFunction<>(accessor, field));
+        } else {
+          FieldAccessor<D> accessor = getBridge().getDocumentFieldAccessor();
+          iter = FluentIterable.from(accessor.getValue(getDocument(), field).asSet());
+        }
+        return iter;
       }
     };
+  }
+
+  private boolean isValidObjectClass(ClassIdentity classId) {
+    return (classId instanceof ClassReference) || !(classId instanceof PseudoClassDefinition);
   }
 
 }
