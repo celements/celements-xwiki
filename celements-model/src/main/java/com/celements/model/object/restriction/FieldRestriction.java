@@ -41,7 +41,7 @@ public class FieldRestriction<O, T> extends ClassRestriction<O> {
 
   @Override
   public boolean apply(@NotNull O obj) {
-    return super.apply(obj) && values.contains(getBridge().getFieldAccessor().getValue(obj,
+    return super.apply(obj) && values.contains(getBridge().getObjectFieldAccessor().getValue(obj,
         getField()).orNull());
   }
 

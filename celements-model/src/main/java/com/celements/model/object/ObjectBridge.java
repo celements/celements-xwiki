@@ -56,6 +56,9 @@ public interface ObjectBridge<D, O> {
   boolean deleteObject(@NotNull D doc, @NotNull O obj);
 
   @NotNull
-  FieldAccessor<O> getFieldAccessor();
+  FieldAccessor<D> getDocumentFieldAccessor();
+
+  @NotNull
+  FieldAccessor<O> getObjectFieldAccessor();
 
 }
