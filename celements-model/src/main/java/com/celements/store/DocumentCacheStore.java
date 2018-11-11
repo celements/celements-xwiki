@@ -268,7 +268,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
 
   @Override
   public synchronized void flushCache() {
-    LOGGER.warn("flushCache may lead to serious memory visibility problems.");
+    LOGGER.error("flushCache may lead to serious memory visibility problems.", new Exception());
     if (this.docCache != null) {
       this.docCache.dispose();
       this.docCache = null;
