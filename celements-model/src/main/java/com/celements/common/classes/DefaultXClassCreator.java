@@ -85,6 +85,9 @@ public class DefaultXClassCreator implements XClassCreator {
   @Override
   public void createXClass(ClassDefinition classDef) throws XClassCreateException {
     LOGGER.debug("creating class '{}'", classDef.getName());
+    if ("Progon.RealisationClass".equals(classDef.getName())) {
+      LOGGER.error("Progon.RealisationClass", new Exception());
+    }
     XWikiDocument classDoc = modelAccess.getOrCreateDocument(
         classDef.getClassReference().getDocRef());
     BaseClass bClass = generateXClass(classDef);
