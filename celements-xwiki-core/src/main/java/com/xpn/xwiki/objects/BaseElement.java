@@ -233,7 +233,7 @@ public abstract class BaseElement implements ElementInterface, Serializable
             return true;
         }
 
-        if (el == null || !(el.getClass().equals(this.getClass()))) {
+        if (el == null || !isComparableType(el.getClass(), this.getClass())) {
             return false;
         }
 
@@ -265,6 +265,15 @@ public abstract class BaseElement implements ElementInterface, Serializable
         }
 
         return true;
+    }
+
+    private boolean isComparableType(Class<?> a, Class<?> b) {
+      return (a == b) || areAssignableFrom(NumberProperty.class, a, b) || areAssignableFrom(
+          BaseStringProperty.class, a, b) || areAssignableFrom(ListProperty.class, a, b);
+    }
+
+    private boolean areAssignableFrom(Class<?> type, Class<?> a, Class<?> b) {
+      return type.isAssignableFrom(a) && type.isAssignableFrom(b);
     }
 
     @Override
