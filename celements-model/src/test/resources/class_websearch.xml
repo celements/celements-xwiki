@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<class>
+<name>Celements2.WebSearchConfigClass</name>
+<customClass></customClass>
+<customMapping></customMapping>
+<defaultViewSheet></defaultViewSheet>
+<defaultEditSheet></defaultEditSheet>
+<defaultWeb></defaultWeb>
+<nameField></nameField>
+<validationScript></validationScript>
+<advancedSearch>
+<defaultValue>0</defaultValue>
+<disabled>0</disabled>
+<displayFormType>select</displayFormType>
+<displayType>yesno</displayType>
+<name>advancedSearch</name>
+<number>12</number>
+<prettyName>Advanced Search</prettyName>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+</advancedSearch>
+<docs>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>1</multiSelect>
+<name>docs</name>
+<number>4</number>
+<prettyName>Docs</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>,</separators>
+<size>2</size>
+<unmodifiable>0</unmodifiable>
+<values></values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</docs>
+<docsBlackList>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>1</multiSelect>
+<name>docsBlackList</name>
+<number>5</number>
+<prettyName>Docs Black List</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>,</separators>
+<size>2</size>
+<unmodifiable>0</unmodifiable>
+<values></values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</docsBlackList>
+<fuzzySearch>
+<disabled>0</disabled>
+<name>fuzzySearch</name>
+<number>3</number>
+<numberType>float</numberType>
+<prettyName>Fuzzy Search</prettyName>
+<size>30</size>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+</fuzzySearch>
+<linkedDocsOnly>
+<disabled>0</disabled>
+<displayFormType>select</displayFormType>
+<displayType>yesno</displayType>
+<name>linkedDocsOnly</name>
+<number>2</number>
+<prettyName>Linked Docs Only</prettyName>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+</linkedDocsOnly>
+<packages>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>1</multiSelect>
+<name>packages</name>
+<number>1</number>
+<prettyName>Packages</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>,</separators>
+<size>2</size>
+<unmodifiable>0</unmodifiable>
+<values>content|attachment|menu|chronoblog|image|blog</values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</packages>
+<pageTypes>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>1</multiSelect>
+<name>pageTypes</name>
+<number>8</number>
+<prettyName>Page Types</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>,</separators>
+<size>2</size>
+<unmodifiable>0</unmodifiable>
+<values></values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</pageTypes>
+<pageTypesBlackList>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>1</multiSelect>
+<name>pageTypesBlackList</name>
+<number>9</number>
+<prettyName>Page Types Black List</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>,</separators>
+<size>2</size>
+<unmodifiable>0</unmodifiable>
+<values></values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</pageTypesBlackList>
+<resultItemRenderScript>
+<disabled>0</disabled>
+<name>resultItemRenderScript</name>
+<number>11</number>
+<prettyName>Result Item Render Script</prettyName>
+<size>30</size>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+</resultItemRenderScript>
+<sortFields>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>1</multiSelect>
+<name>sortFields</name>
+<number>10</number>
+<prettyName>Sort Fields</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>,</separators>
+<size>2</size>
+<unmodifiable>0</unmodifiable>
+<values></values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</sortFields>
+<spaces>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>1</multiSelect>
+<name>spaces</name>
+<number>6</number>
+<prettyName>Spaces</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>,</separators>
+<size>2</size>
+<unmodifiable>0</unmodifiable>
+<values></values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</spaces>
+<spacesBlackList>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>1</multiSelect>
+<name>spacesBlackList</name>
+<number>7</number>
+<prettyName>Spaces Black List</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>,</separators>
+<size>2</size>
+<unmodifiable>0</unmodifiable>
+<values></values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</spacesBlackList>
+</class>
