@@ -28,6 +28,7 @@ import com.celements.model.classes.ClassDefinition;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.store.CelHibernateStore;
 import com.celements.web.classes.oldcore.XWikiGroupsClass;
+import com.google.common.base.Strings;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
@@ -183,16 +184,14 @@ public class CelHibernateStoreDocumentPart {
         store.loadAttachmentList(doc, context, false);
       }
 
-      // TODO: handle the case where there are no xWikiClass and xWikiObject in the Database
       BaseClass bclass = new BaseClass();
+      bclass.setDocumentReference(immutableDocRef);
+      bclass.setXClassReference(immutableDocRef);
       String cxml = doc.getXClassXML();
-      if (cxml != null) {
+      if (!Strings.isNullOrEmpty(cxml)) {
         bclass.fromXML(cxml);
-        bclass.setDocumentReference(immutableDocRef);
-        doc.setXClass(bclass);
       }
-      // Store this XWikiClass in the context so that we can use it in case of recursive usage
-      // of classes
+      doc.setXClass(bclass);
       context.addBaseClass(bclass);
 
       if (doc.hasElement(XWikiDocument.HAS_OBJECTS)) {
