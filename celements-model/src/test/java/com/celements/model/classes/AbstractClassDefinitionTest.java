@@ -113,6 +113,11 @@ public class AbstractClassDefinitionTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_isValidObjectClass() {
+    assertTrue(testClass.isValidObjectClass());
+  }
+
+  @Test
   public void test_toString() throws Exception {
     assertEquals(TestClassDefinition.SPACE_NAME + "." + TestClassDefinition.DOC_NAME,
         testClass.toString());

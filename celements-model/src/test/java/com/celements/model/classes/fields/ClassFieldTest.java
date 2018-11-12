@@ -1,5 +1,6 @@
 package com.celements.model.classes.fields;
 
+import static com.celements.model.classes.TestClassDefinition.*;
 import static org.junit.Assert.*;
 import static org.mutabilitydetector.unittesting.AllowedReason.*;
 import static org.mutabilitydetector.unittesting.MutabilityAssert.*;
@@ -11,7 +12,6 @@ import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.model.classes.ClassDefinition;
-import com.celements.model.classes.TestClassDefinition;
 import com.xpn.xwiki.objects.classes.StringClass;
 import com.xpn.xwiki.web.Utils;
 
@@ -28,8 +28,8 @@ public class ClassFieldTest extends AbstractComponentTest {
   @Before
   public void prepareTest() throws Exception {
     classRef = new DocumentReference("wiki", "class", "any");
-    field = new TestClassField.Builder(TestClassDefinition.NAME, name).size(5).prettyName(
-        prettyName).validationRegExp(validationRegExp).validationMessage(validationMessage).build();
+    field = new TestClassField.Builder(NAME, name).size(5).prettyName(prettyName).validationRegExp(
+        validationRegExp).validationMessage(validationMessage).build();
   }
 
   @Test
@@ -51,7 +51,7 @@ public class ClassFieldTest extends AbstractComponentTest {
   @Test
   public void test_constr_null_name() throws Exception {
     try {
-      new TestClassField.Builder(TestClassDefinition.NAME, null).build();
+      new TestClassField.Builder(NAME, null).build();
       fail("expecting NullPointerException");
     } catch (NullPointerException npe) {
       // expected
@@ -60,8 +60,7 @@ public class ClassFieldTest extends AbstractComponentTest {
 
   @Test
   public void test_getters() throws Exception {
-    assertSame(Utils.getComponent(ClassDefinition.class, TestClassDefinition.NAME),
-        field.getClassDef());
+    assertSame(Utils.getComponent(ClassDefinition.class, NAME), field.getClassDef());
     assertEquals(name, field.getName());
     assertEquals(TestClassField.class, field.getType());
     assertEquals(prettyName, field.getPrettyName());
@@ -85,8 +84,7 @@ public class ClassFieldTest extends AbstractComponentTest {
     assertTrue(field.equals(getBuilder().build()));
     assertTrue(field.equals(getBuilder().prettyName("asdf").validationRegExp(
         "asdf").validationMessage("asdf").build()));
-    assertFalse(field.equals(new TestClassField.Builder(field.getClassDef().getName(),
-        "other").build()));
+    assertFalse(field.equals(new TestClassField.Builder(NAME, "other").build()));
     assertFalse(field.equals(new TestClassField.Builder("other", field.getName()).build()));
     assertFalse(field.equals(null));
   }
@@ -97,14 +95,23 @@ public class ClassFieldTest extends AbstractComponentTest {
     assertTrue(field.hashCode() == getBuilder().build().hashCode());
     assertTrue(field.hashCode() == getBuilder().prettyName("asdf").validationRegExp(
         "asdf").validationMessage("asdf").build().hashCode());
-    assertFalse(field.hashCode() == new TestClassField.Builder(field.getClassDef().getName(),
-        "other").build().hashCode());
+    assertFalse(field.hashCode() == new TestClassField.Builder(NAME, "other").build().hashCode());
     assertFalse(field.hashCode() == new TestClassField.Builder("other",
         field.getName()).build().hashCode());
   }
 
+  @Test
+  public void test_defaults() throws Exception {
+    assertEquals("This Is Camel Case", new TestClassField.Builder(NAME,
+        "thisIsCamelCase").build().getPrettyName());
+    assertEquals("This Is Camel Case (yyyy.MM.dd)", new DateField.Builder(NAME,
+        "thisIsCamelCase").dateFormat("yyyy.MM.dd").build().getPrettyName());
+    assertEquals("Classes.TestClass_name", getBuilder().validationRegExp(
+        "r").build().getValidationMessage());
+  }
+
   private TestClassField.Builder getBuilder() {
-    return new TestClassField.Builder(field.getClassDef().getName(), field.getName());
+    return new TestClassField.Builder(NAME, field.getName());
   }
 
   @Test

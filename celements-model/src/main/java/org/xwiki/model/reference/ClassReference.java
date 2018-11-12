@@ -10,7 +10,10 @@ import org.xwiki.model.EntityType;
 
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassIdentity;
+import com.celements.model.classes.PseudoClassDefinition;
 import com.celements.model.context.ModelContext;
+import com.celements.model.util.ModelUtils;
+import com.celements.model.util.ReferenceSerializationMode;
 import com.google.common.base.Function;
 import com.xpn.xwiki.web.Utils;
 
@@ -95,11 +98,28 @@ public class ClassReference extends EntityReference implements ImmutableReferenc
   }
 
   @Override
+  public boolean isValidObjectClass() {
+    return !PseudoClassDefinition.CLASS_SPACE.equals(getParent().getName());
+  }
+
+  public String serialize() {
+    return serialize(ReferenceSerializationMode.COMPACT_WIKI);
+  }
+
+  public String serialize(ReferenceSerializationMode mode) {
+    return getModelUtils().serializeRef(this, mode);
+  }
+
+  @Override
   public boolean equals(Object obj) {
     if (obj instanceof ClassDefinition) {
       obj = ((ClassDefinition) obj).getClassReference();
     }
     return super.equals(obj);
+  }
+
+  private static ModelUtils getModelUtils() {
+    return Utils.getComponent(ModelUtils.class);
   }
 
   private static ModelContext getModelContext() {

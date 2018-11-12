@@ -1,7 +1,11 @@
 package com.celements.model.object.xwiki;
 
+import static com.google.common.base.MoreObjects.*;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.NotNull;
+
+import org.xwiki.model.reference.ImmutableDocumentReference;
 
 import com.celements.model.object.AbstractObjectFetcher;
 import com.celements.model.object.ObjectBridge;
@@ -15,7 +19,7 @@ public class XWikiObjectFetcher extends
     AbstractObjectFetcher<XWikiObjectFetcher, XWikiDocument, BaseObject> {
 
   public static XWikiObjectFetcher on(@NotNull XWikiDocument doc) {
-    return new XWikiObjectFetcher(doc);
+    return new XWikiObjectFetcher(doc, XWikiObjectBridge.NAME);
   }
 
   public static XWikiObjectFetcher from(
@@ -23,8 +27,16 @@ public class XWikiObjectFetcher extends
     return XWikiObjectFetcher.on(objHandler.getDocument()).with(objHandler.getQuery());
   }
 
-  private XWikiObjectFetcher(XWikiDocument doc) {
+  public static XWikiObjectFetcher empty() {
+    XWikiDocument dummyDoc = new XWikiDocument(new ImmutableDocumentReference("$", "$", "$"));
+    return new XWikiObjectFetcher(dummyDoc, XWikiEmptyObjectBridge.NAME);
+  }
+
+  private final String bridgeHint;
+
+  private XWikiObjectFetcher(XWikiDocument doc, String bridgeHint) {
     super(doc);
+    this.bridgeHint = bridgeHint;
   }
 
   @Override
@@ -39,7 +51,8 @@ public class XWikiObjectFetcher extends
 
   @Override
   protected XWikiObjectBridge getBridge() {
-    return (XWikiObjectBridge) Utils.getComponent(ObjectBridge.class, XWikiObjectBridge.NAME);
+    return (XWikiObjectBridge) Utils.getComponent(ObjectBridge.class, firstNonNull(bridgeHint,
+        XWikiObjectBridge.NAME));
   }
 
   @Override

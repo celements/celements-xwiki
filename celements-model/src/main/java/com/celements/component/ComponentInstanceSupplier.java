@@ -7,6 +7,7 @@ import static com.google.common.base.Strings.*;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.component.manager.ComponentLookupException;
 
 import com.google.common.base.Supplier;
@@ -23,6 +24,8 @@ public class ComponentInstanceSupplier<T> implements Supplier<T> {
 
   public ComponentInstanceSupplier(@NotNull Class<T> role, @Nullable String hint) {
     this.role = checkNotNull(role);
+    checkArgument(role.isAnnotationPresent(ComponentRole.class),
+        "ComponentRole annotation required for {}", role);
     this.hint = firstNonNull(emptyToNull(hint), "default");
     checkState(Utils.getComponentManager() != null);
   }

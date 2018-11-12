@@ -19,6 +19,7 @@ import com.celements.model.access.exception.ClassDocumentLoadException;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.context.ModelContext;
 import com.celements.model.field.FieldAccessor;
+import com.celements.model.field.XDocumentFieldAccessor;
 import com.celements.model.field.XObjectFieldAccessor;
 import com.celements.model.object.ObjectBridge;
 import com.google.common.base.Predicates;
@@ -33,6 +34,9 @@ import com.xpn.xwiki.objects.BaseObject;
 public class XWikiObjectBridge implements ObjectBridge<XWikiDocument, BaseObject> {
 
   public static final String NAME = "xwiki";
+
+  @Requirement(XDocumentFieldAccessor.NAME)
+  private FieldAccessor<XWikiDocument> xDocAccessor;
 
   @Requirement(XObjectFieldAccessor.NAME)
   private FieldAccessor<BaseObject> xObjAccessor;
@@ -110,7 +114,12 @@ public class XWikiObjectBridge implements ObjectBridge<XWikiDocument, BaseObject
   }
 
   @Override
-  public FieldAccessor<BaseObject> getFieldAccessor() {
+  public FieldAccessor<XWikiDocument> getDocumentFieldAccessor() {
+    return xDocAccessor;
+  }
+
+  @Override
+  public FieldAccessor<BaseObject> getObjectFieldAccessor() {
     return xObjAccessor;
   }
 

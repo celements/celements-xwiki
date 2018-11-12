@@ -8,9 +8,14 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.util.ModelUtils;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
 import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 import com.xpn.xwiki.web.Utils;
@@ -63,9 +68,23 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
   protected AbstractClassField(@NotNull Builder<?, T> builder) {
     this.classDefName = builder.classDefName;
     this.name = builder.name;
-    this.prettyName = firstNonNull(builder.prettyName, builder.name);
+    this.prettyName = ((builder.prettyName != null) ? builder.prettyName
+        : generatePrettyName(builder));
     this.validationRegExp = builder.validationRegExp;
-    this.validationMessage = builder.validationMessage;
+    this.validationMessage = firstNonNull(builder.validationMessage, builder.classDefName + "_"
+        + builder.name);
+  }
+
+  protected String generatePrettyName(Builder<?, T> builder) {
+    return FluentIterable.from(StringUtils.splitByCharacterTypeCamelCase(builder.name)).transform(
+        new Function<String, String>() {
+
+          @Override
+          public String apply(String s) {
+            return StringUtils.capitalize(s);
+          }
+
+        }).join(Joiner.on(' '));
   }
 
   @Override
@@ -99,8 +118,6 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
     }
     if (validationRegExp != null) {
       element.setValidationRegExp(validationRegExp);
-    }
-    if (validationMessage != null) {
       element.setValidationMessage(validationMessage);
     }
     return element;

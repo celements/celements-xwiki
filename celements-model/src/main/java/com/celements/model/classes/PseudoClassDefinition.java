@@ -11,6 +11,11 @@ public abstract class PseudoClassDefinition extends AbstractClassDefinition {
   }
 
   @Override
+  public boolean isValidObjectClass() {
+    return false;
+  }
+
+  @Override
   public boolean isInternalMapping() {
     return false;
   }

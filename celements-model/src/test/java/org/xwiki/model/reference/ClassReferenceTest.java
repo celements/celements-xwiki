@@ -9,6 +9,7 @@ import org.xwiki.model.EntityType;
 
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.common.test.ExceptionAsserter;
+import com.celements.model.classes.PseudoClassDefinition;
 import com.xpn.xwiki.web.Utils;
 
 public class ClassReferenceTest extends AbstractComponentTest {
@@ -130,6 +131,12 @@ public class ClassReferenceTest extends AbstractComponentTest {
     WikiReference wikiRef = new WikiReference("wiki");
     assertEquals(new DocumentReference(wikiRef.getName(), classRef.getParent().getName(),
         classRef.getName()), classRef.getDocRef(wikiRef));
+  }
+
+  @Test
+  public void test_isValidObjectClass() {
+    assertTrue(classRef.isValidObjectClass());
+    assertFalse(new ClassReference(PseudoClassDefinition.CLASS_SPACE, "asdf").isValidObjectClass());
   }
 
   @Test

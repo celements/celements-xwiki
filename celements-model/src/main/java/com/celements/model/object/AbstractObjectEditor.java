@@ -74,6 +74,8 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
     @Override
     public O apply(ClassIdentity classId) {
+      checkArgument(classId.isValidObjectClass(),
+          "unable to create object with invalid class [%s] on [%s]", classId, getDocRef());
       O obj = null;
       if (ifNotExists) {
         obj = fetch().filter(classId).first().orNull();
@@ -91,7 +93,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
     <T> void setField(O obj, FieldRestriction<O, T> restriction) {
       T value = from(restriction.getValues()).first().get();
-      getBridge().getFieldAccessor().setValue(obj, restriction.getField(), value);
+      getBridge().getObjectFieldAccessor().setValue(obj, restriction.getField(), value);
       LOGGER.debug("{} set field {} on created object to value", AbstractObjectEditor.this,
           restriction.getField(), value);
     }
@@ -133,18 +135,25 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
       @Override
       public boolean first(@Nullable T value) {
-        Iterator<O> iter = objects.iterator();
-        if (iter.hasNext()) {
-          return getBridge().getFieldAccessor().setValue(iter.next(), field, value);
-        }
-        return false;
+        return edit(value, true);
       }
 
       @Override
-      public boolean all(@Nullable final T value) {
+      public boolean all(@Nullable T value) {
+        return edit(value, false);
+      }
+
+      private boolean edit(T value, boolean onlyFirst) {
         boolean changed = false;
-        for (O obj : objects) {
-          changed |= getBridge().getFieldAccessor().setValue(obj, field, value);
+        if (field.getClassDef().isValidObjectClass()) {
+          Iterator<O> iter = objects.iterator();
+          boolean stop = false;
+          while (!stop && iter.hasNext()) {
+            changed |= getBridge().getObjectFieldAccessor().setValue(iter.next(), field, value);
+            stop = onlyFirst;
+          }
+        } else {
+          changed = getBridge().getDocumentFieldAccessor().setValue(getDocument(), field, value);
         }
         return changed;
       }
