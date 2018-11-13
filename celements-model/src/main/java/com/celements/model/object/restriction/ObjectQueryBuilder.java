@@ -91,6 +91,13 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
   }
 
   /**
+   * restricts to objects not empty for the given {@link ClassField}
+   */
+  public final @NotNull B filterNotAbsent(@NotNull ClassField<?> field) {
+    return filter(new FieldNotAbsentRestriction<>(getBridge(), field));
+  }
+
+  /**
    * restricts to objects with the given number
    */
   public final @NotNull B filter(int number) {
