@@ -235,48 +235,46 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
         setXClassReference(xClassReference);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.ObjectInterface#safeget(java.lang.String)
-     */
-    public PropertyInterface safeget(String name)
-    {
-        return (PropertyInterface) getFields().get(name);
+    @Deprecated
+    public PropertyInterface safeget(String name) {
+      return getProperty(name);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.ObjectInterface#get(java.lang.String)
-     */
-    public PropertyInterface get(String name) throws XWikiException
-    {
-        return safeget(name);
+    @Deprecated
+    public PropertyInterface get(String name) throws XWikiException {
+      return getProperty(name);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.ObjectInterface#safeput(java.lang.String, com.xpn.xwiki.objects.PropertyInterface)
-     */
-    public void safeput(String name, PropertyInterface property)
-    {
-        addField(name, property);
-        if (property instanceof BaseProperty) {
-            ((BaseProperty) property).setObject(this);
-            ((BaseProperty) property).setName(name);
-        }
+    public PropertyInterface getProperty(String name) {
+      return (PropertyInterface) getFields().get(name);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.ObjectInterface#put(java.lang.String, com.xpn.xwiki.objects.PropertyInterface)
-     */
-    public void put(String name, PropertyInterface property) throws XWikiException
-    {
-        safeput(name, property);
+    public <T extends PropertyInterface> T getProperty(Class<T> type, String name) {
+      try {
+        return type.cast(getProperty(name));
+      } catch (ClassCastException exc) {
+        LOG.warn("getProperty: unable to cast [" + name + "] to type [" + type + "] for [" 
+            + this + "]", exc);
+        return null;
+      }
+    }
+
+    @Deprecated
+    public void safeput(String name, PropertyInterface property) {
+      putProperty(name, property);
+    }
+
+    @Deprecated
+    public void put(String name, PropertyInterface property) throws XWikiException {
+      putProperty(name, property);
+    }
+    
+    public void putProperty(String name, PropertyInterface property) {
+      if (property instanceof BaseProperty) {
+        ((BaseProperty) property).setObject(this);
+        ((BaseProperty) property).setName(name);
+      }
+      addField(name, property);
     }
 
     /**
