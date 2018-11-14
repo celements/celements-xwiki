@@ -91,7 +91,7 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
   }
 
   /**
-   * restricts to not empty objects for the given {@link ClassField}
+   * restricts to objects with present value(s) for the given {@link ClassField}
    */
   public final @NotNull B filterPresent(@NotNull ClassField<?> field) {
     return filter(new FieldPresentRestriction<>(getBridge(), field));
