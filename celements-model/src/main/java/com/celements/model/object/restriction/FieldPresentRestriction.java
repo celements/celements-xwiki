@@ -11,12 +11,11 @@ import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.ObjectBridge;
 
 @Immutable
-public class FieldNotAbsentRestriction<O, T> extends ClassRestriction<O> {
+public class FieldPresentRestriction<O, T> extends ClassRestriction<O> {
 
   private final ClassField<T> field;
 
-  public FieldNotAbsentRestriction(@NotNull ObjectBridge<?, O> bridge,
-      @NotNull ClassField<T> field) {
+  public FieldPresentRestriction(@NotNull ObjectBridge<?, O> bridge, @NotNull ClassField<T> field) {
     super(bridge, field.getClassDef().getClassReference());
     this.field = checkNotNull(field);
   }
@@ -38,8 +37,8 @@ public class FieldNotAbsentRestriction<O, T> extends ClassRestriction<O> {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FieldNotAbsentRestriction) {
-      FieldNotAbsentRestriction<?, ?> other = (FieldNotAbsentRestriction<?, ?>) obj;
+    if (obj instanceof FieldPresentRestriction) {
+      FieldPresentRestriction<?, ?> other = (FieldPresentRestriction<?, ?>) obj;
       return super.equals(obj) && Objects.equals(this.getField(), other.getField());
     }
     return false;
@@ -47,7 +46,7 @@ public class FieldNotAbsentRestriction<O, T> extends ClassRestriction<O> {
 
   @Override
   public String toString() {
-    return "FieldNotAbsentRestriction [field=" + getField() + "]";
+    return "FieldPresentRestriction [field=" + getField() + "]";
   }
 
 }
