@@ -94,12 +94,26 @@ public class DefaultXClassCreator implements XClassCreator {
         classDef.getClassReference().getDocRef());
     BaseClass bClass = generateXClass(classDef);
     if (!classDoc.getXClass().equals(bClass)) {
-      logXClassInDetails(bClass, classDoc.getXClass());
+      logXClassInDetails(bClass, classDoc.getXClass()); // TODO remove
+      adoptCustomProperties(classDoc, bClass);
+      // TODO equals check needed ?
       try {
         classDoc.setXClass(bClass);
         modelAccess.saveDocument(classDoc, "created/updated XClass");
       } catch (DocumentSaveException exc) {
         throw new XClassCreateException(exc);
+      }
+    }
+  }
+
+  private void adoptCustomProperties(XWikiDocument classDoc, BaseClass bClass) {
+    for (String fieldName : classDoc.getXClass().getPropertyList()) {
+      PropertyClass xField = (PropertyClass) classDoc.getXClass().get(fieldName);
+      for (String propName : xField.getPropertyList()) {
+        BaseProperty prop = (BaseProperty) xField.getProperty(propName);
+        if (prop.isClassPropertyCustomized()) {
+          ((PropertyClass) bClass.getProperty(fieldName)).addProperty(propName, prop.clone());
+        }
       }
     }
   }

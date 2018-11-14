@@ -277,7 +277,7 @@ public abstract class BaseElement implements ElementInterface, Serializable
     }
 
     @Override
-    public Object clone() {
+    public BaseElement clone() {
         return clone(true);
     }
 

@@ -410,7 +410,7 @@ public class BaseClass extends BaseCollection implements ClassInterface
      * @see com.xpn.xwiki.objects.BaseCollection#clone()
      */
     @Override
-    public Object clone()
+    public BaseClass clone()
     {
         BaseClass bclass = (BaseClass) super.clone();
         bclass.setCustomClass(getCustomClass());

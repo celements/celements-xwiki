@@ -128,7 +128,7 @@ public class PropertyClass extends BaseCollection implements PropertyClassInterf
     public BaseProperty newPropertyfromXML(Element ppcel)
     {
         String value = ppcel.getText();
-        return fromString(value);
+        return fromString(value).setCustomFromXML(ppcel);
     }
 
     public void displayHidden(StringBuffer buffer, String name, String prefix, BaseCollection object,
@@ -389,7 +389,7 @@ public class PropertyClass extends BaseCollection implements PropertyClassInterf
     }
 
     @Override
-    public Object clone()
+    public PropertyClass clone()
     {
         PropertyClass pclass = (PropertyClass) super.clone();
         pclass.setObject(getObject());

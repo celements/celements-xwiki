@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -250,7 +251,13 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
      * 
      * @see com.xpn.xwiki.objects.ObjectInterface#get(java.lang.String)
      */
+    @Deprecated
     public PropertyInterface get(String name) throws XWikiException
+    {
+        return getProperty(name);
+    }
+
+    public PropertyInterface getProperty(String name)
     {
         return safeget(name);
     }
@@ -262,21 +269,39 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
      */
     public void safeput(String name, PropertyInterface property)
     {
-        addField(name, property);
         if (property instanceof BaseProperty) {
-            ((BaseProperty) property).setObject(this);
-            ((BaseProperty) property).setName(name);
+            BaseProperty bProp = ((BaseProperty) property);
+            bProp.setObject(this);
+            bProp.setName(name);
         }
+        addField(name, property);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.ObjectInterface#put(java.lang.String, com.xpn.xwiki.objects.PropertyInterface)
-     */
+    @Deprecated
     public void put(String name, PropertyInterface property) throws XWikiException
     {
-        safeput(name, property);
+        addProperty(name, property);
+    }
+
+    public void addProperty(String name, PropertyInterface property) {
+      safeput(name, property);
+    }
+
+    private void addBaseProperty(Class<? extends BaseProperty> propertyClass, String name,
+        Object value) {
+      try {
+        BaseProperty property = (BaseProperty) getProperty(name);
+        if ((property == null) || !propertyClass.isAssignableFrom(property.getClass())) {
+          property = propertyClass.newInstance();
+          property.setName(name);
+        } else if (!Objects.equals(property.getValue(), value)) {
+          property.setCustom(true);
+        }
+        property.setValue(value);
+        addProperty(name, property);
+      } catch (ReflectiveOperationException | ClassCastException exc) {
+        LOG.error("addBaseProperty failed", exc);
+      }
     }
 
     /**
@@ -317,7 +342,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public String getStringValue(String name)
     {
-        BaseProperty prop = (BaseProperty) safeget(name);
+        BaseProperty prop = (BaseProperty) getProperty(name);
         if (prop == null || prop.getValue() == null) {
             return "";
         } else {
@@ -332,24 +357,12 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void setStringValue(String name, String value)
     {
-        BaseStringProperty property = (BaseStringProperty) safeget(name);
-        if (property == null) {
-            property = new StringProperty();
-        }
-        property.setName(name);
-        property.setValue(value);
-        safeput(name, property);
+        addBaseProperty(StringProperty.class, name, value);
     }
 
     public void setLargeStringValue(String name, String value)
     {
-        BaseStringProperty property = (BaseStringProperty) safeget(name);
-        if (property == null) {
-            property = new LargeStringProperty();
-        }
-        property.setName(name);
-        property.setValue(value);
-        safeput(name, property);
+        addBaseProperty(LargeStringProperty.class, name, value);
     }
 
     public int getIntValue(String name)
@@ -360,7 +373,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
     public int getIntValue(String name, int default_value)
     {
         try {
-            NumberProperty prop = (NumberProperty) safeget(name);
+            NumberProperty prop = (NumberProperty) getProperty(name);
             if (prop == null) {
                 return default_value;
             } else {
@@ -373,16 +386,13 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void setIntValue(String name, int value)
     {
-        NumberProperty property = new IntegerProperty();
-        property.setName(name);
-        property.setValue(value);
-        safeput(name, property);
+        addBaseProperty(IntegerProperty.class, name, value);
     }
 
     public long getLongValue(String name)
     {
         try {
-            NumberProperty prop = (NumberProperty) safeget(name);
+            NumberProperty prop = (NumberProperty) getProperty(name);
             if (prop == null) {
                 return 0;
             } else {
@@ -395,16 +405,13 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void setLongValue(String name, long value)
     {
-        NumberProperty property = new LongProperty();
-        property.setName(name);
-        property.setValue(value);
-        safeput(name, property);
+        addBaseProperty(LongProperty.class, name, value);
     }
 
     public float getFloatValue(String name)
     {
         try {
-            NumberProperty prop = (NumberProperty) safeget(name);
+            NumberProperty prop = (NumberProperty) getProperty(name);
             if (prop == null) {
                 return 0;
             } else {
@@ -417,16 +424,13 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void setFloatValue(String name, float value)
     {
-        NumberProperty property = new FloatProperty();
-        property.setName(name);
-        property.setValue(new Float(value));
-        safeput(name, property);
+        addBaseProperty(FloatProperty.class, name, value);
     }
 
     public double getDoubleValue(String name)
     {
         try {
-            NumberProperty prop = (NumberProperty) safeget(name);
+            NumberProperty prop = (NumberProperty) getProperty(name);
             if (prop == null) {
                 return 0;
             } else {
@@ -439,16 +443,13 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void setDoubleValue(String name, double value)
     {
-        NumberProperty property = new DoubleProperty();
-        property.setName(name);
-        property.setValue(new Double(value));
-        safeput(name, property);
+        addBaseProperty(DoubleProperty.class, name, value);
     }
 
     public Date getDateValue(String name)
     {
         try {
-            DateProperty prop = (DateProperty) safeget(name);
+            DateProperty prop = (DateProperty) getProperty(name);
             if (prop == null) {
                 return null;
             } else {
@@ -461,15 +462,12 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void setDateValue(String name, Date value)
     {
-        DateProperty property = new DateProperty();
-        property.setName(name);
-        property.setValue(value);
-        safeput(name, property);
+        addBaseProperty(DateProperty.class, name, value);
     }
 
     public Set< ? > getSetValue(String name)
     {
-        ListProperty prop = (ListProperty) safeget(name);
+        ListProperty prop = (ListProperty) getProperty(name);
         if (prop == null) {
             return new HashSet<Object>();
         } else {
@@ -479,14 +477,12 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void setSetValue(String name, Set< ? > value)
     {
-        ListProperty property = new ListProperty();
-        property.setValue(value);
-        safeput(name, property);
+        addBaseProperty(ListProperty.class, name, value);
     }
 
     public List getListValue(String name)
     {
-        ListProperty prop = (ListProperty) safeget(name);
+        ListProperty prop = (ListProperty) getProperty(name);
         if (prop == null) {
             return new ArrayList();
         } else {
@@ -496,22 +492,12 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void setStringListValue(String name, List value)
     {
-        ListProperty property = (ListProperty) safeget(name);
-        if (property == null) {
-            property = new StringListProperty();
-        }
-        property.setValue(value);
-        safeput(name, property);
+        addBaseProperty(StringListProperty.class, name, value);
     }
 
     public void setDBStringListValue(String name, List value)
     {
-        ListProperty property = (ListProperty) safeget(name);
-        if (property == null) {
-            property = new DBStringListProperty();
-        }
-        property.setValue(value);
-        safeput(name, property);
+        addBaseProperty(DBStringListProperty.class, name, value);
     }
 
     // These functions should not be used
@@ -538,7 +524,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
     public void removeField(String name)
     {
-        Object field = safeget(name);
+        Object field = getProperty(name);
         if (field != null) {
             this.fields.remove(name);
             this.fieldsToRemove.add(field);
@@ -631,7 +617,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
     }
 
     @Override
-    public Object clone() {
+    public BaseCollection clone() {
         return clone(true);
     }
 
@@ -656,8 +642,8 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
         Iterator itfields = object.getPropertyList().iterator();
         while (itfields.hasNext()) {
             String name = (String) itfields.next();
-            if (safeget(name) == null) {
-                safeput(name, (PropertyInterface) ((BaseElement) object.safeget(name)).clone());
+            if (getProperty(name) == null) {
+                addProperty(name, (PropertyInterface) ((BaseElement) object.getProperty(name)).clone());
             }
         }
     }

@@ -16,6 +16,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
+import com.xpn.xwiki.objects.BaseProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 import com.xpn.xwiki.web.Utils;
@@ -119,6 +120,9 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
     if (validationRegExp != null) {
       element.setValidationRegExp(validationRegExp);
       element.setValidationMessage(validationMessage);
+    }
+    for (String propName : element.getPropertyList()) {
+      ((BaseProperty) element.getProperty(propName)).setCustom(false);
     }
     return element;
   }

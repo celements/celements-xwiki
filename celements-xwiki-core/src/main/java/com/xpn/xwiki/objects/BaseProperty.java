@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringWriter;
 
+import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMDocument;
@@ -33,6 +34,7 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 
 import com.celements.store.id.IdVersion;
+import com.xpn.xwiki.objects.classes.PropertyClass;
 import com.xpn.xwiki.web.Utils;
 
 /**
@@ -42,7 +44,12 @@ import com.xpn.xwiki.web.Utils;
 // will never work unless getValue is overriden
 public class BaseProperty extends BaseElement implements PropertyInterface, Serializable, Cloneable
 {
+
+    private static final String XML_ATTR_CUSTOM = "custom";
+
     private BaseCollection object;
+
+    private boolean custom = true;
 
     /**
      * {@inheritDoc}
@@ -62,6 +69,20 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
     public void setObject(BaseCollection object)
     {
         this.object = object;
+    }
+
+    public boolean isClassPropertyCustomized() {
+      return  (getObject() instanceof PropertyClass) && custom;
+    }
+
+    public BaseProperty setCustom(boolean custom) {
+      this.custom = custom;
+      return this;
+    }
+
+    public BaseProperty setCustomFromXML(Element el) {
+      Attribute attr = el.attribute(XML_ATTR_CUSTOM);
+      return setCustom((attr != null) ? Boolean.parseBoolean(attr.getValue()) : false);
     }
 
     /**
@@ -138,10 +159,11 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
      * @see com.xpn.xwiki.objects.BaseElement#clone()
      */
     @Override
-    public Object clone()
+    public BaseProperty clone()
     {
         BaseProperty property = (BaseProperty) super.clone();
         property.setObject(getObject());
+        property.setCustom(custom);
         return property;
     }
 
@@ -154,14 +176,12 @@ public class BaseProperty extends BaseElement implements PropertyInterface, Seri
     {
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.PropertyInterface#toXML()
-     */
     public Element toXML()
     {
         Element el = new DOMElement(getName());
+        if (isClassPropertyCustomized()) {
+          el.addAttribute(XML_ATTR_CUSTOM, "true");
+        }
         Object value = getValue();
         el.setText((value == null) ? "" : value.toString());
 

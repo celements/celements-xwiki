@@ -168,7 +168,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
     }
 
     @Override
-    public Object clone() {
+    public BaseObject clone() {
         return clone(true);
     }
 
