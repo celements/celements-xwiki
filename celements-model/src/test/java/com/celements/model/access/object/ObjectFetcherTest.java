@@ -132,6 +132,18 @@ public class ObjectFetcherTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_fetch_present() throws Exception {
+    ClassField<String> field = FIELD_MY_STRING;
+    BaseObject obj1 = addObj(classRef, field, "val");
+    BaseObject obj2 = addObj(classRef, field, null);
+    BaseObject obj3 = addObj(classRef, field, "123");
+    assertObjs(newFetcher().filterPresent(field), obj1, obj3);
+    assertObjs(newFetcher().filter(classRef).filterPresent(field), obj1, obj3);
+    assertObjs(newFetcher().filter(field, "val").filterPresent(field), obj1);
+    assertObjs(newFetcher().filter(field, "abc").filterPresent(field));
+  }
+
+  @Test
   public void test_fetch_field_and() throws Exception {
     ClassField<String> field1 = FIELD_MY_STRING;
     String val1 = "val";

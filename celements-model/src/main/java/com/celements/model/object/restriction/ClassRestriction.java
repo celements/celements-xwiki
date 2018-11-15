@@ -31,7 +31,7 @@ public class ClassRestriction<O> extends ObjectRestriction<O> {
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), getClassIdentity());
+    return Objects.hash(super.hashCode(), getClassIdentity(), this.getClass());
   }
 
   @Override
