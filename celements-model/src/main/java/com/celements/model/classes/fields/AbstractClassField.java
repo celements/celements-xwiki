@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.celements.common.MorePredicates;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.util.ModelUtils;
 import com.google.common.base.Function;
@@ -76,15 +77,16 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
   }
 
   protected String generatePrettyName(Builder<?, T> builder) {
-    return FluentIterable.from(StringUtils.splitByCharacterTypeCamelCase(builder.name)).transform(
-        new Function<String, String>() {
+    String prettyName = FluentIterable.from(StringUtils.splitByCharacterTypeCamelCase(
+        builder.name)).transform(new Function<String, String>() {
 
           @Override
           public String apply(String s) {
-            return StringUtils.capitalize(s);
+            return StringUtils.capitalize(s.replaceAll("[^A-Za-z0-9]", ""));
           }
 
-        }).join(Joiner.on(' '));
+        }).filter(MorePredicates.stringNotEmptyPredicate()).join(Joiner.on(' '));
+    return !prettyName.isEmpty() ? prettyName : builder.name;
   }
 
   @Override
