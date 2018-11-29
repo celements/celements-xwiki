@@ -11,10 +11,10 @@ import com.celements.model.classes.fields.number.IntField;
 import com.celements.model.classes.fields.ref.ClassReferenceField;
 
 @Singleton
-@Component(BaseObjectClass.CLASS_DEF_HINT)
-public class BaseObjectClass extends PseudoClassDefinition {
+@Component(XWikiObjectClass.CLASS_DEF_HINT)
+public class XWikiObjectClass extends PseudoClassDefinition {
 
-  public static final String CLASS_NAME = "BaseObjectClass";
+  public static final String CLASS_NAME = "XWikiObjectClass";
   public static final String CLASS_FN = CLASS_SPACE + "." + CLASS_NAME;
   public static final String CLASS_DEF_HINT = CLASS_FN;
 
