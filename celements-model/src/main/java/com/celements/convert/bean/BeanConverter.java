@@ -16,9 +16,9 @@ import com.google.common.base.Supplier;
  * Interface for {@link Converter} handling beans to initialize needed parameters.
  * </p>
  * <p>
- * IMPORTANT: call {@link #initialize(Supplier)} exactly once per component instantiation, else
- * {@link #apply(A)} will throw {@link IllegalStateException}. When used as a {@link Requirement},
- * implementing {@link Initializable} is suitable.
+ * IMPORTANT: call {@link #initialize} exactly once per component instantiation, else
+ * {@link #apply} may fail with an {@link IllegalStateException}. When used as a
+ * {@link Requirement}, implementing {@link Initializable} is suitable.
  * </p>
  */
 @ComponentRole
@@ -31,5 +31,10 @@ public interface BeanConverter<A, B> extends Converter<A, B> {
    *          e.g. {@link ReflectiveInstanceSupplier} or {@link ComponentInstanceSupplier}
    */
   void initialize(@NotNull Supplier<B> instanceSupplier);
+
+  /**
+   * initialize the converter for a bean B determining an instance supplier by itself.
+   */
+  void initialize(@NotNull Class<B> token);
 
 }

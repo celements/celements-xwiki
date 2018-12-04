@@ -29,6 +29,10 @@ public class BeanXObjectConverter<T> extends XObjectDeconverter<T> implements
   }
 
   @Override
+  public void initialize(Class<BaseObject> token) {
+  }
+
+  @Override
   public String getName() {
     return NAME;
   }
