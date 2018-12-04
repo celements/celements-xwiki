@@ -11,6 +11,7 @@ import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.common.test.ExceptionAsserter;
+import com.celements.model.classes.TestClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.Utils;
@@ -74,11 +75,31 @@ public class XDocumentFieldAccessorTest extends AbstractComponentTest {
     final XWikiDocument doc = new XWikiDocument(documentReference);
     assertEquals(documentReference, accessor.getValue(doc, FIELD_DOC_REF).orNull());
     assertFalse(accessor.setValue(doc, FIELD_DOC_REF, documentReference));
-    new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+    new ExceptionAsserter<FieldAccessException>(FieldAccessException.class) {
 
       @Override
-      protected void execute() throws IllegalArgumentException {
+      protected void execute() throws FieldAccessException {
         accessor.setValue(doc, FIELD_DOC_REF, new DocumentReference("wiki", "space", "other"));
+      }
+    }.evaluate();
+  }
+
+  @Test
+  public void test_FieldAccessException_invalidField() {
+    final ClassField<String> field = TestClassDefinition.FIELD_MY_STRING;
+    final XWikiDocument doc = new XWikiDocument(documentReference);
+    new ExceptionAsserter<FieldAccessException>(FieldAccessException.class) {
+
+      @Override
+      protected void execute() throws FieldAccessException {
+        accessor.getValue(doc, field);
+      }
+    }.evaluate();
+    new ExceptionAsserter<FieldAccessException>(FieldAccessException.class) {
+
+      @Override
+      protected void execute() throws FieldAccessException {
+        accessor.setValue(doc, field, null);
       }
     }.evaluate();
   }
