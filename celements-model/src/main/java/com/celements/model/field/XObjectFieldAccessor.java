@@ -41,8 +41,8 @@ public class XObjectFieldAccessor implements FieldAccessor<BaseObject> {
   @Override
   public <V> Optional<V> getValue(BaseObject obj, ClassField<V> field) throws FieldAccessException {
     Optional<V> value;
-    if (field.getClassDef() == xObjClassDef) {
-      value = getXObjFieldValue(obj, field);
+    if (field.getClassDef().equals(xObjClassDef)) {
+      value = Optional.of(getXObjFieldValue(obj, field));
     } else {
       checkClassRef(obj, field);
       value = modelAccess.getFieldValue(obj, field);
@@ -53,8 +53,7 @@ public class XObjectFieldAccessor implements FieldAccessor<BaseObject> {
   }
 
   @SuppressWarnings("unchecked")
-  private <V> Optional<V> getXObjFieldValue(BaseObject obj, ClassField<V> field)
-      throws FieldAccessException {
+  private <V> V getXObjFieldValue(BaseObject obj, ClassField<V> field) throws FieldAccessException {
     V value;
     if (field == FIELD_DOC_REF) {
       value = (V) obj.getDocumentReference();
@@ -65,7 +64,7 @@ public class XObjectFieldAccessor implements FieldAccessor<BaseObject> {
     } else {
       throw new FieldAccessException("undefined field: " + field);
     }
-    return Optional.fromNullable(value);
+    return value;
   }
 
   @Override
