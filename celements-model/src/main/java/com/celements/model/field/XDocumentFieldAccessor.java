@@ -50,7 +50,8 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
   }
 
   @SuppressWarnings("unchecked")
-  private <V> Optional<V> getDocFieldValue(XWikiDocument doc, ClassField<V> field) {
+  private <V> Optional<V> getDocFieldValue(XWikiDocument doc, ClassField<V> field)
+      throws FieldAccessException {
     V value;
     if (field == FIELD_DOC_REF) {
       value = (V) doc.getDocumentReference();
@@ -79,7 +80,7 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
     } else if (field == FIELD_CONTENT) {
       value = (V) emptyToNull(doc.getContent().trim());
     } else {
-      throw new IllegalArgumentException("undefined field: " + field);
+      throw new FieldAccessException("undefined field: " + field);
     }
     return Optional.fromNullable(value);
   }
@@ -96,11 +97,12 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
     return dirty;
   }
 
-  private <V> boolean setDocFieldValue(XWikiDocument doc, ClassField<V> field, V value) {
+  private <V> boolean setDocFieldValue(XWikiDocument doc, ClassField<V> field, V value)
+      throws FieldAccessException {
     boolean dirty = !Objects.equal(value, getDocFieldValue(doc, field).orNull());
     if (dirty) {
       if (field == FIELD_DOC_REF) {
-        throw new IllegalArgumentException("docRef should never be set");
+        throw new FieldAccessException("docRef should never be set");
       } else if (field == FIELD_PARENT_REF) {
         doc.setParentReference((EntityReference) value);
       } else if (field == FIELD_LANGUAGE) {
@@ -126,7 +128,7 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
       } else if (field == FIELD_CONTENT) {
         doc.setContent((String) value);
       } else {
-        throw new IllegalArgumentException("undefined field: " + field);
+        throw new FieldAccessException("undefined field: " + field);
       }
     }
     return dirty;

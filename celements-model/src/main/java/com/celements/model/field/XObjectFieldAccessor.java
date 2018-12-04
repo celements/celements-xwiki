@@ -1,5 +1,6 @@
 package com.celements.model.field;
 
+import static com.celements.web.classes.oldcore.XWikiObjectClass.*;
 import static com.google.common.base.Preconditions.*;
 
 import java.text.MessageFormat;
@@ -11,7 +12,7 @@ import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.ClassReference;
 
 import com.celements.model.access.IModelAccessFacade;
-import com.celements.model.classes.PseudoClassDefinition;
+import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.objects.BaseObject;
@@ -26,6 +27,9 @@ public class XObjectFieldAccessor implements FieldAccessor<BaseObject> {
 
   public static final String NAME = "xobject";
 
+  @Requirement(CLASS_DEF_HINT)
+  private ClassDefinition xObjClassDef;
+
   @Requirement
   private IModelAccessFacade modelAccess;
 
@@ -36,10 +40,30 @@ public class XObjectFieldAccessor implements FieldAccessor<BaseObject> {
 
   @Override
   public <V> Optional<V> getValue(BaseObject obj, ClassField<V> field) throws FieldAccessException {
-    checkClassRef(obj, field);
-    Optional<V> value = modelAccess.getFieldValue(obj, field);
+    Optional<V> value;
+    if (field.getClassDef().equals(xObjClassDef)) {
+      value = Optional.of(getXObjFieldValue(obj, field));
+    } else {
+      checkClassRef(obj, field);
+      value = modelAccess.getFieldValue(obj, field);
+    }
     LOGGER.info("getValue: '{}' for '{}' from '{} - {} - {}'", value.orNull(), field,
         obj.getDocumentReference(), obj.getXClassReference(), obj.getNumber());
+    return value;
+  }
+
+  @SuppressWarnings("unchecked")
+  private <V> V getXObjFieldValue(BaseObject obj, ClassField<V> field) throws FieldAccessException {
+    V value;
+    if (field == FIELD_DOC_REF) {
+      value = (V) obj.getDocumentReference();
+    } else if (field == FIELD_CLASS_REF) {
+      value = (V) new ClassReference(obj.getXClassReference());
+    } else if (field == FIELD_NUMBER) {
+      value = (V) (Integer) obj.getNumber();
+    } else {
+      throw new FieldAccessException("undefined field: " + field);
+    }
     return value;
   }
 
@@ -58,7 +82,7 @@ public class XObjectFieldAccessor implements FieldAccessor<BaseObject> {
   private void checkClassRef(BaseObject obj, ClassField<?> field) throws FieldAccessException {
     checkNotNull(obj);
     checkNotNull(field);
-    if (field.getClassDef() instanceof PseudoClassDefinition) {
+    if (!field.getClassDef().isValidObjectClass()) {
       throw new FieldAccessException(MessageFormat.format(
           "BaseObject uneligible for pseudo class field ''{0}''", field));
     }

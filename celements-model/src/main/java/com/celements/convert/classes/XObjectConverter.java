@@ -1,17 +1,19 @@
 package com.celements.convert.classes;
 
 import org.xwiki.component.annotation.Requirement;
-import org.xwiki.model.reference.DocumentReference;
 
-import com.celements.convert.ConversionException;
+import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
-import com.celements.model.field.FieldAccessException;
 import com.celements.model.field.FieldAccessor;
 import com.celements.model.field.XObjectFieldAccessor;
-import com.celements.web.classes.oldcore.XWikiDocumentClass;
+import com.celements.web.classes.oldcore.XWikiObjectClass;
+import com.google.common.collect.FluentIterable;
 import com.xpn.xwiki.objects.BaseObject;
 
 public abstract class XObjectConverter<T> extends AbstractClassDefConverter<BaseObject, T> {
+
+  @Requirement(XWikiObjectClass.CLASS_DEF_HINT)
+  private ClassDefinition xObjClassDef;
 
   @Requirement(XObjectFieldAccessor.NAME)
   private FieldAccessor<BaseObject> xObjAccessor;
@@ -22,17 +24,8 @@ public abstract class XObjectConverter<T> extends AbstractClassDefConverter<Base
   }
 
   @Override
-  public T apply(T instance, BaseObject obj) throws ConversionException {
-    instance = super.apply(instance, obj);
-    if (obj != null) {
-      try {
-        ClassField<DocumentReference> docRefField = XWikiDocumentClass.FIELD_DOC_REF;
-        getToFieldAccessor().setValue(instance, docRefField, obj.getDocumentReference());
-      } catch (FieldAccessException exc) {
-        handle(exc);
-      }
-    }
-    return instance;
+  protected FluentIterable<ClassField<?>> aggregateClassFields(FluentIterable<ClassField<?>> iter) {
+    return super.aggregateClassFields(iter).append(xObjClassDef.getFields());
   }
 
 }

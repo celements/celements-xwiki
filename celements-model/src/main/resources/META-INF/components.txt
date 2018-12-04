@@ -44,3 +44,4 @@ com.celements.web.classes.oldcore.XWikiDocumentClass
 com.celements.model.field.XDocumentFieldAccessor
 com.celements.web.classes.oldcore.XWikiTagClass
 com.celements.model.object.xwiki.XWikiEmptyObjectBridge
+com.celements.web.classes.oldcore.XWikiObjectClass
