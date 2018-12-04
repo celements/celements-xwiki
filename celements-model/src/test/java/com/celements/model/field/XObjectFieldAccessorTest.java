@@ -124,4 +124,34 @@ public class XObjectFieldAccessorTest extends AbstractComponentTest {
     }.evaluate();
   }
 
+  @Test
+  public void test_FieldAccessException_setValue_xObjFields() {
+    final ClassReference classRef = testClassDef.getClassReference();
+    final BaseObject obj = new BaseObject();
+    obj.setXClassReference(classRef);
+    new ExceptionAsserter<FieldAccessException>(FieldAccessException.class) {
+
+      @Override
+      protected void execute() throws FieldAccessException {
+        accessor.setValue(obj, XWikiObjectClass.FIELD_CLASS_REF, classRef);
+      }
+    }.evaluate();
+    final DocumentReference docRef = new DocumentReference("wiki", "space", "doc");
+    new ExceptionAsserter<FieldAccessException>(FieldAccessException.class) {
+
+      @Override
+      protected void execute() throws FieldAccessException {
+        accessor.setValue(obj, XWikiObjectClass.FIELD_DOC_REF, docRef);
+      }
+    }.evaluate();
+    final Integer number = 5;
+    new ExceptionAsserter<FieldAccessException>(FieldAccessException.class) {
+
+      @Override
+      protected void execute() throws FieldAccessException {
+        accessor.setValue(obj, XWikiObjectClass.FIELD_NUMBER, number);
+      }
+    }.evaluate();
+  }
+
 }
