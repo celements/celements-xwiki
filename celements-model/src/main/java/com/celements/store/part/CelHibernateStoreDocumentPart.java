@@ -248,7 +248,8 @@ public class CelHibernateStoreDocumentPart {
   }
 
   @SuppressWarnings("unchecked")
-  private Iterator<BaseObject> loadXObjects(XWikiDocument doc, XWikiContext context) {
+  private Iterator<BaseObject> loadXObjects(XWikiDocument doc, XWikiContext context)
+      throws HibernateException {
     String hql = "from BaseObject as obj where obj.name = :name order by obj.className, obj.number";
     Query query = store.getSession(context).createQuery(hql);
     query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));

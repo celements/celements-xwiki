@@ -189,9 +189,14 @@ public class CelHibernateStoreCollectionPart {
               }
             }
           }
-        } catch (HibernateException exc) {
-          LOGGER.error("Failed loading custom mapping for doc [{}], class [{}], nb [{}]",
-              object.getDocumentReference(), object.getXClassReference(), object.getNumber(), exc);
+        } catch (ObjectNotFoundException exc) {
+          boolean hasUnmappedProperty = false; // TODO
+          if (hasUnmappedProperty) {
+            LOGGER.info("loadXWikiCollection - no custom mapping data for object: {} {}_{}",
+                object1.getId(), object1.getClassName(), object1.getNumber(), exc);
+          } else {
+            throw exc;
+          }
         }
 
         // Load strings, integers, dates all at once
@@ -218,48 +223,42 @@ public class CelHibernateStoreCollectionPart {
             property.setObject(object);
             property.setName(name);
             store.loadXWikiProperty(property, context, false);
-          } catch (Exception e) {
+          } catch (ReflectiveOperationException exc) {
+            throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT,
+                "Exception while loading property '" + name + "' for object: " + object, exc);
+          } catch (HibernateException e) {
             // TODO CELDEV-626 what exception are we actually handling here?
             // WORKAROUND IN CASE OF MIXMATCH BETWEEN STRING AND LARGESTRING
-            try {
-              if (property instanceof StringProperty) {
-                LargeStringProperty property2 = new LargeStringProperty();
-                property2.setObject(object);
-                property2.setName(name);
-                store.loadXWikiProperty(property2, context, false);
-                property.setValue(property2.getValue());
-                if (bclass != null) {
-                  if (bclass.get(name) instanceof TextAreaClass) {
-                    property = property2;
-                  }
+            if (property instanceof StringProperty) {
+              LargeStringProperty property2 = new LargeStringProperty();
+              property2.setObject(object);
+              property2.setName(name);
+              store.loadXWikiProperty(property2, context, false);
+              property.setValue(property2.getValue());
+              if (bclass != null) {
+                if (bclass.get(name) instanceof TextAreaClass) {
+                  property = property2;
                 }
-              } else if (property instanceof LargeStringProperty) {
-                StringProperty property2 = new StringProperty();
-                property2.setObject(object);
-                property2.setName(name);
-                store.loadXWikiProperty(property2, context, false);
-                property.setValue(property2.getValue());
-                if (bclass != null) {
-                  if (bclass.get(name) instanceof StringClass) {
-                    property = property2;
-                  }
-                }
-              } else {
-                throw e;
               }
-            } catch (Exception e2) {
-              throw new XWikiException(MODULE_XWIKI_STORE,
-                  ERROR_XWIKI_STORE_HIBERNATE_LOADING_OBJECT, "Exception while loading property '"
-                      + name + "' for object: " + object, e);
+            } else if (property instanceof LargeStringProperty) {
+              StringProperty property2 = new StringProperty();
+              property2.setObject(object);
+              property2.setName(name);
+              store.loadXWikiProperty(property2, context, false);
+              property.setValue(property2.getValue());
+              if (bclass != null) {
+                if (bclass.get(name) instanceof StringClass) {
+                  property = property2;
+                }
+              }
+            } else {
+              throw e;
             }
           }
 
           object.addField(name, property);
         }
       }
-    } catch (ObjectNotFoundException exc) { // there is no object data saved
-      LOGGER.warn("loadXWikiCollection - no data for object: {} {}_{}", object1.getId(),
-          object1.getClassName(), object1.getNumber(), exc);
     } finally {
       if (bTransaction) {
         store.endTransaction(context, false, false);
