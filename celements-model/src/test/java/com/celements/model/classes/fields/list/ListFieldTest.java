@@ -7,6 +7,7 @@ import static org.mutabilitydetector.unittesting.MutabilityAssert.*;
 import static org.mutabilitydetector.unittesting.MutabilityMatchers.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Before;
@@ -38,7 +39,7 @@ public class ListFieldTest extends AbstractComponentTest {
 
   private boolean multiSelect = true;
   private Integer size = 5;
-  private String displayType = "displayType";
+  private DisplayType displayType = DisplayType.checkbox;
   private Boolean picker = true;
   private String separator = ",";
   private List<String> values = Arrays.asList("A", "B", "C");
@@ -91,12 +92,23 @@ public class ListFieldTest extends AbstractComponentTest {
     StaticListField field = fieldBuilder.build();
     assertEquals(multiSelect, field.getMultiSelect());
     assertEquals(size, field.getSize());
-    assertEquals(displayType, field.getDisplayType());
+    assertEquals(displayType.name(), field.getDisplayType());
+    assertEquals(displayType, field.getDisplayTypeEnum());
     assertEquals(picker, field.getPicker());
     assertEquals(separator, field.getSeparator());
     assertEquals(values, field.getValues());
-    assertEquals(AbstractListField.DEFAULT_SEPARATOR, new StaticListField.Builder(
-        TestClassDefinition.NAME, field.getName()).build().getSeparator());
+  }
+
+  @Test
+  public void test_defaults() throws Exception {
+    StaticListField field = new StaticListField.Builder(TestClassDefinition.NAME, "name").build();
+    assertNull(field.getMultiSelect());
+    assertEquals(new Integer(1), field.getSize());
+    assertNull(field.getDisplayType());
+    assertNull(field.getDisplayTypeEnum());
+    assertNull(field.getPicker());
+    assertEquals(AbstractListField.DEFAULT_SEPARATOR, field.getSeparator());
+    assertEquals(Collections.emptyList(), field.getValues());
   }
 
   @Test
@@ -106,13 +118,27 @@ public class ListFieldTest extends AbstractComponentTest {
     StaticListClass xField = (StaticListClass) field.getXField();
     assertEquals(multiSelect, xField.isMultiSelect());
     assertEquals(size, (Integer) xField.getSize());
-    assertEquals(displayType, xField.getDisplayType());
+    assertEquals(displayType.name(), xField.getDisplayType());
     assertEquals(picker, xField.isPicker());
     assertEquals(separator, xField.getSeparators());
     assertEquals(" ", xField.getSeparator()); // this is the view separator
     assertEquals("separator has to be | for XField values", Joiner.on(
         AbstractListField.DEFAULT_SEPARATOR).join(values), xField.getValues());
     assertEquals(values, xField.getList(getContext()));
+  }
+
+  @Test
+  public void test_getXField_defaults() throws Exception {
+    StaticListField field = new StaticListField.Builder(TestClassDefinition.NAME, "name").build();
+    StaticListClass xField = (StaticListClass) field.getXField();
+    assertEquals(false, xField.isMultiSelect());
+    assertEquals(1, xField.getSize());
+    assertEquals(DisplayType.select.name(), xField.getDisplayType());
+    assertEquals(false, xField.isPicker());
+    assertEquals("|", xField.getSeparators());
+    assertEquals(" ", xField.getSeparator()); // this is the view separator
+    assertEquals("", xField.getValues());
+    assertEquals(Collections.emptyList(), xField.getList(getContext()));
   }
 
   @Test

@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.celements.marshalling.Marshaller;
 import com.celements.model.classes.fields.AbstractClassField;
 import com.celements.model.classes.fields.CustomClassField;
+import com.google.common.base.Enums;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
@@ -33,7 +34,7 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
 
   protected final Marshaller<E> marshaller;
   private final Integer size;
-  private final String displayType;
+  private final DisplayType displayType;
   private final Boolean picker;
 
   public abstract static class Builder<B extends Builder<B, T, E>, T, E> extends
@@ -41,7 +42,7 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
 
     protected final Marshaller<E> marshaller;
     protected Integer size;
-    protected String displayType;
+    protected DisplayType displayType;
     protected Boolean picker;
 
     public Builder(@NotNull String classDefName, @NotNull String name,
@@ -55,7 +56,17 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
       return getThis();
     }
 
+    /**
+     * @deprecated instead use {@link #displayType(DisplayType)}
+     * @since 3.4
+     */
+    @Deprecated
     public B displayType(@Nullable String val) {
+      displayType = Enums.getIfPresent(DisplayType.class, val).orNull();
+      return getThis();
+    }
+
+    public B displayType(@Nullable DisplayType val) {
       displayType = val;
       return getThis();
     }
@@ -106,7 +117,20 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
     return size;
   }
 
+  /**
+   * @deprecated instead use {@link #getDisplayTypeEnum()}
+   * @since 3.4
+   */
+  @Deprecated
   public String getDisplayType() {
+    String displayTypeStr = null;
+    if (getDisplayTypeEnum() != null) {
+      displayTypeStr = getDisplayTypeEnum().name();
+    }
+    return displayTypeStr;
+  }
+
+  public DisplayType getDisplayTypeEnum() {
     return displayType;
   }
 
@@ -125,7 +149,7 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
       element.setSize(size);
     }
     if (displayType != null) {
-      element.setDisplayType(displayType);
+      element.setDisplayType(displayType.name());
     }
     if (picker != null) {
       element.setPicker(picker);
