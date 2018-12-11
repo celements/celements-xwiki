@@ -20,6 +20,7 @@ import com.celements.model.access.IModelAccessFacade;
 import com.celements.model.classes.TestClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.classes.fields.list.AbstractListField;
+import com.celements.model.classes.fields.list.DisplayType;
 import com.celements.model.util.ClassFieldValue;
 import com.google.common.base.Joiner;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -38,7 +39,7 @@ public class SingleListFieldTest extends AbstractComponentTest {
   private StringSingleListField.Builder fieldBuilder;
 
   private Integer size = 5;
-  private String displayType = "displayType";
+  private DisplayType displayType = DisplayType.checkbox;
   private Boolean picker = true;
   private List<String> values = Arrays.asList("A", "B", "C");
 
@@ -64,7 +65,8 @@ public class SingleListFieldTest extends AbstractComponentTest {
   public void test_getters() throws Exception {
     StringSingleListField field = fieldBuilder.build();
     assertEquals(size, field.getSize());
-    assertEquals(displayType, field.getDisplayType());
+    assertEquals(displayType, field.getDisplayTypeEnum());
+    assertEquals(displayType.name(), field.getDisplayType());
     assertEquals(picker, field.getPicker());
     assertEquals(values, field.getValues());
   }
@@ -76,7 +78,7 @@ public class SingleListFieldTest extends AbstractComponentTest {
     StaticListClass xField = (StaticListClass) field.getXField();
     assertFalse(xField.isMultiSelect());
     assertEquals(size, (Integer) xField.getSize());
-    assertEquals(displayType, xField.getDisplayType());
+    assertEquals(displayType.name(), xField.getDisplayType());
     assertEquals(picker, xField.isPicker());
     assertEquals("|", xField.getSeparators());
     assertEquals(" ", xField.getSeparator()); // this is the view separator
