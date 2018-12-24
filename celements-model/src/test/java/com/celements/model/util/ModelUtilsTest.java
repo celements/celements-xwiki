@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.ImmutableReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
@@ -148,6 +149,15 @@ public class ModelUtilsTest extends AbstractComponentTest {
     assertEquals("wiki:space", modelUtils.serializeRef(spaceRef, COMPACT));
     assertEquals("wiki:space.doc", modelUtils.serializeRef(docRef, COMPACT));
     assertEquals("wiki:space.doc@att.jpg", modelUtils.serializeRef(attRef, COMPACT));
+  }
+
+  @Test
+  public void test_serialzeRef_immuRefWithChild() {
+    EntityReference immuRefWithChild = References.extractRef(attRef, DocumentReference.class).get();
+    assertTrue(immuRefWithChild instanceof ImmutableReference);
+    // only works correctly if child is stripped from immutable references
+    // see DefaultStringEntityReferenceSerializer#L29
+    assertEquals("wiki:space.doc", modelUtils.serializeRef(immuRefWithChild));
   }
 
   @Test

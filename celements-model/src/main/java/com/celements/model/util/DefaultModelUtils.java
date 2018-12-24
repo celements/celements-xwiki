@@ -114,6 +114,8 @@ public class DefaultModelUtils implements ModelUtils {
     @SuppressWarnings("unchecked")
     EntityReferenceSerializer<String> serializer = Utils.getComponent(
         EntityReferenceSerializer.class, getReferenceSerializerHintFromMode(mode));
+    // strip child from immutable references, see DefaultStringEntityReferenceSerializer#L29
+    ref = References.combineRef(ref.getType(), ref).get();
     return serializer.serialize(ref);
   }
 
