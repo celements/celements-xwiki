@@ -53,6 +53,24 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_loadXWikiDoc() throws Exception {
+    DocumentReference docRef = new ImmutableDocumentReference("xwikidb", "space", "doc");
+    XWikiDocument doc = new XWikiDocument(docRef);
+    Session sessionMock = createSessionMock(doc);
+    expectLoadAttachments(sessionMock, Collections.<XWikiAttachment>emptyList());
+    expectLoadObjects(sessionMock, Collections.<BaseObject>emptyList());
+    sessionMock.load(same(doc), eq(new Long(doc.getId())));
+
+    replayDefault();
+    XWikiDocument ret = getStore(sessionMock).loadXWikiDoc(doc, getContext());
+    verifyDefault();
+
+    assertSame(doc, ret);
+    assertFalse(doc.isNew());
+    assertFalse(doc.isContentDirty());
+  }
+
+  @Test
   public void test_loadXWikiDoc_immutability() throws Exception {
     DocumentReference docRef = new ImmutableDocumentReference("xwikidb", "space", "doc");
     XWikiDocument doc = new XWikiDocument(docRef);
@@ -110,6 +128,9 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     replayDefault();
     getStore(sessionMock).saveXWikiDoc(doc, getContext());
     verifyDefault();
+
+    assertFalse(doc.isNew());
+    assertFalse(doc.isContentDirty());
   }
 
   @Test
@@ -124,6 +145,9 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     replayDefault();
     getStore(sessionMock).saveXWikiDoc(doc, getContext());
     verifyDefault();
+
+    assertFalse(doc.isNew());
+    assertFalse(doc.isContentDirty());
   }
 
   @Test

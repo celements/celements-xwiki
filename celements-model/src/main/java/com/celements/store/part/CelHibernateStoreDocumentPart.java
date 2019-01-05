@@ -219,6 +219,7 @@ public class CelHibernateStoreDocumentPart {
         }
       }
 
+      doc.setContentDirty(false);
       // We need to ensure that the loaded document becomes the original document
       doc.setOriginalDocument(doc.clone());
     } catch (ObjectNotFoundException e) { // document doesn't exist
