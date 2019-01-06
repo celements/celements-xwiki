@@ -3332,7 +3332,6 @@ public class XWikiDocument implements DocumentModelBridge
             doc.setAuthor(getAuthor());
             doc.setContentAuthor(getContentAuthor());
             doc.setContent(getContent());
-            doc.setContentDirty(isContentDirty());
             doc.setCreationDate(getCreationDate());
             doc.setDate(getDate());
             doc.setCustomClass(getCustomClass());
@@ -3342,7 +3341,6 @@ public class XWikiDocument implements DocumentModelBridge
             doc.setFromCache(isFromCache());
             doc.setElements(getElements());
             doc.setMeta(getMeta());
-            doc.setMetaDataDirty(isMetaDataDirty());
             doc.setMostRecent(isMostRecent());
             doc.setNew(isNew());
             doc.setStore(getStore());
