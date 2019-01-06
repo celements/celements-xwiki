@@ -3256,8 +3256,8 @@ public class XWikiDocument implements DocumentModelBridge
      */
     private void clone(XWikiDocument document) throws XWikiException
     {
-        setId(document.getId());
         setDocumentReference(document.getDocumentReference());
+        setId(document.getId());
         setRCSVersion(document.getRCSVersion());
         setDocumentArchive(document.getDocumentArchive());
         setAuthor(document.getAuthor());
@@ -3292,10 +3292,10 @@ public class XWikiDocument implements DocumentModelBridge
 
         cloneXObjects(document);
         cloneAttachments(document);
-        
+
         setContentDirty(document.isContentDirty());
         setMetaDataDirty(document.isMetaDataDirty());
-        
+
         this.elements = document.elements;
 
         this.originalDocument = document.originalDocument;
@@ -3321,9 +3321,11 @@ public class XWikiDocument implements DocumentModelBridge
     {
         XWikiDocument doc = null;
         try {
-            Constructor constructor = getClass().getConstructor(DocumentReference.class);
-            doc = (XWikiDocument) constructor.newInstance(newDocumentReference);
+            Constructor<? extends XWikiDocument> constructor = getClass().getConstructor(
+                DocumentReference.class);
+            doc = constructor.newInstance(newDocumentReference);
 
+            doc.setId(getId());
             // use version field instead of getRCSVersion because it returns "1.1" if version==null.
             doc.version = this.version;
             doc.setDocumentArchive(getDocumentArchive());
@@ -3339,7 +3341,6 @@ public class XWikiDocument implements DocumentModelBridge
             doc.setFormat(getFormat());
             doc.setFromCache(isFromCache());
             doc.setElements(getElements());
-            doc.setId(getId());
             doc.setMeta(getMeta());
             doc.setMetaDataDirty(isMetaDataDirty());
             doc.setMostRecent(isMostRecent());
@@ -3354,26 +3355,30 @@ public class XWikiDocument implements DocumentModelBridge
             doc.setLanguage(getLanguage());
             doc.setTranslation(getTranslation());
             doc.setXClass((BaseClass) getXClass().clone());
-            doc.setXClassXML(getXClassXML());
             doc.setComment(getComment());
             doc.setMinorEdit(isMinorEdit());
             doc.setSyntax(getSyntax());
             doc.setHidden(isHidden());
 
             if (keepsIdentity) {
+                doc.setXClassXML(getXClassXML());
                 doc.cloneXObjects(this);
                 doc.cloneAttachments(this);
             } else {
+                doc.getXClass().setCustomMapping(null);
                 doc.duplicateXObjects(this);
                 doc.copyAttachments(this);
             }
 
+            doc.setContentDirty(isContentDirty());
+            doc.setMetaDataDirty(isMetaDataDirty());
+
             doc.elements = this.elements;
 
             doc.originalDocument = this.originalDocument;
-        } catch (Exception e) {
+        } catch (ReflectiveOperationException exc) {
             // This should not happen
-            LOG.error("Exception while cloning document", e);
+            LOG.error("Exception while cloning document", exc);
         }
         return doc;
     }
