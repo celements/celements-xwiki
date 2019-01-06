@@ -3256,13 +3256,13 @@ public class XWikiDocument implements DocumentModelBridge
      */
     private void clone(XWikiDocument document) throws XWikiException
     {
+        setId(document.getId());
         setDocumentReference(document.getDocumentReference());
         setRCSVersion(document.getRCSVersion());
         setDocumentArchive(document.getDocumentArchive());
         setAuthor(document.getAuthor());
         setContentAuthor(document.getContentAuthor());
         setContent(document.getContent());
-        setContentDirty(document.isContentDirty());
         setCreationDate(document.getCreationDate());
         setDate(document.getDate());
         setCustomClass(document.getCustomClass());
@@ -3271,9 +3271,7 @@ public class XWikiDocument implements DocumentModelBridge
         setFormat(document.getFormat());
         setFromCache(document.isFromCache());
         setElements(document.getElements());
-        setId(document.getId());
         setMeta(document.getMeta());
-        setMetaDataDirty(document.isMetaDataDirty());
         setMostRecent(document.isMostRecent());
         setNew(document.isNew());
         setStore(document.getStore());
@@ -3294,6 +3292,10 @@ public class XWikiDocument implements DocumentModelBridge
 
         cloneXObjects(document);
         cloneAttachments(document);
+        
+        setContentDirty(document.isContentDirty());
+        setMetaDataDirty(document.isMetaDataDirty());
+        
         this.elements = document.elements;
 
         this.originalDocument = document.originalDocument;
