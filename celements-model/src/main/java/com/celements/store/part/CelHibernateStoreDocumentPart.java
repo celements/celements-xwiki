@@ -220,7 +220,8 @@ public class CelHibernateStoreDocumentPart {
       }
 
       doc.setContentDirty(false);
-      doc.setMetaDataDirty(false);
+      // FIXME can be set to 'false' after CELDEV-784, see CELDEV-785
+      doc.setMetaDataDirty(true);
       // We need to ensure that the loaded document becomes the original document
       doc.setOriginalDocument(doc.clone());
     } catch (ObjectNotFoundException e) { // document doesn't exist
