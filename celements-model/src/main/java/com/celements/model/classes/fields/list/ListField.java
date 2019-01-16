@@ -43,6 +43,7 @@ public abstract class ListField<T> extends AbstractListField<List<T>, T> {
     // XXX can be removed once all projects include the celements-model 1.2+, but for now
     // override needed for backwards compatibility with older version to avoid NoSuchMethodError
     @Override
+    @Deprecated
     public B displayType(@Nullable String val) {
       return super.displayType(val);
     }
