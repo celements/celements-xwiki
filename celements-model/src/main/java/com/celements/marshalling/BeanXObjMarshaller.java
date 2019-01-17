@@ -10,8 +10,8 @@ import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.DocumentReference;
 
-import com.celements.convert.bean.XObjectBeanLoader;
-import com.celements.convert.bean.XObjectBeanLoader.BeanLoadException;
+import com.celements.convert.bean.XDocBeanLoader;
+import com.celements.convert.bean.XDocBeanLoader.BeanLoadException;
 import com.celements.model.access.IModelAccessFacade;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.object.restriction.ObjectRestriction;
@@ -31,7 +31,7 @@ public final class BeanXObjMarshaller<T> extends AbstractMarshaller<T> {
   private final ReferenceMarshaller<DocumentReference> docRefMarshaller;
   private final List<ObjectRestriction<BaseObject>> xObjRestrictions;
 
-  private XObjectBeanLoader<T> loader;
+  private XDocBeanLoader<T> loader;
 
   public static class Builder<T> {
 
@@ -108,9 +108,9 @@ public final class BeanXObjMarshaller<T> extends AbstractMarshaller<T> {
   }
 
   @SuppressWarnings("unchecked")
-  private XObjectBeanLoader<T> getBeanLoader() {
+  private XDocBeanLoader<T> getBeanLoader() {
     if (loader == null) {
-      loader = Utils.getComponent(XObjectBeanLoader.class);
+      loader = Utils.getComponent(XDocBeanLoader.class);
       loader.initialize(getToken(), classId);
     }
     return loader;

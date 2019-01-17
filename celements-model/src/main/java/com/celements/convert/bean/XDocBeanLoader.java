@@ -13,7 +13,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
 @ComponentRole
-public interface XObjectBeanLoader<T> {
+public interface XDocBeanLoader<T> {
 
   /**
    * initialize the loader for a bean T
