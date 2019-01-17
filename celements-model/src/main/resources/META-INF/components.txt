@@ -46,3 +46,4 @@ com.celements.web.classes.oldcore.XWikiTagClass
 com.celements.model.object.xwiki.XWikiEmptyObjectBridge
 com.celements.web.classes.oldcore.XWikiObjectClass
 com.celements.model.migration.InvalidXObjectsMigration
+com.celements.convert.bean.DefaultXObjectBeanLoader

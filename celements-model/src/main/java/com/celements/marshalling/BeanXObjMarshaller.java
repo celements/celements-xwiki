@@ -10,18 +10,11 @@ import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.DocumentReference;
 
-import com.celements.convert.ConversionException;
-import com.celements.convert.bean.BeanClassDefConverter;
-import com.celements.convert.bean.XObjectBeanConverter;
+import com.celements.convert.bean.XObjectBeanLoader;
+import com.celements.convert.bean.XObjectBeanLoader.BeanLoadException;
 import com.celements.model.access.IModelAccessFacade;
-import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassIdentity;
-import com.celements.model.object.ObjectBridge;
-import com.celements.model.object.restriction.ClassRestriction;
 import com.celements.model.object.restriction.ObjectRestriction;
-import com.celements.model.object.xwiki.XWikiObjectBridge;
-import com.celements.model.object.xwiki.XWikiObjectFetcher;
-import com.celements.model.util.ModelUtils;
 import com.celements.model.util.ReferenceSerializationMode;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -38,7 +31,7 @@ public final class BeanXObjMarshaller<T> extends AbstractMarshaller<T> {
   private final ReferenceMarshaller<DocumentReference> docRefMarshaller;
   private final List<ObjectRestriction<BaseObject>> xObjRestrictions;
 
-  private BeanClassDefConverter<BaseObject, T> converter;
+  private XObjectBeanLoader<T> loader;
 
   public static class Builder<T> {
 
@@ -51,7 +44,6 @@ public final class BeanXObjMarshaller<T> extends AbstractMarshaller<T> {
       this.token = token;
       this.classId = classId;
       this.xObjRestrictions = new ImmutableList.Builder<>();
-      xObjRestrictions.add(new ClassRestriction<>(getXObjectBridge(), classId));
     }
 
     public Builder<T> addRestriction(ObjectRestriction<BaseObject> restriction) {
@@ -101,54 +93,31 @@ public final class BeanXObjMarshaller<T> extends AbstractMarshaller<T> {
   public Optional<T> resolve(String val) {
     checkNotNull(val);
     T instance = null;
-    Optional<BaseObject> xObj = resolveXObject(val);
-    if (xObj.isPresent()) {
+    Optional<DocumentReference> docRef = docRefMarshaller.resolve(val);
+    if (docRef.isPresent()) {
+      XWikiDocument doc = getModelAccess().getOrCreateDocument(docRef.get());
       try {
-        instance = getXObjToBeanConverter().apply(xObj.get());
-      } catch (ConversionException exc) {
-        LOGGER.info("unable to convert '{}' to '{}'", xObj, getToken(), exc);
+        instance = getBeanLoader().load(doc, xObjRestrictions);
+      } catch (BeanLoadException exc) {
+        LOGGER.info("unable to load bean '{}' for '{}'", getToken(), docRef, exc);
       }
     } else {
-      LOGGER.info("unable to resolve xObj for '{}' and filters '{}'", val, xObjRestrictions);
+      LOGGER.info("unable to resolve doc for '{}'", val);
     }
     return Optional.fromNullable(instance);
   }
 
-  private Optional<BaseObject> resolveXObject(String val) {
-    Optional<BaseObject> xObj = Optional.absent();
-    Optional<DocumentReference> docRef = docRefMarshaller.resolve(val);
-    if (docRef.isPresent()) {
-      XWikiDocument doc = getModelAccess().getOrCreateDocument(docRef.get());
-      xObj = XWikiObjectFetcher.on(doc).filter(xObjRestrictions).first();
-    }
-    return xObj;
-  }
-
   @SuppressWarnings("unchecked")
-  private BeanClassDefConverter<BaseObject, T> getXObjToBeanConverter() {
-    if (converter == null) {
-      converter = Utils.getComponent(BeanClassDefConverter.class, XObjectBeanConverter.NAME);
-      converter.initialize(getToken());
-      converter.initialize(getClassDefinition());
+  private XObjectBeanLoader<T> getBeanLoader() {
+    if (loader == null) {
+      loader = Utils.getComponent(XObjectBeanLoader.class);
+      loader.initialize(getToken(), classId);
     }
-    return converter;
-  }
-
-  private ClassDefinition getClassDefinition() {
-    String classDefHint = getModelUtils().serializeRefLocal(classId.getDocRef());
-    return Utils.getComponent(ClassDefinition.class, classDefHint);
-  }
-
-  private static XWikiObjectBridge getXObjectBridge() {
-    return (XWikiObjectBridge) Utils.getComponent(ObjectBridge.class, XWikiObjectBridge.NAME);
+    return loader;
   }
 
   private static IModelAccessFacade getModelAccess() {
     return Utils.getComponent(IModelAccessFacade.class);
-  }
-
-  private static ModelUtils getModelUtils() {
-    return Utils.getComponent(ModelUtils.class);
   }
 
 }
