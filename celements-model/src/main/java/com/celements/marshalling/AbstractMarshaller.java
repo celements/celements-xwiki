@@ -11,7 +11,7 @@ import com.google.common.base.Function;
 
 public abstract class AbstractMarshaller<T> implements Marshaller<T> {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(Marshaller.class);
+  protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
   private final Class<T> token;
 

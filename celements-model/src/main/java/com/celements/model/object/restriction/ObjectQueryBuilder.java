@@ -42,6 +42,14 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
   }
 
   /**
+   * restricts to objects for the given {@link ObjectRestriction} collection
+   */
+  public final @NotNull B filter(@NotNull Collection<? extends ObjectRestriction<O>> restrictions) {
+    query.addAll(restrictions);
+    return getThis();
+  }
+
+  /**
    * restricts to objects with the given {@link ClassIdentity}
    */
   public final @NotNull B filter(@NotNull ClassIdentity classId) {
