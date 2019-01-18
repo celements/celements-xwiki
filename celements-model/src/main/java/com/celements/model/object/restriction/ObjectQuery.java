@@ -80,6 +80,11 @@ public class ObjectQuery<O> {
     return false;
   }
 
+  @Override
+  public String toString() {
+    return "ObjectQuery " + restrictions;
+  }
+
   private class ClassPredicate implements Predicate<ObjectRestriction<?>> {
 
     private final ClassIdentity classId;

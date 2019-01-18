@@ -38,8 +38,16 @@ public class DefaultXDocBeanLoader<T> implements XDocBeanLoader<T> {
   @Override
   public void initialize(Class<T> token, ClassIdentity classId) {
     converter.initialize(token);
-    converter.initialize(Utils.getComponent(ClassDefinition.class, modelUtils.serializeRefLocal(
-        classId.getDocRef())));
+    converter.initialize(getClassDefinition(classId));
+  }
+
+  private ClassDefinition getClassDefinition(ClassIdentity classId) {
+    if (classId instanceof ClassDefinition) {
+      return (ClassDefinition) classId;
+    } else {
+      return Utils.getComponent(ClassDefinition.class, modelUtils.serializeRefLocal(
+          classId.getDocRef()));
+    }
   }
 
   private ClassIdentity getClassId() {
