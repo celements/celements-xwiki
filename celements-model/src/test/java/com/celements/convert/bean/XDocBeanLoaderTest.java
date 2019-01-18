@@ -5,6 +5,9 @@ import static com.celements.model.classes.TestClassDefinition.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -51,6 +54,15 @@ public class XDocBeanLoaderTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_asdf() throws Exception {
+    BeanInfo beaninfo = Introspector.getBeanInfo(TestBean.class);
+    for (PropertyDescriptor pd : beaninfo.getPropertyDescriptors()) {
+      System.out.println(pd);
+      System.out.println(pd.getWriteMethod());
+    }
+  }
+
+  @Test
   public void test() throws Exception {
     BaseObject obj = addObj(classDef);
     obj.setStringValue(FIELD_MY_STRING.getName(), "asdf");
@@ -69,7 +81,7 @@ public class XDocBeanLoaderTest extends AbstractComponentTest {
     assertEquals("asdf", bean.getMyString());
     assertEquals(new Integer(5), bean.getMyInt());
     assertEquals(true, bean.getMyBool());
-    assertEquals(new DocumentReference("xwikidb", "test", "asdf"), bean.getMyDocRef().get());
+    assertEquals(new DocumentReference("xwikidb", "test", "asdf"), bean.getMyDocRef());
     assertEquals(Arrays.asList("asdf1", "asdf2"), bean.getMyListMS());
     assertEquals("asdf", bean.getMySingleList());
   }
@@ -87,7 +99,7 @@ public class XDocBeanLoaderTest extends AbstractComponentTest {
     assertNull(bean.getMyString());
     assertNull(bean.getMyInt());
     assertNull(bean.getMyBool());
-    assertFalse(bean.getMyDocRef().isPresent());
+    assertNull(bean.getMyDocRef());
     assertEquals(Collections.emptyList(), bean.getMyListMS());
     assertNull(bean.getMySingleList());
   }

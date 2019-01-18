@@ -36,23 +36,14 @@ public class BeanFieldAccessor<T> implements FieldAccessor<T> {
   @Override
   public <V> Optional<V> getValue(T obj, ClassField<V> field) throws FieldAccessException {
     try {
-      Object value = PropertyUtils.getProperty(obj, getBeanMethodName(field));
-      LOGGER.info("getValue: '{}' for '{}' from '{}'", value, field, obj);
-      if (value instanceof Optional) {
-        return castToOptional(value);
-      } else {
-        return Optional.fromNullable(field.getType().cast(value));
-      }
+      V ret = field.getType().cast(PropertyUtils.getProperty(obj, getBeanMethodName(field)));
+      LOGGER.info("getValue: '{}' for '{}' from '{}'", ret, field, obj);
+      return Optional.fromNullable(ret);
     } catch (NoSuchMethodException exc) {
       throw new FieldMissingException(exc);
     } catch (ReflectiveOperationException | ClassCastException exc) {
       throw new FieldAccessException(exc);
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  private <V> Optional<V> castToOptional(Object value) {
-    return (Optional<V>) value;
   }
 
   @Override

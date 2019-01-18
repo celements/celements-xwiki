@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.xwiki.model.reference.DocumentReference;
 
-import com.google.common.base.Optional;
-
 public class TestBean {
 
   private DocumentReference docRef;
@@ -48,8 +46,8 @@ public class TestBean {
     this.myBool = myBool;
   }
 
-  public Optional<DocumentReference> getMyDocRef() {
-    return Optional.fromNullable(myDocRef);
+  public DocumentReference getMyDocRef() {
+    return myDocRef;
   }
 
   public void setMyDocRef(DocumentReference myDocRef) {
