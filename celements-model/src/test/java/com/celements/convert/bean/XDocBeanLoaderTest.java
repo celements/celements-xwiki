@@ -69,7 +69,7 @@ public class XDocBeanLoaderTest extends AbstractComponentTest {
     assertEquals("asdf", bean.getMyString());
     assertEquals(new Integer(5), bean.getMyInt());
     assertEquals(true, bean.getMyBool());
-    assertEquals(new DocumentReference("xwikidb", "test", "asdf"), bean.getMyDocRef());
+    assertEquals(new DocumentReference("xwikidb", "test", "asdf"), bean.getMyDocRef().get());
     assertEquals(Arrays.asList("asdf1", "asdf2"), bean.getMyListMS());
     assertEquals("asdf", bean.getMySingleList());
   }
@@ -87,7 +87,7 @@ public class XDocBeanLoaderTest extends AbstractComponentTest {
     assertNull(bean.getMyString());
     assertNull(bean.getMyInt());
     assertNull(bean.getMyBool());
-    assertNull(bean.getMyDocRef());
+    assertFalse(bean.getMyDocRef().isPresent());
     assertEquals(Collections.emptyList(), bean.getMyListMS());
     assertNull(bean.getMySingleList());
   }
