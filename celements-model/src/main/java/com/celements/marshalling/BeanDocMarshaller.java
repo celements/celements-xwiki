@@ -25,7 +25,7 @@ import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.web.Utils;
 
 @Immutable
-public final class BeanXObjMarshaller<T> extends AbstractMarshaller<T> {
+public final class BeanDocMarshaller<T> extends AbstractMarshaller<T> {
 
   private final ClassIdentity classId;
   private final ReferenceMarshaller<DocumentReference> docRefMarshaller;
@@ -56,14 +56,14 @@ public final class BeanXObjMarshaller<T> extends AbstractMarshaller<T> {
       return this;
     }
 
-    public BeanXObjMarshaller<T> build() {
-      return new BeanXObjMarshaller<>(token, classId, new ReferenceMarshaller<>(
+    public BeanDocMarshaller<T> build() {
+      return new BeanDocMarshaller<>(token, classId, new ReferenceMarshaller<>(
           DocumentReference.class, mode), xObjRestrictions.build());
     }
 
   }
 
-  private BeanXObjMarshaller(@NotNull Class<T> token, ClassIdentity classId,
+  private BeanDocMarshaller(@NotNull Class<T> token, ClassIdentity classId,
       @NotNull ReferenceMarshaller<DocumentReference> docRefMarshaller,
       @NotNull List<ObjectRestriction<BaseObject>> xObjRestrictions) {
     super(token);
