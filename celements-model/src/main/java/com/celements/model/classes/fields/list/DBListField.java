@@ -20,8 +20,11 @@ public final class DBListField extends CustomDBListField<String> {
       return this;
     }
 
-    // XXX can be removed once all projects include the celements-model 3.15+, but for now
-    // override needed for backwards compatibility with older version to avoid NoSuchMethodError
+    /**
+     * @deprecated since 3.15, deprecated override needed for backwards compatibility with older
+     *             version to avoid NoSuchMethodError
+     */
+    @Deprecated
     @Override
     public Builder sql(@Nullable String val) {
       return super.sql(val);
