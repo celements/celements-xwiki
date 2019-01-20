@@ -188,6 +188,13 @@ public class ReferencesTest extends AbstractComponentTest {
     assertFalse(ref.equals(clone));
   }
 
+  @Test
+  public void test_cloneRef_subType() {
+    TestSubImmuDocRef ref = new TestSubImmuDocRef(docRef);
+    DocumentReference clone = cloneRef(ref, DocumentReference.class);
+    assertSame(ref, clone);
+  }
+
   @SuppressWarnings("unchecked")
   private EntityReferenceResolver<String> getRelativeRefResolver() {
     return Utils.getComponent(EntityReferenceResolver.class, "relative");
@@ -435,6 +442,14 @@ public class ReferencesTest extends AbstractComponentTest {
       assertNotSame(expected, actual);
       assertEquals(expected, actual);
     }
+  }
+
+  private class TestSubImmuDocRef extends ImmutableDocumentReference {
+
+    public TestSubImmuDocRef(EntityReference reference) {
+      super(reference);
+    }
+
   }
 
 }

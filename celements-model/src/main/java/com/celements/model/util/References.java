@@ -92,7 +92,7 @@ public class References {
 
   private static void assertAssignability(EntityReference ref, Class<?> token)
       throws IllegalArgumentException {
-    if ((token != EntityReference.class) && (determineClass(ref) != token)) {
+    if ((token != EntityReference.class) && !token.isAssignableFrom(determineClass(ref))) {
       String msg = "Given " + (isAbsoluteRef(ref) ? "absolute reference (" + determineClass(
           ref).getSimpleName() + ")" : "relative reference") + " is not assignable to '"
           + token.getSimpleName() + "' - " + ref;
