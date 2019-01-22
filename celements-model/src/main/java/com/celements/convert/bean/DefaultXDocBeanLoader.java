@@ -59,7 +59,7 @@ public class DefaultXDocBeanLoader<T> implements XDocBeanLoader<T> {
 
   @Override
   public T load(DocumentReference docRef) throws BeanLoadException {
-    return load(docRef);
+    return load(docRef, null);
   }
 
   @Override
