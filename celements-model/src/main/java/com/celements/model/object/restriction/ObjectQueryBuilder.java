@@ -42,6 +42,14 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
   }
 
   /**
+   * restricts to objects for the given {@link ObjectRestriction}s
+   */
+  public final @NotNull B filter(@NotNull Iterable<? extends ObjectRestriction<O>> restrictions) {
+    query.addAll(restrictions);
+    return getThis();
+  }
+
+  /**
    * restricts to objects with the given {@link ClassIdentity}
    */
   public final @NotNull B filter(@NotNull ClassIdentity classId) {
@@ -114,7 +122,7 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
   /**
    * restricts to the given objects
    */
-  public final @NotNull B filter(@NotNull Iterable<O> objects) {
+  public final @NotNull B filterIdentity(@NotNull Iterable<O> objects) {
     return filter(new IdentityRestriction<>(getBridge(), objects));
   }
 
