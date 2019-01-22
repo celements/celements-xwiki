@@ -24,7 +24,7 @@ import com.xpn.xwiki.web.Utils;
 
 @Component
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
-public class DefaultXDocBeanLoader<T> implements XDocBeanLoader<T> {
+public class XDocBeanConversionLoader<T> implements XDocBeanLoader<T> {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(XDocBeanLoader.class);
 
