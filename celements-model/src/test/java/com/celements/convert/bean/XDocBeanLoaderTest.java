@@ -5,9 +5,6 @@ import static com.celements.model.classes.TestClassDefinition.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -51,15 +48,6 @@ public class XDocBeanLoaderTest extends AbstractComponentTest {
       expect(bClass.get(field.getName())).andReturn(field.getXField()).anyTimes();
     }
     return bClass;
-  }
-
-  @Test
-  public void test_asdf() throws Exception {
-    BeanInfo beaninfo = Introspector.getBeanInfo(TestBean.class);
-    for (PropertyDescriptor pd : beaninfo.getPropertyDescriptors()) {
-      System.out.println(pd);
-      System.out.println(pd.getWriteMethod());
-    }
   }
 
   @Test
