@@ -12,7 +12,6 @@ import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.convert.bean.XDocBeanLoader;
 import com.celements.convert.bean.XDocBeanLoader.BeanLoadException;
-import com.celements.model.access.IModelAccessFacade;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.object.restriction.ObjectRestriction;
 import com.celements.model.util.ReferenceSerializationMode;
@@ -20,16 +19,15 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.Invokable;
 import com.google.common.reflect.TypeToken;
-import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.web.Utils;
 
 @Immutable
-public final class BeanDocMarshaller<T> extends AbstractMarshaller<T> {
+public final class BeanXDocMarshaller<T> extends AbstractMarshaller<T> {
 
   private final ClassIdentity classId;
   private final ReferenceMarshaller<DocumentReference> docRefMarshaller;
-  private final List<ObjectRestriction<BaseObject>> xObjRestrictions;
+  private final List<ObjectRestriction<BaseObject>> restrictions;
 
   private XDocBeanLoader<T> loader;
 
@@ -37,17 +35,17 @@ public final class BeanDocMarshaller<T> extends AbstractMarshaller<T> {
 
     private final Class<T> token;
     private final ClassIdentity classId;
-    private final ImmutableList.Builder<ObjectRestriction<BaseObject>> xObjRestrictions;
+    private final ImmutableList.Builder<ObjectRestriction<BaseObject>> restrictions;
     private ReferenceSerializationMode mode;
 
     public Builder(@NotNull Class<T> token, @NotNull ClassIdentity classId) {
       this.token = token;
       this.classId = classId;
-      this.xObjRestrictions = new ImmutableList.Builder<>();
+      this.restrictions = new ImmutableList.Builder<>();
     }
 
     public Builder<T> addRestriction(ObjectRestriction<BaseObject> restriction) {
-      xObjRestrictions.add(restriction);
+      restrictions.add(restriction);
       return this;
     }
 
@@ -56,20 +54,20 @@ public final class BeanDocMarshaller<T> extends AbstractMarshaller<T> {
       return this;
     }
 
-    public BeanDocMarshaller<T> build() {
-      return new BeanDocMarshaller<>(token, classId, new ReferenceMarshaller<>(
-          DocumentReference.class, mode), xObjRestrictions.build());
+    public BeanXDocMarshaller<T> build() {
+      return new BeanXDocMarshaller<>(token, classId, new ReferenceMarshaller<>(
+          DocumentReference.class, mode), restrictions.build());
     }
 
   }
 
-  private BeanDocMarshaller(@NotNull Class<T> token, ClassIdentity classId,
+  private BeanXDocMarshaller(@NotNull Class<T> token, ClassIdentity classId,
       @NotNull ReferenceMarshaller<DocumentReference> docRefMarshaller,
-      @NotNull List<ObjectRestriction<BaseObject>> xObjRestrictions) {
+      @NotNull List<ObjectRestriction<BaseObject>> restrictions) {
     super(token);
     this.classId = checkNotNull(classId);
     this.docRefMarshaller = docRefMarshaller;
-    this.xObjRestrictions = xObjRestrictions;
+    this.restrictions = restrictions;
   }
 
   @Override
@@ -95,9 +93,8 @@ public final class BeanDocMarshaller<T> extends AbstractMarshaller<T> {
     T instance = null;
     Optional<DocumentReference> docRef = docRefMarshaller.resolve(val);
     if (docRef.isPresent()) {
-      XWikiDocument doc = getModelAccess().getOrCreateDocument(docRef.get());
       try {
-        instance = getBeanLoader().load(doc, xObjRestrictions);
+        instance = getBeanLoader().load(docRef.get(), restrictions);
       } catch (BeanLoadException exc) {
         LOGGER.info("unable to load bean '{}' for '{}'", getToken(), docRef, exc);
       }
@@ -110,14 +107,11 @@ public final class BeanDocMarshaller<T> extends AbstractMarshaller<T> {
   @SuppressWarnings("unchecked")
   private XDocBeanLoader<T> getBeanLoader() {
     if (loader == null) {
+      // init lazily due to static usages of Marshallers for ClassFields
       loader = Utils.getComponent(XDocBeanLoader.class);
       loader.initialize(getToken(), classId);
     }
     return loader;
-  }
-
-  private static IModelAccessFacade getModelAccess() {
-    return Utils.getComponent(IModelAccessFacade.class);
   }
 
 }
