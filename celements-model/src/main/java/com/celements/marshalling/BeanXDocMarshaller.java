@@ -22,6 +22,17 @@ import com.google.common.reflect.TypeToken;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.web.Utils;
 
+/**
+ * <p>
+ * a utility class for marshalling a generic bean T for a given xdoc. It uses the
+ * {@link ReferenceMarshaller} together with the {@link XDocBeanLoader} internally.
+ * </p>
+ * IMPORTANT: the bean must have a #getDocumentReference method defined in order for
+ * {@link #serialize(T)} to work.
+ *
+ * @param <T>
+ *          type of bean to marshall
+ */
 @Immutable
 public final class BeanXDocMarshaller<T> extends AbstractMarshaller<T> {
 
