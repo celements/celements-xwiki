@@ -69,7 +69,7 @@ public final class ReferenceMarshaller<T extends EntityReference> extends Abstra
   public String serialize(T val) {
     EntityReference toSerialize = val;
     if ((baseRef != null) && (serializationMode != GLOBAL)) {
-      // only the relative path to the baseRef it should be serialized
+      // only the relative path to the baseRef should be serialized
       References.Builder builder = new References.Builder();
       EntityReference ref = val;
       while ((ref != null) && (ref.getType() != baseRef.getType())) {
