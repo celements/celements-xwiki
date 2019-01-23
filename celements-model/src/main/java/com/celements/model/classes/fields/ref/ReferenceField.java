@@ -21,15 +21,21 @@ public abstract class ReferenceField<T extends EntityReference> extends Abstract
   public abstract static class Builder<B extends Builder<B, T>, T extends EntityReference> extends
       AbstractClassField.Builder<B, T> {
 
-    private ReferenceSerializationMode mode;
+    private ReferenceSerializationMode serializationMode;
+    private EntityReference baseRef;
     private Integer size;
 
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name);
     }
 
-    public B refSerializationMode(@Nullable ReferenceSerializationMode mode) {
-      this.mode = mode;
+    public B refSerializationMode(@Nullable ReferenceSerializationMode serializationMode) {
+      this.serializationMode = serializationMode;
+      return getThis();
+    }
+
+    public B baseRef(EntityReference baseRef) {
+      this.baseRef = baseRef;
       return getThis();
     }
 
@@ -43,7 +49,8 @@ public abstract class ReferenceField<T extends EntityReference> extends Abstract
   protected ReferenceField(@NotNull Builder<?, T> builder) {
     super(builder);
     this.size = builder.size;
-    marshaller = new ReferenceMarshaller<>(getType(), builder.mode);
+    marshaller = new ReferenceMarshaller.Builder<>(getType()).serializationMode(
+        builder.serializationMode).baseRef(builder.baseRef).build();
   }
 
   public Integer getSize() {

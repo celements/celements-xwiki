@@ -9,6 +9,7 @@ import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 
 import com.celements.convert.bean.XDocBeanLoader;
 import com.celements.convert.bean.XDocBeanLoader.BeanLoadException;
@@ -47,12 +48,13 @@ public final class BeanXDocMarshaller<T> extends AbstractMarshaller<T> {
     private final Class<T> token;
     private final ClassIdentity classId;
     private final ImmutableList.Builder<ObjectRestriction<BaseObject>> restrictions;
-    private ReferenceSerializationMode mode;
+    private final ReferenceMarshaller.Builder<DocumentReference> docRefMarshaller;
 
     public Builder(@NotNull Class<T> token, @NotNull ClassIdentity classId) {
       this.token = token;
       this.classId = classId;
       this.restrictions = new ImmutableList.Builder<>();
+      this.docRefMarshaller = new ReferenceMarshaller.Builder<>(DocumentReference.class);
     }
 
     public Builder<T> addRestriction(ObjectRestriction<BaseObject> restriction) {
@@ -60,25 +62,27 @@ public final class BeanXDocMarshaller<T> extends AbstractMarshaller<T> {
       return this;
     }
 
-    public Builder<T> mode(ReferenceSerializationMode mode) {
-      this.mode = mode;
+    public Builder<T> serializationMode(ReferenceSerializationMode serializationMode) {
+      docRefMarshaller.serializationMode(serializationMode);
+      return this;
+    }
+
+    public Builder<T> baseRef(EntityReference baseRef) {
+      docRefMarshaller.baseRef(baseRef);
       return this;
     }
 
     public BeanXDocMarshaller<T> build() {
-      return new BeanXDocMarshaller<>(token, classId, new ReferenceMarshaller<>(
-          DocumentReference.class, mode), restrictions.build());
+      return new BeanXDocMarshaller<>(this);
     }
 
   }
 
-  private BeanXDocMarshaller(@NotNull Class<T> token, ClassIdentity classId,
-      @NotNull ReferenceMarshaller<DocumentReference> docRefMarshaller,
-      @NotNull List<ObjectRestriction<BaseObject>> restrictions) {
-    super(token);
-    this.classId = checkNotNull(classId);
-    this.docRefMarshaller = docRefMarshaller;
-    this.restrictions = restrictions;
+  private BeanXDocMarshaller(Builder<T> builder) {
+    super(builder.token);
+    this.classId = checkNotNull(builder.classId);
+    this.docRefMarshaller = checkNotNull(builder.docRefMarshaller).build();
+    this.restrictions = checkNotNull(builder.restrictions).build();
   }
 
   @Override

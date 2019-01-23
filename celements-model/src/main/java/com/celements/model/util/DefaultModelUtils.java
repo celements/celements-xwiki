@@ -83,7 +83,7 @@ public class DefaultModelUtils implements ModelUtils {
       // resolver cannot handle root reference
       resolvedRef = new WikiReference(name);
     } else {
-      baseRef = MoreObjects.firstNonNull(baseRef, context.getWikiRef());
+      baseRef = References.combineRef(baseRef, context.getWikiRef()).get();
       resolvedRef = resolver.resolve(name, type, baseRef);
     }
     return cloneRef(resolvedRef, token); // effective immutability
@@ -111,15 +111,14 @@ public class DefaultModelUtils implements ModelUtils {
   @Override
   public String serializeRef(EntityReference ref, ReferenceSerializationMode mode) {
     checkNotNull(ref);
-    @SuppressWarnings("unchecked")
-    EntityReferenceSerializer<String> serializer = Utils.getComponent(
-        EntityReferenceSerializer.class, getReferenceSerializerHintFromMode(mode));
-    // strip child from immutable references, see DefaultStringEntityReferenceSerializer#L29
-    ref = References.combineRef(ref.getType(), ref).get();
-    return serializer.serialize(ref);
+    // strip child from immutable references by creating relative reference
+    // for reason see DefaultStringEntityReferenceSerializer#L29
+    ref = new References.Builder().with(ref).build();
+    return getSerializerForMode(mode).serialize(ref);
   }
 
-  private String getReferenceSerializerHintFromMode(ReferenceSerializationMode mode) {
+  @SuppressWarnings("unchecked")
+  private EntityReferenceSerializer<String> getSerializerForMode(ReferenceSerializationMode mode) {
     String hint;
     switch (mode) {
       case GLOBAL:
@@ -137,7 +136,7 @@ public class DefaultModelUtils implements ModelUtils {
       default:
         throw new IllegalArgumentException(String.valueOf(mode));
     }
-    return hint;
+    return Utils.getComponent(EntityReferenceSerializer.class, hint);
   }
 
   @Override
