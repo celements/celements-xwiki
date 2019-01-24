@@ -10,7 +10,7 @@ import java.util.TreeMap;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 
-public class RefBuilder {
+public class RefBuilder implements Cloneable {
 
   private final TreeMap<EntityType, EntityReference> refs;
   private boolean nullable;
@@ -135,6 +135,21 @@ public class RefBuilder {
     }
     checkArgument(nullable || (ret != null), "missing information for building reference");
     return ret;
+  }
+
+  @Override
+  public RefBuilder clone() {
+    RefBuilder clone = new RefBuilder();
+    if (depth() > 0) {
+      clone.with(this.buildRelative());
+    }
+    clone.nullable = this.nullable;
+    return clone;
+  }
+
+  @Override
+  public String toString() {
+    return "RefBuilder [" + (depth() > 0 ? buildRelative() : "") + "]";
   }
 
 }
