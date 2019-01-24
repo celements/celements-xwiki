@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import org.xwiki.model.reference.EntityReference;
 
 import com.celements.model.context.ModelContext;
+import com.celements.model.reference.RefBuilder;
 import com.celements.model.util.ModelUtils;
 import com.celements.model.util.ReferenceSerializationMode;
 import com.celements.model.util.References;
@@ -70,7 +71,7 @@ public final class ReferenceMarshaller<T extends EntityReference> extends Abstra
     EntityReference toSerialize = val;
     if ((baseRef != null) && (serializationMode != GLOBAL)) {
       // only the relative path to the baseRef should be serialized
-      References.Builder builder = new References.Builder();
+      RefBuilder builder = new RefBuilder();
       EntityReference ref = val;
       while ((ref != null) && (ref.getType() != baseRef.getType())) {
         builder.with(ref.getType(), ref.getName());

@@ -12,6 +12,7 @@ import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.context.ModelContext;
+import com.celements.model.reference.RefBuilder;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.XWiki;
@@ -113,7 +114,7 @@ public class DefaultModelUtils implements ModelUtils {
     checkNotNull(ref);
     // strip child from immutable references by creating relative reference
     // for reason see DefaultStringEntityReferenceSerializer#L29
-    ref = new References.Builder().with(ref).buildRelative();
+    ref = new RefBuilder().with(ref).buildRelative();
     return getSerializerForMode(mode).serialize(ref);
   }
 

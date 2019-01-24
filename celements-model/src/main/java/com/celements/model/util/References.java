@@ -2,10 +2,8 @@ package com.celements.model.util;
 
 import static com.celements.model.util.EntityTypeUtil.*;
 import static com.google.common.base.Preconditions.*;
-import static com.google.common.base.Strings.*;
 
 import java.util.Iterator;
-import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -14,95 +12,10 @@ import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.ImmutableReference;
 
+import com.celements.model.reference.RefBuilder;
 import com.google.common.base.Optional;
 
 public final class References {
-
-  public final static class Builder {
-
-    private final TreeMap<EntityType, EntityReference> refs;
-    private boolean nullable;
-
-    public Builder() {
-      refs = new TreeMap<>();
-      nullable = false;
-    }
-
-    public int depth() {
-      return refs.size();
-    }
-
-    public Builder nullable() {
-      this.nullable = true;
-      return this;
-    }
-
-    public Builder wiki(String name) {
-      return with(EntityType.WIKI, name);
-    }
-
-    public Builder space(String name) {
-      return with(EntityType.SPACE, name);
-    }
-
-    public Builder doc(String name) {
-      return with(EntityType.DOCUMENT, name);
-    }
-
-    public Builder att(String name) {
-      return with(EntityType.ATTACHMENT, name);
-    }
-
-    public Builder with(EntityReference ref) {
-      while (ref != null) {
-        with(ref.getType(), ref.getName());
-        ref = ref.getParent();
-      }
-      return this;
-    }
-
-    public Builder with(EntityType type, String name) {
-      if ((type != null)) {
-        if (!isNullOrEmpty(name)) {
-          refs.put(type, new EntityReference(name, type));
-        } else {
-          refs.remove(type);
-        }
-      }
-      return this;
-    }
-
-    public EntityReference buildRelative() {
-      EntityReference ret = null;
-      checkArgument(!nullable && (depth() > 0), "unable to build reference with no information");
-      for (EntityReference ref : refs.descendingMap().values()) {
-        if (ret == null) {
-          ret = ref;
-        } else {
-          ret.getRoot().setParent(ref);
-        }
-      }
-      return ret;
-    }
-
-    public <T extends EntityReference> T build(Class<T> token) {
-      T ref = null;
-      try {
-        ref = cloneRef(buildRelative(), token); // clone for effective immutability
-      } catch (IllegalArgumentException iae) {
-        if (!nullable) {
-          throw iae;
-        }
-      }
-      return ref;
-    }
-
-    public EntityReference build() {
-      EntityType type = !refs.isEmpty() ? refs.descendingMap().firstKey() : getRootEntityType();
-      return build(getClassForEntityType(type));
-    }
-
-  }
 
   /**
    * @param ref
@@ -315,7 +228,7 @@ public final class References {
 
   public static EntityReference create(@NotNull EntityType type, @NotNull String name,
       @Nullable EntityReference parent) {
-    return new Builder().with(type, name).with(parent).buildRelative();
+    return new RefBuilder().with(type, name).with(parent).buildRelative();
   }
 
   public static <T extends EntityReference> T create(@NotNull Class<T> token,
@@ -325,7 +238,8 @@ public final class References {
 
   public static <T extends EntityReference> T create(@NotNull Class<T> token, @NotNull String name,
       @Nullable EntityReference parent) {
-    return new Builder().with(getEntityTypeForClassOrThrow(token), name).with(parent).build(token);
+    return new RefBuilder().with(getEntityTypeForClassOrThrow(token), name).with(parent).build(
+        token);
   }
 
   private static <T extends EntityReference> Optional<T> castOrAbsent(EntityReference ref,
