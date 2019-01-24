@@ -20,14 +20,21 @@ public final class References {
 
   public final static class Builder {
 
-    TreeMap<EntityType, EntityReference> refs;
+    private final TreeMap<EntityType, EntityReference> refs;
+    private boolean nullable;
 
     public Builder() {
       refs = new TreeMap<>();
+      nullable = false;
     }
 
     public int depth() {
       return refs.size();
+    }
+
+    public Builder nullable() {
+      this.nullable = true;
+      return this;
     }
 
     public Builder wiki(String name) {
@@ -55,15 +62,19 @@ public final class References {
     }
 
     public Builder with(EntityType type, String name) {
-      if ((type != null) && !nullToEmpty(name).trim().isEmpty()) {
-        refs.put(type, new EntityReference(name, type));
+      if ((type != null)) {
+        if (!isNullOrEmpty(name)) {
+          refs.put(type, new EntityReference(name, type));
+        } else {
+          refs.remove(type);
+        }
       }
       return this;
     }
 
-    public EntityReference build() {
+    public EntityReference buildRelative() {
       EntityReference ret = null;
-      checkArgument(depth() > 0, "unable to build reference with no information");
+      checkArgument(!nullable && (depth() > 0), "unable to build reference with no information");
       for (EntityReference ref : refs.descendingMap().values()) {
         if (ret == null) {
           ret = ref;
@@ -75,7 +86,20 @@ public final class References {
     }
 
     public <T extends EntityReference> T build(Class<T> token) {
-      return cloneRef(build(), token); // clone for effective immutability
+      T ref = null;
+      try {
+        ref = cloneRef(buildRelative(), token); // clone for effective immutability
+      } catch (IllegalArgumentException iae) {
+        if (!nullable) {
+          throw iae;
+        }
+      }
+      return ref;
+    }
+
+    public EntityReference build() {
+      EntityType type = !refs.isEmpty() ? refs.descendingMap().firstKey() : getRootEntityType();
+      return build(getClassForEntityType(type));
     }
 
   }
@@ -291,7 +315,7 @@ public final class References {
 
   public static EntityReference create(@NotNull EntityType type, @NotNull String name,
       @Nullable EntityReference parent) {
-    return new Builder().with(type, name).with(parent).build();
+    return new Builder().with(type, name).with(parent).buildRelative();
   }
 
   public static <T extends EntityReference> T create(@NotNull Class<T> token,

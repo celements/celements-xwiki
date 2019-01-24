@@ -77,7 +77,7 @@ public final class ReferenceMarshaller<T extends EntityReference> extends Abstra
         ref = ref.getParent();
       }
       if (builder.depth() > 0) {
-        toSerialize = builder.build();
+        toSerialize = builder.buildRelative();
       }
     }
     return getModelUtils().serializeRef(toSerialize, serializationMode);
