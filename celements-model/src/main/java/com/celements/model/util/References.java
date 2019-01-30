@@ -11,11 +11,11 @@ import javax.validation.constraints.NotNull;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.ImmutableReference;
-import org.xwiki.model.reference.ReferenceParentSetter;
 
+import com.celements.model.reference.RefBuilder;
 import com.google.common.base.Optional;
 
-public class References {
+public final class References {
 
   /**
    * @param ref
@@ -223,12 +223,12 @@ public class References {
   }
 
   public static EntityReference create(@NotNull EntityType type, @NotNull String name) {
-    return createInternal(EntityReference.class, type, name, null);
+    return create(type, name, null);
   }
 
   public static EntityReference create(@NotNull EntityType type, @NotNull String name,
       @Nullable EntityReference parent) {
-    return createInternal(EntityReference.class, type, name, parent);
+    return new RefBuilder().with(type, name).with(parent).buildRelative();
   }
 
   public static <T extends EntityReference> T create(@NotNull Class<T> token,
@@ -238,19 +238,8 @@ public class References {
 
   public static <T extends EntityReference> T create(@NotNull Class<T> token, @NotNull String name,
       @Nullable EntityReference parent) {
-    return createInternal(token, getEntityTypeForClassOrThrow(token), name, parent);
-  }
-
-  private static <T extends EntityReference> T createInternal(@NotNull Class<T> token,
-      @NotNull EntityType type, @NotNull String name, @Nullable EntityReference parent) {
-    checkNotNull(name);
-    checkNotNull(type);
-    checkNotNull(token);
-    EntityReference ref = new EntityReference(name, type);
-    if (parent != null) {
-      ReferenceParentSetter.set(ref, parent);
-    }
-    return cloneRef(ref, token);
+    return new RefBuilder().with(getEntityTypeForClassOrThrow(token), name).with(parent).build(
+        token);
   }
 
   private static <T extends EntityReference> Optional<T> castOrAbsent(EntityReference ref,

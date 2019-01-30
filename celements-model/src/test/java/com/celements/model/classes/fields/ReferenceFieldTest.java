@@ -37,7 +37,8 @@ public class ReferenceFieldTest extends AbstractComponentTest {
 
   @Test
   public void test_immutability() {
-    assertInstancesOf(ReferenceField.class, areImmutable(), allowingForSubclassing());
+    assertInstancesOf(ReferenceField.class, areImmutable(), allowingForSubclassing(),
+        assumingFields("marshaller").areNotModifiedAndDoNotEscape());
     assertImmutable(WikiReferenceField.class);
     assertImmutable(SpaceReferenceField.class);
     assertImmutable(DocumentReferenceField.class);

@@ -5,10 +5,12 @@ import static com.google.common.base.Preconditions.*;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 
 import com.celements.convert.bean.XDocBeanLoader;
 import com.celements.convert.bean.XDocBeanLoader.BeanLoadException;
@@ -47,38 +49,47 @@ public final class BeanXDocMarshaller<T> extends AbstractMarshaller<T> {
     private final Class<T> token;
     private final ClassIdentity classId;
     private final ImmutableList.Builder<ObjectRestriction<BaseObject>> restrictions;
-    private ReferenceSerializationMode mode;
+    private final ReferenceMarshaller.Builder<DocumentReference> docRefMarshaller;
 
     public Builder(@NotNull Class<T> token, @NotNull ClassIdentity classId) {
       this.token = token;
       this.classId = classId;
       this.restrictions = new ImmutableList.Builder<>();
+      this.docRefMarshaller = new ReferenceMarshaller.Builder<>(DocumentReference.class);
     }
 
-    public Builder<T> addRestriction(ObjectRestriction<BaseObject> restriction) {
-      restrictions.add(restriction);
+    @NotNull
+    public Builder<T> addRestriction(@Nullable ObjectRestriction<BaseObject> restriction) {
+      if (restriction != null) {
+        restrictions.add(restriction);
+      }
       return this;
     }
 
-    public Builder<T> mode(ReferenceSerializationMode mode) {
-      this.mode = mode;
+    @NotNull
+    public Builder<T> serializationMode(@Nullable ReferenceSerializationMode serializationMode) {
+      docRefMarshaller.serializationMode(serializationMode);
       return this;
     }
 
+    @NotNull
+    public Builder<T> baseRef(@Nullable EntityReference baseRef) {
+      docRefMarshaller.baseRef(baseRef);
+      return this;
+    }
+
+    @NotNull
     public BeanXDocMarshaller<T> build() {
-      return new BeanXDocMarshaller<>(token, classId, new ReferenceMarshaller<>(
-          DocumentReference.class, mode), restrictions.build());
+      return new BeanXDocMarshaller<>(this);
     }
 
   }
 
-  private BeanXDocMarshaller(@NotNull Class<T> token, ClassIdentity classId,
-      @NotNull ReferenceMarshaller<DocumentReference> docRefMarshaller,
-      @NotNull List<ObjectRestriction<BaseObject>> restrictions) {
-    super(token);
-    this.classId = checkNotNull(classId);
-    this.docRefMarshaller = docRefMarshaller;
-    this.restrictions = restrictions;
+  private BeanXDocMarshaller(Builder<T> builder) {
+    super(builder.token);
+    this.classId = checkNotNull(builder.classId);
+    this.docRefMarshaller = checkNotNull(builder.docRefMarshaller).build();
+    this.restrictions = checkNotNull(builder.restrictions).build();
   }
 
   @Override

@@ -7,7 +7,9 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.common.test.AbstractComponentTest;
@@ -75,12 +77,13 @@ public class BeanXDocMarshallerTest extends AbstractComponentTest {
 
   @Test
   public void test_localRef() throws Exception {
-    ReferenceSerializationMode mode = ReferenceSerializationMode.LOCAL;
+    ReferenceSerializationMode serializationMode = ReferenceSerializationMode.LOCAL;
     BeanXDocMarshaller<TestBean> marshaller = new BeanXDocMarshaller.Builder<>(TestBean.class,
-        classDef).mode(mode).build();
+        classDef).serializationMode(serializationMode).baseRef(new EntityReference("space",
+            EntityType.SPACE)).build();
     XWikiDocument doc = expectDoc(new DocumentReference("xwikidb", "space", "doc"));
     addObj(doc, classDef);
-    String fullName = getModelUtils().serializeRef(doc.getDocumentReference(), mode);
+    String fullName = doc.getDocumentReference().getName();
 
     replayDefault();
     TestBean bean = marshaller.resolve(fullName).get();
