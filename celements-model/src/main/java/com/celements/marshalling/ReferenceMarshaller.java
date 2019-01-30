@@ -4,6 +4,7 @@ import static com.celements.model.util.ReferenceSerializationMode.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
@@ -33,16 +34,19 @@ public final class ReferenceMarshaller<T extends EntityReference> extends Abstra
       this.token = token;
     }
 
-    public Builder<T> serializationMode(ReferenceSerializationMode serializationMode) {
+    @NotNull
+    public Builder<T> serializationMode(@Nullable ReferenceSerializationMode serializationMode) {
       this.serializationMode = serializationMode;
       return this;
     }
 
-    public Builder<T> baseRef(EntityReference baseRef) {
+    @NotNull
+    public Builder<T> baseRef(@Nullable EntityReference baseRef) {
       this.baseRef = baseRef;
       return this;
     }
 
+    @NotNull
     public ReferenceMarshaller<T> build() {
       return new ReferenceMarshaller<>(this);
     }

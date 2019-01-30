@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.*;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
@@ -57,21 +58,27 @@ public final class BeanXDocMarshaller<T> extends AbstractMarshaller<T> {
       this.docRefMarshaller = new ReferenceMarshaller.Builder<>(DocumentReference.class);
     }
 
-    public Builder<T> addRestriction(ObjectRestriction<BaseObject> restriction) {
-      restrictions.add(restriction);
+    @NotNull
+    public Builder<T> addRestriction(@Nullable ObjectRestriction<BaseObject> restriction) {
+      if (restriction != null) {
+        restrictions.add(restriction);
+      }
       return this;
     }
 
-    public Builder<T> serializationMode(ReferenceSerializationMode serializationMode) {
+    @NotNull
+    public Builder<T> serializationMode(@Nullable ReferenceSerializationMode serializationMode) {
       docRefMarshaller.serializationMode(serializationMode);
       return this;
     }
 
-    public Builder<T> baseRef(EntityReference baseRef) {
+    @NotNull
+    public Builder<T> baseRef(@Nullable EntityReference baseRef) {
       docRefMarshaller.baseRef(baseRef);
       return this;
     }
 
+    @NotNull
     public BeanXDocMarshaller<T> build() {
       return new BeanXDocMarshaller<>(this);
     }
