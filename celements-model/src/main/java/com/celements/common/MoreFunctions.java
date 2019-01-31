@@ -11,7 +11,7 @@ import com.celements.model.util.ReferenceSerializationMode;
 import com.google.common.base.Function;
 import com.xpn.xwiki.web.Utils;
 
-public class MoreFunctions {
+public final class MoreFunctions {
 
   private MoreFunctions() {
   }
