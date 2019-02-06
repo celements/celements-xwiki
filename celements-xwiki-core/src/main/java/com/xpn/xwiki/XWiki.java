@@ -116,7 +116,6 @@ import org.xwiki.observation.event.Event;
 import org.xwiki.query.QueryException;
 import org.xwiki.rendering.macro.wikibridge.WikiMacroInitializer;
 import org.xwiki.rendering.syntax.Syntax;
-import org.xwiki.rendering.syntax.SyntaxFactory;
 import org.xwiki.url.XWikiEntityURL;
 import org.xwiki.url.standard.XWikiURLBuilder;
 import org.xwiki.xml.internal.XMLScriptService;
@@ -211,7 +210,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
   protected static final Log LOG = LogFactory.getLog(XWiki.class);
 
   /** Frequently used Document reference, the class which holds virtual wiki definitions. */
-  private static final DocumentReference VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE = new DocumentReference(
+  static final DocumentReference VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE = new DocumentReference(
       "xwiki", "XWiki", "XWikiServerClass");
 
   /** XWiki configuration loaded from xwiki.cfg. */
@@ -359,12 +358,6 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
   @SuppressWarnings("unchecked")
   private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver = Utils.getComponent(
       DocumentReferenceResolver.class, "currentmixed");
-
-  @SuppressWarnings("unchecked")
-  private DocumentReferenceResolver<String> docRefResolver = Utils.getComponent(
-      DocumentReferenceResolver.class);
-
-  private SyntaxFactory syntaxFactory = Utils.getComponent(SyntaxFactory.class);
 
   private XWikiURLBuilder entityXWikiURLBuilder = Utils.getComponent(XWikiURLBuilder.class,
       "entity");
@@ -4795,51 +4788,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
   }
 
   public URL getServerURL(String wikiName, XWikiContext context) throws MalformedURLException {
-    URL serverurl = null;
-    // In virtual wiki path mode the server is the standard one
-    if ("0".equals(Param("xwiki.virtual.usepath", "0"))) {
-      try {
-        BaseObject serverobject = getServerObject(wikiName, context);
-        if (serverobject != null) {
-          String protocol = context.getWiki().Param("xwiki.url.protocol", null);
-          if (protocol == null) {
-            int iSecure = serverobject.getIntValue("secure", -1);
-            // Check the request object if the "secure" property is undefined.
-            boolean secure = (iSecure == 1) || ((iSecure < 0) && context.getRequest().isSecure());
-            protocol = secure ? "https" : "http";
-          }
-          String host = serverobject.getStringValue("server");
-          int port = context.getURL().getPort();
-          if ((port == 80) || (port == 443)) {
-            port = -1;
-          }
-          serverurl = new URL(protocol, host, port, "/");
-        }
-      } catch (XWikiException | MalformedURLException exc) {
-        LOG.error("getServerURL - failed for: " + wikiName, exc);
-      }
-    }
-    return serverurl;
-  }
-
-  private BaseObject getServerObject(String wikiName, XWikiContext context) throws XWikiException {
-    XWikiDocument doc = getDocument(docRefResolver.resolve(getServerWikiPage(wikiName),
-        new WikiReference(getDatabase())), context);
-    BaseObject serverobject = getMatchingServerObject(doc, wikiName, context);
-    if (serverobject == null) {
-      serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE);
-    }
-    return serverobject;
-  }
-
-  private BaseObject getMatchingServerObject(XWikiDocument doc, String wikiName,
-      XWikiContext context) {
-    BaseObject serverobject = null;
-    if ((context != null) && (context.getURL() != null) && (context.getURL().getHost() != null)) {
-      String server = context.getURL().getHost().replaceFirst(context.getDatabase(), wikiName);
-      serverobject = doc.getXObject(VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE, "server", server);
-    }
-    return serverobject;
+    return Utils.getComponent(ServerUrlUtilsRole.class).getServerURL(wikiName, context);
   }
 
   public String getServletPath(String wikiName, XWikiContext context) {
