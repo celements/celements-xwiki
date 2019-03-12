@@ -97,12 +97,34 @@ public class DefaultModelContext implements ModelContext {
   @Override
   @Deprecated
   public XWikiDocument getDoc() {
-    return getXWikiContext().getDoc();
+    return getDocInternal();
   }
 
   @Override
   public Optional<XWikiDocument> getCurrentDoc() {
-    return Optional.fromNullable(getXWikiContext().getDoc());
+    return Optional.fromNullable(getDocInternal());
+  }
+
+  @Override
+  public Optional<DocumentReference> getCurrentDocRef() {
+    DocumentReference currentDocRef = null;
+    if (getDocInternal() != null) {
+      currentDocRef = getDocInternal().getDocumentReference();
+    }
+    return Optional.fromNullable(currentDocRef);
+  }
+
+  @Override
+  public Optional<SpaceReference> getCurrentSpaceRef() {
+    SpaceReference currentSpaceRef = null;
+    if (getDocInternal() != null) {
+      currentSpaceRef = getDocInternal().getDocumentReference().getLastSpaceReference();
+    }
+    return Optional.fromNullable(currentSpaceRef);
+  }
+
+  private XWikiDocument getDocInternal() {
+    return getXWikiContext().getDoc();
   }
 
   @Override

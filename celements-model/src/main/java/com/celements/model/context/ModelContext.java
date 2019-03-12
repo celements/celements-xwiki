@@ -6,7 +6,9 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.auth.user.User;
@@ -72,6 +74,18 @@ public interface ModelContext {
    */
   @NotNull
   Optional<XWikiDocument> getCurrentDoc();
+
+  /**
+   * @return the current doc reference set in context
+   */
+  @NotNull
+  Optional<DocumentReference> getCurrentDocRef();
+
+  /**
+   * @return the current space set in context
+   */
+  @NotNull
+  Optional<SpaceReference> getCurrentSpaceRef();
 
   /**
    * @param doc
