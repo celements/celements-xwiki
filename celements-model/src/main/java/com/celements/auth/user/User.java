@@ -6,6 +6,7 @@ import javax.validation.constraints.NotNull;
 import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.model.reference.DocumentReference;
 
+import com.celements.web.classes.oldcore.XWikiUsersClass.Type;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.user.api.XWikiUser;
@@ -41,6 +42,9 @@ public interface User {
 
   @NotNull
   Optional<String> getAdminLanguage();
+
+  @NotNull
+  Type getType();
 
   boolean isActive();
 
