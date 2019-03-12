@@ -61,10 +61,17 @@ public interface ModelContext {
   WikiReference getMainWikiRef();
 
   /**
-   * @return the current doc set in context
+   * @deprecated instead use {@link #getCurrentDoc}
    */
+  @Deprecated
   @Nullable
   XWikiDocument getDoc();
+
+  /**
+   * @return the current doc set in context
+   */
+  @NotNull
+  Optional<XWikiDocument> getCurrentDoc();
 
   /**
    * @param doc
@@ -77,8 +84,8 @@ public interface ModelContext {
   /**
    * @deprecated instead use {@link #getCurrentUser()}
    */
-  @Nullable
   @Deprecated
+  @Nullable
   XWikiUser getUser();
 
   @NotNull
@@ -87,8 +94,8 @@ public interface ModelContext {
   /**
    * @deprecated instead use {@link #setCurrentUser(User)} or {@link #clearCurrentUser()}
    */
-  @Nullable
   @Deprecated
+  @Nullable
   XWikiUser setUser(@Nullable XWikiUser user);
 
   void setCurrentUser(@NotNull User user);

@@ -95,13 +95,19 @@ public class DefaultModelContext implements ModelContext {
   }
 
   @Override
+  @Deprecated
   public XWikiDocument getDoc() {
     return getXWikiContext().getDoc();
   }
 
   @Override
+  public Optional<XWikiDocument> getCurrentDoc() {
+    return Optional.fromNullable(getXWikiContext().getDoc());
+  }
+
+  @Override
   public XWikiDocument setDoc(XWikiDocument doc) {
-    XWikiDocument oldDoc = getDoc();
+    XWikiDocument oldDoc = getCurrentDoc().orNull();
     getXWikiContext().setDoc(doc);
     return oldDoc;
   }
@@ -216,7 +222,7 @@ public class DefaultModelContext implements ModelContext {
 
   private String getDefaultLangFromConfigSrc(EntityReference ref) {
     WikiReference wikiBefore = getWikiRef();
-    XWikiDocument docBefore = getDoc();
+    XWikiDocument docBefore = getCurrentDoc().orNull();
     try {
       ConfigurationSource configSrc;
       setWikiRef(getModelUtils().extractRef(ref, WikiReference.class).or(getWikiRef()));
