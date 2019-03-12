@@ -9,6 +9,7 @@ import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 
+import com.celements.auth.user.User;
 import com.celements.model.util.ModelUtils;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.XWikiContext;
@@ -73,13 +74,32 @@ public interface ModelContext {
   @Nullable
   XWikiDocument setDoc(@Nullable XWikiDocument doc);
 
+  /**
+   * @deprecated instead use {@link #getCurrentUser()}
+   */
   @Nullable
+  @Deprecated
   XWikiUser getUser();
 
+  @NotNull
+  Optional<User> getCurrentUser();
+
+  /**
+   * @deprecated instead use {@link #setCurrentUser(User)} or {@link #clearCurrentUser()}
+   */
   @Nullable
+  @Deprecated
   XWikiUser setUser(@Nullable XWikiUser user);
 
+  void setCurrentUser(@NotNull User user);
+
+  void clearCurrentUser();
+
+  /**
+   * @deprecated instead use {@link #getUserDocRef()}
+   */
   @NotNull
+  @Deprecated
   String getUserName();
 
   @NotNull

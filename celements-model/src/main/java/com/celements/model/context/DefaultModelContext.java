@@ -4,8 +4,6 @@ import static com.google.common.base.Preconditions.*;
 
 import java.net.URL;
 
-import javax.annotation.Nullable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
@@ -19,6 +17,9 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
+import com.celements.auth.user.User;
+import com.celements.auth.user.UserInstantiationException;
+import com.celements.auth.user.UserService;
 import com.celements.configuration.CelementsFromWikiConfigurationSource;
 import com.celements.model.access.IModelAccessFacade;
 import com.celements.model.access.exception.DocumentNotExistsException;
@@ -106,22 +107,62 @@ public class DefaultModelContext implements ModelContext {
   }
 
   @Override
+  @Deprecated
   public XWikiUser getUser() {
     return getXWikiContext().getXWikiUser();
   }
 
   @Override
-  public XWikiUser setUser(@Nullable XWikiUser user) {
+  public Optional<User> getCurrentUser() {
+    User user = null;
+    Optional<DocumentReference> userDocRef = getCurrentUserDocRef();
+    if (userDocRef.isPresent()) {
+      try {
+        user = getUserService().getUser(userDocRef.get());
+      } catch (UserInstantiationException exc) {
+        LOGGER.warn("failed loading user '{}'", userDocRef.get(), exc);
+      }
+    }
+    return Optional.fromNullable(user);
+  }
+
+  private Optional<DocumentReference> getCurrentUserDocRef() {
+    DocumentReference userDocRef = null;
+    XWikiUser xUser = getXWikiContext().getXWikiUser();
+    if ((xUser != null) && !Strings.isNullOrEmpty(xUser.getUser())) {
+      userDocRef = getUserService().resolveUserDocRef(xUser.getUser());
+    }
+    return Optional.fromNullable(userDocRef);
+  }
+
+  @Override
+  @Deprecated
+  public XWikiUser setUser(XWikiUser xUser) {
     XWikiUser oldUser = getUser();
-    if (user != null) {
-      getXWikiContext().setUser(user.getUser(), user.isMain());
+    if (xUser != null) {
+      setCurrentXUser(xUser);
     } else {
-      getXWikiContext().setUser(null);
+      clearCurrentUser();
     }
     return oldUser;
   }
 
   @Override
+  public void setCurrentUser(User user) {
+    setCurrentXUser(checkNotNull(user).asXWikiUser());
+  }
+
+  private void setCurrentXUser(XWikiUser xUser) {
+    getXWikiContext().setUser(xUser.getUser(), xUser.isMain());
+  }
+
+  @Override
+  public void clearCurrentUser() {
+    getXWikiContext().setUser(null);
+  }
+
+  @Override
+  @Deprecated
   public String getUserName() {
     return getXWikiContext().getUser();
   }
@@ -225,6 +266,10 @@ public class DefaultModelContext implements ModelContext {
 
   private IModelAccessFacade getModelAccess() {
     return Utils.getComponent(IModelAccessFacade.class);
+  }
+
+  private UserService getUserService() {
+    return Utils.getComponent(UserService.class);
   }
 
 }
