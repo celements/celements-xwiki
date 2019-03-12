@@ -9,7 +9,7 @@ import com.xpn.xwiki.user.api.XWikiRightService;
 import com.xpn.xwiki.user.api.XWikiUser;
 
 @ComponentRole
-interface IRightsAccessFacadeRole {
+public interface IRightsAccessFacadeRole {
 
   /**
    * instead use hasAccessLevel(EntityReference, EAccessLevel, User)
