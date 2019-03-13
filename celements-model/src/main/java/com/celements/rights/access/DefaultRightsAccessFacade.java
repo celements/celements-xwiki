@@ -72,6 +72,7 @@ public class DefaultRightsAccessFacade implements IRightsAccessFacadeRole {
   }
 
   @Override
+  @Deprecated
   public boolean hasAccessLevel(EntityReference ref, EAccessLevel level, XWikiUser xUser) {
     return hasAccessLevel(ref, level, (xUser != null) ? modelUtils.resolveRef(xUser.getUser(),
         DocumentReference.class) : null);
