@@ -220,7 +220,7 @@ public class DefaultRightsAccessFacadeTest extends AbstractComponentTest {
     DocumentReference docRef = new DocumentReference(context.getDatabase(), "MySpace",
         "MyDocument");
     EAccessLevel level = EAccessLevel.VIEW;
-    XWikiUser user = new XWikiUser("MySpace.MyUser");
+    XWikiUser user = new XWikiUser(modelUtils.serializeRef(docRef));
     expect(expectRightsServiceMock().hasAccessLevel(eq(level.getIdentifier()), eq(user.getUser()),
         eq(modelUtils.serializeRef(docRef)), same(context))).andReturn(false);
 
@@ -434,6 +434,7 @@ public class DefaultRightsAccessFacadeTest extends AbstractComponentTest {
 
   private void expectHasAdminRights(String accountName, boolean hasAdminXWikiPref,
       Boolean hasAdminWebPref) throws XWikiException {
+    accountName = getContext().getDatabase() + ":" + accountName;
     XWikiRightService rightsServiceMock = expectRightsServiceMock();
     expect(rightsServiceMock.hasAccessLevel(eq("admin"), eq(accountName), eq(
         "XWiki.XWikiPreferences"), same(context))).andReturn(hasAdminXWikiPref);
