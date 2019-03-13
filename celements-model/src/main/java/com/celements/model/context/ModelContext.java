@@ -112,9 +112,7 @@ public interface ModelContext {
   @Nullable
   XWikiUser setUser(@Nullable XWikiUser user);
 
-  void setCurrentUser(@NotNull User user);
-
-  void clearCurrentUser();
+  void setCurrentUser(@Nullable User user);
 
   /**
    * @deprecated instead use {@link #getUserDocRef()}

@@ -107,20 +107,18 @@ public class DefaultModelContext implements ModelContext {
 
   @Override
   public Optional<DocumentReference> getCurrentDocRef() {
-    DocumentReference currentDocRef = null;
     if (getDocInternal() != null) {
-      currentDocRef = getDocInternal().getDocumentReference();
+      return Optional.of(getDocInternal().getDocumentReference());
     }
-    return Optional.fromNullable(currentDocRef);
+    return Optional.absent();
   }
 
   @Override
   public Optional<SpaceReference> getCurrentSpaceRef() {
-    SpaceReference currentSpaceRef = null;
     if (getDocInternal() != null) {
-      currentSpaceRef = getDocInternal().getDocumentReference().getLastSpaceReference();
+      return Optional.of(getDocInternal().getDocumentReference().getLastSpaceReference());
     }
-    return Optional.fromNullable(currentSpaceRef);
+    return Optional.absent();
   }
 
   private XWikiDocument getDocInternal() {
@@ -142,25 +140,16 @@ public class DefaultModelContext implements ModelContext {
 
   @Override
   public Optional<User> getCurrentUser() {
-    User user = null;
-    Optional<DocumentReference> userDocRef = getCurrentUserDocRef();
-    if (userDocRef.isPresent()) {
-      try {
-        user = getUserService().getUser(userDocRef.get());
-      } catch (UserInstantiationException exc) {
-        LOGGER.warn("failed loading user '{}'", userDocRef.get(), exc);
-      }
-    }
-    return Optional.fromNullable(user);
-  }
-
-  private Optional<DocumentReference> getCurrentUserDocRef() {
-    DocumentReference userDocRef = null;
     XWikiUser xUser = getXWikiContext().getXWikiUser();
     if ((xUser != null) && !Strings.isNullOrEmpty(xUser.getUser())) {
-      userDocRef = getUserService().resolveUserDocRef(xUser.getUser());
+      DocumentReference userDocRef = getUserService().resolveUserDocRef(xUser.getUser());
+      try {
+        return Optional.of(getUserService().getUser(userDocRef));
+      } catch (UserInstantiationException exc) {
+        LOGGER.warn("failed loading user '{}'", userDocRef, exc);
+      }
     }
-    return Optional.fromNullable(userDocRef);
+    return Optional.absent();
   }
 
   @Override
@@ -177,15 +166,18 @@ public class DefaultModelContext implements ModelContext {
 
   @Override
   public void setCurrentUser(User user) {
-    setCurrentXUser(checkNotNull(user).asXWikiUser());
+    if (user != null) {
+      setCurrentXUser(user.asXWikiUser());
+    } else {
+      clearCurrentUser();
+    }
   }
 
   private void setCurrentXUser(XWikiUser xUser) {
     getXWikiContext().setUser(xUser.getUser(), xUser.isMain());
   }
 
-  @Override
-  public void clearCurrentUser() {
+  private void clearCurrentUser() {
     getXWikiContext().setUser(null);
   }
 
