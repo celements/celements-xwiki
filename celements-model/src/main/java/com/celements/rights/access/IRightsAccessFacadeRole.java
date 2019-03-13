@@ -33,17 +33,17 @@ public interface IRightsAccessFacadeRole {
 
   boolean isLoggedIn();
 
-  boolean isAdminUser();
+  boolean isAdmin();
 
-  boolean isAdminUser(User user);
+  boolean isAdmin(User user);
 
   boolean isAdvancedAdmin();
 
   boolean isAdvancedAdmin(User user);
 
-  boolean isSuperAdminUser();
+  boolean isSuperAdmin();
 
-  boolean isSuperAdminUser(User user);
+  boolean isSuperAdmin(User user);
 
   boolean isLayoutEditor();
 

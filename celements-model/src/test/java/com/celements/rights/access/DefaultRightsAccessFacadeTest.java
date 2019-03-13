@@ -291,7 +291,7 @@ public class DefaultRightsAccessFacadeTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_isAdminUser_false() throws Exception {
+  public void test_isAdmin_false() throws Exception {
     String accountName = "XWiki.XWikiTest";
     User user = expectUser(accountName);
     expectHasAdminRights(accountName, false, null);
@@ -300,12 +300,12 @@ public class DefaultRightsAccessFacadeTest extends AbstractComponentTest {
             Collections.<DocumentReference>emptyList());
 
     replayDefault();
-    assertFalse(rightsAccess.isAdminUser(user));
+    assertFalse(rightsAccess.isAdmin(user));
     verifyDefault();
   }
 
   @Test
-  public void test_isAdminUser_false_withContextDoc() throws Exception {
+  public void test_isAdmin_false_withContextDoc() throws Exception {
     String accountName = "XWiki.XWikiTest";
     User user = expectUser(accountName);
     expectHasAdminRights(accountName, false, false);
@@ -315,35 +315,35 @@ public class DefaultRightsAccessFacadeTest extends AbstractComponentTest {
     context.setDoc(new XWikiDocument(new DocumentReference("xwikidb", "MySpace", "MyDoc")));
 
     replayDefault();
-    assertFalse(rightsAccess.isAdminUser(user));
+    assertFalse(rightsAccess.isAdmin(user));
     verifyDefault();
   }
 
   @Test
-  public void test_isAdminUser_adminRights_xwikiPref() throws Exception {
+  public void test_isAdmin_adminRights_xwikiPref() throws Exception {
     String accountName = "XWiki.XWikiTest";
     User user = expectUser(accountName);
     expectHasAdminRights(accountName, true, null);
 
     replayDefault();
-    assertTrue(rightsAccess.isAdminUser(user));
+    assertTrue(rightsAccess.isAdmin(user));
     verifyDefault();
   }
 
   @Test
-  public void test_isAdminUser_adminRights_webPref() throws Exception {
+  public void test_isAdmin_adminRights_webPref() throws Exception {
     String accountName = "XWiki.XWikiTest";
     User user = expectUser(accountName);
     expectHasAdminRights(accountName, false, true);
     context.setDoc(new XWikiDocument(new DocumentReference("xwikidb", "MySpace", "MyDoc")));
 
     replayDefault();
-    assertTrue(rightsAccess.isAdminUser(user));
+    assertTrue(rightsAccess.isAdmin(user));
     verifyDefault();
   }
 
   @Test
-  public void test_isAdminUser_inAdminGroup() throws Exception {
+  public void test_isAdmin_inAdminGroup() throws Exception {
     String accountName = "XWiki.XWikiTest";
     User user = expectUser(accountName);
     expectHasAdminRights(accountName, false, null);
@@ -352,36 +352,36 @@ public class DefaultRightsAccessFacadeTest extends AbstractComponentTest {
             rightsAccess.getAdminGroupDocRef()));
 
     replayDefault();
-    assertTrue(rightsAccess.isAdminUser(user));
+    assertTrue(rightsAccess.isAdmin(user));
     verifyDefault();
   }
 
   @Test
-  public void test_isSuperAdminUser() throws Exception {
+  public void test_isSuperAdmin() throws Exception {
     String accountName = "XWiki.XWikiTest";
     User user = expectUser(accountName);
     expect(user.isGlobal()).andReturn(true);
     expectHasAdminRights(accountName, true, null);
 
     replayDefault();
-    assertTrue(rightsAccess.isSuperAdminUser(user));
+    assertTrue(rightsAccess.isSuperAdmin(user));
     verifyDefault();
   }
 
   @Test
-  public void test_isSuperAdminUser_false_notGlobal() throws Exception {
+  public void test_isSuperAdmin_false_notGlobal() throws Exception {
     String accountName = "XWiki.XWikiTest";
     User user = expectUser(accountName);
     expect(user.isGlobal()).andReturn(false);
     expectHasAdminRights(accountName, true, null);
 
     replayDefault();
-    assertFalse(rightsAccess.isSuperAdminUser(user));
+    assertFalse(rightsAccess.isSuperAdmin(user));
     verifyDefault();
   }
 
   @Test
-  public void test_isSuperAdminUser_false_notAdmin() throws Exception {
+  public void test_isSuperAdmin_false_notAdmin() throws Exception {
     String accountName = "XWiki.XWikiTest";
     User user = expectUser(accountName);
     expectHasAdminRights(accountName, false, null);
@@ -390,7 +390,7 @@ public class DefaultRightsAccessFacadeTest extends AbstractComponentTest {
             Collections.<DocumentReference>emptyList());
 
     replayDefault();
-    assertFalse(rightsAccess.isSuperAdminUser(user));
+    assertFalse(rightsAccess.isSuperAdmin(user));
     verifyDefault();
   }
 

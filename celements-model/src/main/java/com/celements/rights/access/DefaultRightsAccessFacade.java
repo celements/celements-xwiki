@@ -136,15 +136,15 @@ public class DefaultRightsAccessFacade implements IRightsAccessFacadeRole {
   }
 
   @Override
-  public boolean isAdminUser() {
-    return isAdminUser(context.getCurrentUser().orNull());
+  public boolean isAdmin() {
+    return isAdmin(context.getCurrentUser().orNull());
   }
 
   @Override
-  public boolean isAdminUser(User user) {
+  public boolean isAdmin(User user) {
     boolean ret = (user != null) && (hasAdminRightsOnPreferences(user) || isInGroup(
         getAdminGroupDocRef(), user));
-    LOGGER.debug("isAdminUser: [{}] for user [{}]", ret, user);
+    LOGGER.debug("isAdmin: [{}] for user [{}]", ret, user);
     return ret;
   }
 
@@ -170,20 +170,20 @@ public class DefaultRightsAccessFacade implements IRightsAccessFacadeRole {
 
   @Override
   public boolean isAdvancedAdmin(User user) {
-    boolean ret = isAdminUser(user) && (user.isGlobal() || (user.getType() == Type.Advanced));
+    boolean ret = isAdmin(user) && (user.isGlobal() || (user.getType() == Type.Advanced));
     LOGGER.debug("isAdvancedAdmin: [{}] for user [{}]", ret, user);
     return ret;
   }
 
   @Override
-  public boolean isSuperAdminUser() {
-    return isSuperAdminUser(context.getCurrentUser().orNull());
+  public boolean isSuperAdmin() {
+    return isSuperAdmin(context.getCurrentUser().orNull());
   }
 
   @Override
-  public boolean isSuperAdminUser(User user) {
-    boolean ret = isAdminUser(user) && user.isGlobal();
-    LOGGER.debug("isSuperAdminUser: [{}] for user [{}]", ret, user);
+  public boolean isSuperAdmin(User user) {
+    boolean ret = isAdmin(user) && user.isGlobal();
+    LOGGER.debug("isSuperAdmin: [{}] for user [{}]", ret, user);
     return ret;
   }
 
