@@ -59,4 +59,20 @@ public class RightsAccessScriptService implements ScriptService {
   public boolean isLoggedIn() {
     return rightsAccess.isLoggedIn();
   }
+
+  public boolean isAdminUser() {
+    return rightsAccess.isAdminUser();
+  }
+
+  public boolean isAdvancedAdmin() {
+    return rightsAccess.isAdvancedAdmin();
+  }
+
+  public boolean isSuperAdminUser() {
+    return rightsAccess.isSuperAdminUser();
+  }
+
+  public boolean isLayoutEditor() {
+    return rightsAccess.isLayoutEditor();
+  }
 }
