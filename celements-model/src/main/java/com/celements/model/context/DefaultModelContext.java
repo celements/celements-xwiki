@@ -28,6 +28,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.user.api.XWikiRightService;
 import com.xpn.xwiki.user.api.XWikiUser;
 import com.xpn.xwiki.web.Utils;
 import com.xpn.xwiki.web.XWikiRequest;
@@ -141,7 +142,7 @@ public class DefaultModelContext implements ModelContext {
   @Override
   public Optional<User> getCurrentUser() {
     XWikiUser xUser = getXWikiContext().getXWikiUser();
-    if ((xUser != null) && !Strings.isNullOrEmpty(xUser.getUser())) {
+    if (isValidUser(xUser)) {
       DocumentReference userDocRef = getUserService().resolveUserDocRef(xUser.getUser());
       try {
         return Optional.of(getUserService().getUser(userDocRef));
@@ -150,6 +151,11 @@ public class DefaultModelContext implements ModelContext {
       }
     }
     return Optional.absent();
+  }
+
+  private boolean isValidUser(XWikiUser xUser) {
+    return (xUser != null) && !Strings.isNullOrEmpty(xUser.getUser()) && !xUser.getUser().equals(
+        XWikiRightService.GUEST_USER_FULLNAME);
   }
 
   @Override

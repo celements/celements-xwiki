@@ -107,7 +107,7 @@ public class DefaultRightsAccessFacade implements IRightsAccessFacadeRole {
     try {
       String accountName = XWikiRightService.GUEST_USER_FULLNAME;
       if (userDocRef != null) {
-        accountName = modelUtils.serializeRefLocal(userDocRef);
+        accountName = modelUtils.serializeRef(userDocRef);
       }
       return getRightsService().hasAccessLevel(level, accountName, fullName, getContext());
     } catch (XWikiException xwe) {
