@@ -72,12 +72,18 @@ public class DefaultRightsAccessFacade implements IRightsAccessFacadeRole {
   }
 
   @Override
-  public boolean hasAccessLevel(EntityReference ref, EAccessLevel level, XWikiUser user) {
-    return hasAccessLevel(ref, level, user); // TODO get user
+  public boolean hasAccessLevel(EntityReference ref, EAccessLevel level, XWikiUser xUser) {
+    return hasAccessLevel(ref, level, (xUser != null) ? modelUtils.resolveRef(xUser.getUser(),
+        DocumentReference.class) : null);
   }
 
   @Override
   public boolean hasAccessLevel(EntityReference ref, EAccessLevel level, User user) {
+    return hasAccessLevel(ref, level, (user != null) ? user.getDocRef() : null);
+  }
+
+  private boolean hasAccessLevel(EntityReference ref, EAccessLevel level,
+      DocumentReference userDocRef) {
     boolean ret = false;
     DocumentReference docRef = null;
     EntityReference entityRef = randomCompleter.randomCompleteSpaceRef(ref);
@@ -87,20 +93,21 @@ public class DefaultRightsAccessFacade implements IRightsAccessFacadeRole {
       docRef = ((AttachmentReference) entityRef).getDocumentReference();
     }
     if ((docRef != null) && (level != null)) {
-      String accountName = XWikiRightService.GUEST_USER_FULLNAME;
-      if (user != null) {
-        accountName = modelUtils.serializeRef(user.getDocRef());
-      }
-      ret = hasAccessLevelInternal(level.getIdentifier(), accountName, modelUtils.serializeRef(
-          docRef));
+      ret = hasAccessLevelInternal(modelUtils.serializeRef(docRef), level.getIdentifier(),
+          userDocRef);
     }
     LOGGER.debug("hasAccessLevel: for ref '{}', level '{}' and user '{}' returned '{}'", ref, level,
-        user, ret);
+        userDocRef, ret);
     return ret;
   }
 
-  private boolean hasAccessLevelInternal(String level, String accountName, String fullName) {
+  private boolean hasAccessLevelInternal(String fullName, String level,
+      DocumentReference userDocRef) {
     try {
+      String accountName = XWikiRightService.GUEST_USER_FULLNAME;
+      if (userDocRef != null) {
+        accountName = modelUtils.serializeRefLocal(userDocRef);
+      }
       return getRightsService().hasAccessLevel(level, accountName, fullName, getContext());
     } catch (XWikiException xwe) {
       // already being catched in XWikiRightServiceImpl.hasAccessLevel()
@@ -140,18 +147,17 @@ public class DefaultRightsAccessFacade implements IRightsAccessFacadeRole {
     return ret;
   }
 
-  private DocumentReference getAdminGroupDocRef() {
+  DocumentReference getAdminGroupDocRef() {
     return new RefBuilder().doc("XWikiAdminGroup").space("XWiki").with(context.getWikiRef()).build(
         DocumentReference.class);
   }
 
   private boolean hasAdminRightsOnPreferences(User user) {
     boolean ret = false;
-    String accountName = modelUtils.serializeRef(user.getDocRef());
-    ret = hasAccessLevelInternal("admin", accountName, "XWiki.XWikiPreferences");
+    ret = hasAccessLevelInternal("XWiki.XWikiPreferences", "admin", user.getDocRef());
     if (!ret && context.getCurrentDoc().isPresent()) {
       String spacePrefFullName = context.getCurrentSpaceRef().get().getName() + ".WebPreferences";
-      ret = hasAccessLevelInternal("admin", accountName, spacePrefFullName);
+      ret = hasAccessLevelInternal(spacePrefFullName, "admin", user.getDocRef());
     }
     return ret;
   }

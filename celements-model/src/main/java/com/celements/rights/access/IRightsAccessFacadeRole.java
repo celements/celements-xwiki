@@ -27,7 +27,7 @@ public interface IRightsAccessFacadeRole {
    * instead use hasAccessLevel(EntityReference, EAccessLevel, User)
    */
   @Deprecated
-  boolean hasAccessLevel(EntityReference ref, EAccessLevel level, XWikiUser user);
+  boolean hasAccessLevel(EntityReference ref, EAccessLevel level, XWikiUser xUser);
 
   boolean isInGroup(DocumentReference groupDocRef, User user);
 
