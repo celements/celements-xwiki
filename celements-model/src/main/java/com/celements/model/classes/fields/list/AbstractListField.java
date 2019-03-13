@@ -106,7 +106,7 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
         LOGGER.warn("unable to resolve value '{}' for '{}'", obj, this);
       }
     }
-    return iter.transform(marshaller.getResolver());
+    return iter.transform(marshaller.getResolver()).filter(Predicates.notNull());
   }
 
   public Marshaller<E> getMarshaller() {
