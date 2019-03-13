@@ -1,5 +1,6 @@
 package com.celements.rights.access;
 
+import static com.celements.common.test.CelementsTestUtils.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
@@ -13,10 +14,14 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
-import com.celements.common.test.AbstractBridgedComponentTestCase;
+import com.celements.auth.user.User;
+import com.celements.auth.user.UserInstantiationException;
+import com.celements.auth.user.UserService;
+import com.celements.common.test.AbstractComponentTest;
 import com.celements.model.context.ModelContext;
 import com.celements.model.util.ModelUtils;
 import com.celements.rights.access.internal.IEntityReferenceRandomCompleterRole;
+import com.celements.web.classes.oldcore.XWikiUsersClass.Type;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -27,7 +32,7 @@ import com.xpn.xwiki.user.api.XWikiUser;
 import com.xpn.xwiki.user.impl.xwiki.XWikiRightServiceImpl;
 import com.xpn.xwiki.web.Utils;
 
-public class DefaultRightsAccessFacadeTest extends AbstractBridgedComponentTestCase {
+public class DefaultRightsAccessFacadeTest extends AbstractComponentTest {
 
   private XWiki xwiki;
   private XWikiContext context;
@@ -37,7 +42,8 @@ public class DefaultRightsAccessFacadeTest extends AbstractBridgedComponentTestC
   private ModelUtils modelUtils;
 
   @Before
-  public void setUp_DefaultRightsAccessFacadeTest() throws Exception {
+  public void prepareTest() throws Exception {
+    registerComponentMock(UserService.class);
     context = getContext();
     xwiki = getWikiMock();
     rightsAccess = (DefaultRightsAccessFacade) Utils.getComponent(IRightsAccessFacadeRole.class);
@@ -120,17 +126,15 @@ public class DefaultRightsAccessFacadeTest extends AbstractBridgedComponentTestC
     DocumentReference docRef = new DocumentReference(context.getDatabase(), "MySpace",
         "MyDocument");
     EAccessLevel level = EAccessLevel.EDIT;
-    XWikiRightService mockRightsService = createMockAndAddToDefault(XWikiRightService.class);
-    expect(xwiki.getRightService()).andReturn(mockRightsService).anyTimes();
-    expect(mockRightsService.hasAccessLevel(eq(level.getIdentifier()), eq(getContext().getUser()),
-        eq(modelUtils.serializeRef(docRef)), same(context))).andReturn(true).once();
+    expect(expectRightsServiceMock().hasAccessLevel(eq(level.getIdentifier()), eq(
+        getContext().getUser()), eq(modelUtils.serializeRef(docRef)), same(context))).andReturn(
+            true).once();
 
     replayDefault();
     assertTrue(rightsAccess.hasAccessLevel(docRef, level));
     verifyDefault();
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void testHasAccessLevel_document_edit_true() throws Exception {
     XWikiRightService xwikiRightsService = new XWikiRightServiceImpl();
@@ -174,14 +178,13 @@ public class DefaultRightsAccessFacadeTest extends AbstractBridgedComponentTestC
     SpaceReference spaceRef = new SpaceReference("MySpace", modelContext.getWikiRef());
     DocumentReference docRef = new DocumentReference("untitled1", spaceRef);
     EAccessLevel level = EAccessLevel.EDIT;
-    XWikiRightService mockRightsService = createMockAndAddToDefault(XWikiRightService.class);
     IEntityReferenceRandomCompleterRole randomCompleterMock = createMockAndAddToDefault(
         IEntityReferenceRandomCompleterRole.class);
     rightsAccess.randomCompleter = randomCompleterMock;
     expect(randomCompleterMock.randomCompleteSpaceRef(eq(spaceRef))).andReturn(docRef).once();
-    expect(xwiki.getRightService()).andReturn(mockRightsService).anyTimes();
-    expect(mockRightsService.hasAccessLevel(eq(level.getIdentifier()), eq(getContext().getUser()),
-        eq(modelUtils.serializeRef(docRef)), same(context))).andReturn(true).once();
+    expect(expectRightsServiceMock().hasAccessLevel(eq(level.getIdentifier()), eq(
+        getContext().getUser()), eq(modelUtils.serializeRef(docRef)), same(context))).andReturn(
+            true).once();
     prepareSpaceRights(spaceRef);
     replayDefault();
     assertTrue(rightsAccess.hasAccessLevel(spaceRef, level));
@@ -194,10 +197,9 @@ public class DefaultRightsAccessFacadeTest extends AbstractBridgedComponentTestC
         "MyDocument");
     AttachmentReference attRef = new AttachmentReference("file", docRef);
     EAccessLevel level = EAccessLevel.EDIT;
-    XWikiRightService mockRightsService = createMockAndAddToDefault(XWikiRightService.class);
-    expect(xwiki.getRightService()).andReturn(mockRightsService).anyTimes();
-    expect(mockRightsService.hasAccessLevel(eq(level.getIdentifier()), eq(getContext().getUser()),
-        eq(modelUtils.serializeRef(docRef)), same(context))).andReturn(true).once();
+    expect(expectRightsServiceMock().hasAccessLevel(eq(level.getIdentifier()), eq(
+        getContext().getUser()), eq(modelUtils.serializeRef(docRef)), same(context))).andReturn(
+            true).once();
 
     replayDefault();
     assertTrue(rightsAccess.hasAccessLevel(attRef, level));
@@ -219,10 +221,8 @@ public class DefaultRightsAccessFacadeTest extends AbstractBridgedComponentTestC
         "MyDocument");
     EAccessLevel level = EAccessLevel.VIEW;
     XWikiUser user = new XWikiUser("MySpace.MyUser");
-    XWikiRightService mockRightsService = createMockAndAddToDefault(XWikiRightService.class);
-    expect(xwiki.getRightService()).andReturn(mockRightsService).anyTimes();
-    expect(mockRightsService.hasAccessLevel(eq(level.getIdentifier()), eq(user.getUser()), eq(
-        modelUtils.serializeRef(docRef)), same(context))).andReturn(false).once();
+    expect(expectRightsServiceMock().hasAccessLevel(eq(level.getIdentifier()), eq(user.getUser()),
+        eq(modelUtils.serializeRef(docRef)), same(context))).andReturn(false);
 
     replayDefault();
     assertFalse(rightsAccess.hasAccessLevel(docRef, level, user));
@@ -273,14 +273,190 @@ public class DefaultRightsAccessFacadeTest extends AbstractBridgedComponentTestC
   }
 
   @Test
-  public void testIsLoggedIn_false() {
-    context.setUser(XWikiRightService.GUEST_USER_FULLNAME);
+  public void test_isLoggedIn_false() throws Exception {
+    context.setUser(null);
+    replayDefault();
     assertFalse(rightsAccess.isLoggedIn());
+    verifyDefault();
   }
 
   @Test
-  public void testIsLoggedIn_true() {
-    context.setUser("XWiki.XWikiTest");
+  public void test_isLoggedIn_true() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    context.setUser(accountName);
+    expectUser(accountName);
+    replayDefault();
     assertTrue(rightsAccess.isLoggedIn());
+    verifyDefault();
   }
+
+  @Test
+  public void test_isAdminUser_false() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expectHasAdminRights(accountName, false, null);
+    expect(groupSrvMock.getAllGroupsReferencesForMember(modelUtils.resolveRef(accountName,
+        DocumentReference.class), 0, 0, context)).andReturn(
+            Collections.<DocumentReference>emptyList());
+
+    replayDefault();
+    assertFalse(rightsAccess.isAdminUser(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isAdminUser_false_withContextDoc() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expectHasAdminRights(accountName, false, false);
+    expect(groupSrvMock.getAllGroupsReferencesForMember(modelUtils.resolveRef(accountName,
+        DocumentReference.class), 0, 0, context)).andReturn(
+            Collections.<DocumentReference>emptyList());
+    context.setDoc(new XWikiDocument(new DocumentReference("xwikidb", "MySpace", "MyDoc")));
+
+    replayDefault();
+    assertFalse(rightsAccess.isAdminUser(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isAdminUser_adminRights_xwikiPref() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expectHasAdminRights(accountName, true, null);
+
+    replayDefault();
+    assertTrue(rightsAccess.isAdminUser(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isAdminUser_adminRights_webPref() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expectHasAdminRights(accountName, false, true);
+    context.setDoc(new XWikiDocument(new DocumentReference("xwikidb", "MySpace", "MyDoc")));
+
+    replayDefault();
+    assertTrue(rightsAccess.isAdminUser(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isAdminUser_inAdminGroup() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expectHasAdminRights(accountName, false, null);
+    expect(groupSrvMock.getAllGroupsReferencesForMember(modelUtils.resolveRef(accountName,
+        DocumentReference.class), 0, 0, context)).andReturn(Arrays.asList(
+            rightsAccess.getAdminGroupDocRef()));
+
+    replayDefault();
+    assertTrue(rightsAccess.isAdminUser(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isSuperAdminUser() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expect(user.isGlobal()).andReturn(true);
+    expectHasAdminRights(accountName, true, null);
+
+    replayDefault();
+    assertTrue(rightsAccess.isSuperAdminUser(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isSuperAdminUser_false_notGlobal() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expect(user.isGlobal()).andReturn(false);
+    expectHasAdminRights(accountName, true, null);
+
+    replayDefault();
+    assertFalse(rightsAccess.isSuperAdminUser(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isSuperAdminUser_false_notAdmin() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expectHasAdminRights(accountName, false, null);
+    expect(groupSrvMock.getAllGroupsReferencesForMember(modelUtils.resolveRef(accountName,
+        DocumentReference.class), 0, 0, context)).andReturn(
+            Collections.<DocumentReference>emptyList());
+
+    replayDefault();
+    assertFalse(rightsAccess.isSuperAdminUser(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isAdvancedAdmin_advanced() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expect(user.isGlobal()).andReturn(false);
+    expect(user.getType()).andReturn(Type.Advanced);
+    expectHasAdminRights(accountName, true, null);
+
+    replayDefault();
+    assertTrue(rightsAccess.isAdvancedAdmin(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isAdvancedAdmin_global() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expect(user.isGlobal()).andReturn(true);
+    expectHasAdminRights(accountName, true, null);
+
+    replayDefault();
+    assertTrue(rightsAccess.isAdvancedAdmin(user));
+    verifyDefault();
+  }
+
+  @Test
+  public void test_isAdvancedAdmin_false_neither() throws Exception {
+    String accountName = "XWiki.XWikiTest";
+    User user = expectUser(accountName);
+    expect(user.isGlobal()).andReturn(false);
+    expect(user.getType()).andReturn(Type.Simple);
+    expectHasAdminRights(accountName, true, null);
+
+    replayDefault();
+    assertFalse(rightsAccess.isAdvancedAdmin(user));
+    verifyDefault();
+  }
+
+  private void expectHasAdminRights(String accountName, boolean hasAdminXWikiPref,
+      Boolean hasAdminWebPref) throws XWikiException {
+    XWikiRightService rightsServiceMock = expectRightsServiceMock();
+    expect(rightsServiceMock.hasAccessLevel(eq("admin"), eq(accountName), eq(
+        "XWiki.XWikiPreferences"), same(context))).andReturn(hasAdminXWikiPref);
+    if (hasAdminWebPref != null) {
+      expect(rightsServiceMock.hasAccessLevel(eq("admin"), eq(accountName), eq(
+          "MySpace.WebPreferences"), same(context))).andReturn(hasAdminWebPref);
+    }
+  }
+
+  private XWikiRightService expectRightsServiceMock() {
+    XWikiRightService mock = createMockAndAddToDefault(XWikiRightService.class);
+    expect(xwiki.getRightService()).andReturn(mock).anyTimes();
+    return mock;
+  }
+
+  private User expectUser(String accountName) throws UserInstantiationException {
+    DocumentReference userDocRef = modelUtils.resolveRef(accountName, DocumentReference.class);
+    expect(getMock(UserService.class).resolveUserDocRef(accountName)).andReturn(
+        userDocRef).anyTimes();
+    User user = createMockAndAddToDefault(User.class);
+    expect(getMock(UserService.class).getUser(userDocRef)).andReturn(user).anyTimes();
+    expect(user.getDocRef()).andReturn(userDocRef).anyTimes();
+    return user;
+  }
+
 }
