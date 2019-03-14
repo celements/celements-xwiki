@@ -8,10 +8,15 @@ import com.celements.model.classes.AbstractClassDefinition;
 import com.celements.model.classes.fields.BooleanField;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.classes.fields.StringField;
+import com.celements.model.classes.fields.list.single.EnumSingleListField;
 
 @Singleton
 @Component(XWikiUsersClass.CLASS_DEF_HINT)
 public class XWikiUsersClass extends AbstractClassDefinition implements IOldCoreClassDef {
+
+  public enum Type {
+    Simple, Advanced;
+  }
 
   public static final String CLASS_NAME = "XWikiUsers";
   public static final String CLASS_FN = CLASS_SPACE + "." + CLASS_NAME;
@@ -35,6 +40,9 @@ public class XWikiUsersClass extends AbstractClassDefinition implements IOldCore
   public static final ClassField<Boolean> FIELD_ACTIVE = new BooleanField.Builder(CLASS_FN,
       "active").prettyName("Active").displayType("active").build();
 
+  public static final ClassField<Type> FIELD_TYPE = new EnumSingleListField.Builder<>(CLASS_FN,
+      "usertype", Type.class).prettyName("User type").build();
+
   // XXX class is incomplete, extend if needed:
   // addTextField("default_language", "Default Language", 30);
   // addTextField("company", "Company", 30);
@@ -44,7 +52,6 @@ public class XWikiUsersClass extends AbstractClassDefinition implements IOldCore
   // addStaticListField("imtype", "IM Type", "---|AIM|Yahoo|Jabber|MSN|Skype|ICQ");
   // addTextField("imaccount", "imaccount", 30);
   // addStaticListField("editor", "Default Editor", "---|Text|Wysiwyg");
-  // addStaticListField("usertype", "User type", "Simple|Advanced");
   // addBooleanField("accessibility", "Enable extra accessibility features", "yesno");
   // addTextField("skin", "skin", 30);
   // addStaticListField("pageWidth", "Preferred page width", "default|640|800|1024|1280|1600");

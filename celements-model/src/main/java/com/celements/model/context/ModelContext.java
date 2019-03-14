@@ -6,9 +6,12 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
+import com.celements.auth.user.User;
 import com.celements.model.util.ModelUtils;
 import com.google.common.base.Optional;
 import com.xpn.xwiki.XWikiContext;
@@ -60,10 +63,29 @@ public interface ModelContext {
   WikiReference getMainWikiRef();
 
   /**
-   * @return the current doc set in context
+   * @deprecated instead use {@link #getCurrentDoc}
    */
+  @Deprecated
   @Nullable
   XWikiDocument getDoc();
+
+  /**
+   * @return the current doc set in context
+   */
+  @NotNull
+  Optional<XWikiDocument> getCurrentDoc();
+
+  /**
+   * @return the current doc reference set in context
+   */
+  @NotNull
+  Optional<DocumentReference> getCurrentDocRef();
+
+  /**
+   * @return the current space set in context
+   */
+  @NotNull
+  Optional<SpaceReference> getCurrentSpaceRef();
 
   /**
    * @param doc
@@ -73,13 +95,30 @@ public interface ModelContext {
   @Nullable
   XWikiDocument setDoc(@Nullable XWikiDocument doc);
 
+  /**
+   * @deprecated instead use {@link #getCurrentUser()}
+   */
+  @Deprecated
   @Nullable
   XWikiUser getUser();
 
+  @NotNull
+  Optional<User> getCurrentUser();
+
+  /**
+   * @deprecated instead use {@link #setCurrentUser(User)} or {@link #clearCurrentUser()}
+   */
+  @Deprecated
   @Nullable
   XWikiUser setUser(@Nullable XWikiUser user);
 
+  void setCurrentUser(@Nullable User user);
+
+  /**
+   * @deprecated instead use {@link #getUserDocRef()}
+   */
   @NotNull
+  @Deprecated
   String getUserName();
 
   @NotNull

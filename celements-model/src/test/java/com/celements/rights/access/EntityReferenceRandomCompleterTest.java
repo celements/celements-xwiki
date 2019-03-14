@@ -1,5 +1,6 @@
 package com.celements.rights.access;
 
+import static com.celements.common.test.CelementsTestUtils.*;
 import static junit.framework.Assert.*;
 import static org.easymock.EasyMock.*;
 
@@ -12,20 +13,20 @@ import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
-import com.celements.common.test.AbstractBridgedComponentTestCase;
+import com.celements.common.test.AbstractComponentTest;
 import com.celements.rights.access.internal.EntityReferenceRandomCompleter;
 import com.celements.rights.access.internal.IEntityReferenceRandomCompleterRole;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.Utils;
 
-public class EntityReferenceRandomCompleterTest extends AbstractBridgedComponentTestCase {
+public class EntityReferenceRandomCompleterTest extends AbstractComponentTest {
 
   private EntityReferenceRandomCompleter randomCompleter;
   private XWikiContext context;
   private DocumentAccessBridge docAccessBridgeMock;
 
   @Before
-  public void setUp_EntityReferenceRandomCompleterTest() throws Exception {
+  public void prepareTest() throws Exception {
     docAccessBridgeMock = registerComponentMock(DocumentAccessBridge.class);
     context = getContext();
     randomCompleter = (EntityReferenceRandomCompleter) Utils.getComponent(

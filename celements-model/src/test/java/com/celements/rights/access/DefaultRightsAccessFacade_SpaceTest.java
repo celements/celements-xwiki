@@ -1,5 +1,6 @@
 package com.celements.rights.access;
 
+import static com.celements.common.test.CelementsTestUtils.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
@@ -14,7 +15,7 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
-import com.celements.common.test.AbstractBridgedComponentTestCase;
+import com.celements.common.test.AbstractComponentTest;
 import com.celements.model.util.ModelUtils;
 import com.celements.rights.access.internal.IEntityReferenceRandomCompleterRole;
 import com.xpn.xwiki.XWiki;
@@ -28,7 +29,7 @@ import com.xpn.xwiki.user.api.XWikiUser;
 import com.xpn.xwiki.user.impl.xwiki.XWikiRightServiceImpl;
 import com.xpn.xwiki.web.Utils;
 
-public class DefaultRightsAccessFacade_SpaceTest extends AbstractBridgedComponentTestCase {
+public class DefaultRightsAccessFacade_SpaceTest extends AbstractComponentTest {
 
   private XWiki xwiki;
   private XWikiContext context;
@@ -38,7 +39,7 @@ public class DefaultRightsAccessFacade_SpaceTest extends AbstractBridgedComponen
   private IEntityReferenceRandomCompleterRole randomCompleterMock;
 
   @Before
-  public void setUp_DefaultRightsAccessFacadeTest() throws Exception {
+  public void prepareTest() throws Exception {
     randomCompleterMock = registerComponentMock(IEntityReferenceRandomCompleterRole.class);
     context = getContext();
     xwiki = getWikiMock();
