@@ -15,6 +15,14 @@ public class RefBuilder implements Cloneable {
   private final TreeMap<EntityType, EntityReference> refs;
   private boolean nullable;
 
+  public static RefBuilder create() {
+    return new RefBuilder();
+  }
+
+  public static RefBuilder from(EntityReference ref) {
+    return new RefBuilder().with(ref);
+  }
+
   public RefBuilder() {
     refs = new TreeMap<>();
     nullable = false;
