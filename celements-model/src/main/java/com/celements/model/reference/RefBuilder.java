@@ -88,7 +88,11 @@ public class RefBuilder implements Cloneable {
    *           if insufficient values and not {@link #nullable()}
    */
   public EntityReference build(EntityType type) {
-    return build((type != null) ? getClassForEntityType(type) : EntityReference.class);
+    Class<? extends EntityReference> token = EntityReference.class;
+    if (type != null) {
+      token = getClassForEntityType(type);
+    }
+    return build(token);
   }
 
   /**
