@@ -141,7 +141,7 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getClassReference());
+    return getClassReference().hashCode();
   }
 
   @Override
