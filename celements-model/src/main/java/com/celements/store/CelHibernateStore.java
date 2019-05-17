@@ -7,6 +7,8 @@ import java.text.MessageFormat;
 import javax.inject.Singleton;
 
 import org.hibernate.HibernateException;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
@@ -272,6 +274,50 @@ public class CelHibernateStore extends XWikiHibernateStore {
 
   public ModelContext getModelContext() {
     return modelContext;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see com.xpn.xwiki.store.XWikiStoreInterface#isWikiNameAvailable(java.lang.String,
+   *      com.xpn.xwiki.XWikiContext)
+   */
+  @Override
+  public boolean isWikiNameAvailable(String wikiName, XWikiContext context) throws XWikiException {
+    boolean available;
+
+    boolean bTransaction = true;
+    String database = context.getDatabase();
+
+    try {
+      bTransaction = beginTransaction(context);
+      Session session = getSession(context);
+
+      context.setDatabase(wikiName);
+      try {
+        setDatabase(session, context);
+        SQLQuery query = session.createSQLQuery(
+            "select TABLE_NAME from information_schema.tables where table_schema = :dbname");
+        query.setParameter("dbname", getSchemaFromWikiName(context));
+        query.list(); // if query is successfully executed -> assuming database exists.
+        available = false;
+      } catch (XWikiException | HibernateException e) {
+        // Failed to switch to database. Assume it means database does not exists.
+        available = true;
+      }
+    } catch (XWikiException e) {
+      Object[] args = { wikiName };
+      throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
+          XWikiException.ERROR_XWIKI_STORE_HIBERNATE_CHECK_EXISTS_DATABASE,
+          "Exception while listing databases to search for {0}", e, args);
+    } finally {
+      context.setDatabase(database);
+      if (bTransaction) {
+        endTransaction(context, false);
+      }
+    }
+
+    return available;
   }
 
 }
