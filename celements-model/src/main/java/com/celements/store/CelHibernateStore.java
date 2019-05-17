@@ -296,7 +296,9 @@ public class CelHibernateStore extends XWikiHibernateStore {
       context.setDatabase(wikiName);
       try {
         setDatabase(session, context);
-        SQLQuery query = session.createSQLQuery("show tables");
+        SQLQuery query = session.createSQLQuery(
+            "select TABLE_NAME from information_schema.tables where table_schema = :dbname");
+        query.setParameter("dbname", getSchemaFromWikiName(context));
         query.list(); // if query is successfully executed -> assuming database exists.
         available = false;
       } catch (XWikiException | HibernateException e) {
