@@ -305,18 +305,15 @@ public class CelHibernateStore extends XWikiHibernateStore {
         // Failed to switch to database. Assume it means database does not exists.
         available = true;
       }
-    } catch (Exception e) {
+    } catch (XWikiException e) {
       Object[] args = { wikiName };
       throw new XWikiException(XWikiException.MODULE_XWIKI_STORE,
           XWikiException.ERROR_XWIKI_STORE_HIBERNATE_CHECK_EXISTS_DATABASE,
           "Exception while listing databases to search for {0}", e, args);
     } finally {
       context.setDatabase(database);
-      try {
-        if (bTransaction) {
-          endTransaction(context, false);
-        }
-      } catch (Exception e) {
+      if (bTransaction) {
+        endTransaction(context, false);
       }
     }
 
