@@ -213,6 +213,11 @@ public class DefaultModelContext implements ModelContext {
   }
 
   @Override
+  public String getLanguage() {
+    return getXWikiContext().getLanguage();
+  }
+
+  @Override
   public String getDefaultLanguage() {
     return getDefaultLanguage(getWikiRef());
   }
@@ -234,7 +239,7 @@ public class DefaultModelContext implements ModelContext {
       try {
         ret = getModelAccess().getDocument(docRef.get()).getDefaultLanguage();
       } catch (DocumentNotExistsException exc) {
-        LOGGER.info("trying to get language for inexistent document '{}'", docRef);
+        LOGGER.info("trying to get default language for inexistent document '{}'", docRef);
       }
     }
     return ret;
@@ -258,6 +263,22 @@ public class DefaultModelContext implements ModelContext {
       setWikiRef(wikiBefore);
       setDoc(docBefore);
     }
+  }
+
+  @Override
+  public XWikiDocument getOrCreateXWikiPreferenceDoc() {
+    DocumentReference docRef = new DocumentReference(getWikiRef().getName(), XWIKI_SPACE,
+        XWIKI_PREF_DOC_NAME);
+    return getModelAccess().getOrCreateDocument(docRef);
+  }
+
+  @Override
+  public XWikiDocument getOrCreateSpacePreferenceDoc() {
+    DocumentReference docRef = getCurrentDocRef().or(new DocumentReference(DEFAULT_DOC_NAME,
+        getModelUtils().resolveRef(DEFAULT_SPACE, SpaceReference.class)));
+    Optional<SpaceReference> spaceRef = getModelUtils().extractRef(docRef, SpaceReference.class);
+    return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME, spaceRef
+        .get()));
   }
 
   private XWikiDocument getSpacePrefDoc(EntityReference ref) {

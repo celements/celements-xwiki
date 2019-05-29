@@ -23,7 +23,11 @@ import com.xpn.xwiki.web.XWikiResponse;
 @ComponentRole
 public interface ModelContext {
 
+  public static final String DEFAULT_DOC_NAME = "WebHome";
+  public static final String DEFAULT_SPACE = "Content";
+  public static final String XWIKI_SPACE = "XWiki";
   public static final String WEB_PREF_DOC_NAME = "WebPreferences";
+  public static final String XWIKI_PREF_DOC_NAME = "XWikiPreferences";
   public static final String CFG_KEY_DEFAULT_LANG = "default_language";
   public static final String FALLBACK_DEFAULT_LANG = "en";
 
@@ -131,6 +135,12 @@ public interface ModelContext {
   Optional<XWikiResponse> getResponse();
 
   /**
+   * @return the current language or null
+   */
+  @Nullable
+  String getLanguage();
+
+  /**
    * @return the default language for the current wiki
    */
   @NotNull
@@ -157,5 +167,23 @@ public interface ModelContext {
    */
   @NotNull
   Optional<URL> setUrl(@Nullable URL url);
+
+  /**
+   * Returns the XWikiPreferences document. Creates it if it does not exist.
+   *
+   * @return the XWikiPreferences document
+   */
+  @NotNull
+  XWikiDocument getOrCreateXWikiPreferenceDoc();
+
+  /**
+   * Returns the space preferences document for the current document. Creates it if it does not
+   * exist. If there is no current document, the preferences for the default space 'Content' are
+   * returned.
+   *
+   * @return the space preferences document for current document
+   */
+  @NotNull
+  XWikiDocument getOrCreateSpacePreferenceDoc();
 
 }
