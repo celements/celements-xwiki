@@ -12,8 +12,10 @@ import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.context.Execution;
 import org.xwiki.context.ExecutionContextException;
 import org.xwiki.context.ExecutionContextInitializer;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.EntityReferenceValueProvider;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
@@ -23,6 +25,7 @@ import com.celements.auth.user.UserService;
 import com.celements.configuration.CelementsFromWikiConfigurationSource;
 import com.celements.model.access.IModelAccessFacade;
 import com.celements.model.access.exception.DocumentNotExistsException;
+import com.celements.model.reference.RefBuilder;
 import com.celements.model.util.ModelUtils;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
@@ -47,6 +50,9 @@ public class DefaultModelContext implements ModelContext {
 
   @Requirement
   ConfigurationSource defaultConfigSrc;
+
+  @Requirement
+  EntityReferenceValueProvider refValProvider;
 
   @Requirement
   private Execution execution;
@@ -213,8 +219,8 @@ public class DefaultModelContext implements ModelContext {
   }
 
   @Override
-  public String getLanguage() {
-    return getXWikiContext().getLanguage();
+  public java.util.Optional<String> getLanguage() {
+    return java.util.Optional.ofNullable(getXWikiContext().getLanguage());
   }
 
   @Override
@@ -267,18 +273,22 @@ public class DefaultModelContext implements ModelContext {
 
   @Override
   public XWikiDocument getOrCreateXWikiPreferenceDoc() {
-    DocumentReference docRef = new DocumentReference(getWikiRef().getName(), XWIKI_SPACE,
-        XWIKI_PREF_DOC_NAME);
+    DocumentReference docRef = new RefBuilder().space(XWIKI_SPACE).doc(XWIKI_PREF_DOC_NAME).build(
+        DocumentReference.class);
     return getModelAccess().getOrCreateDocument(docRef);
   }
 
   @Override
   public XWikiDocument getOrCreateSpacePreferenceDoc() {
-    DocumentReference docRef = getCurrentDocRef().or(new DocumentReference(DEFAULT_DOC_NAME,
-        getModelUtils().resolveRef(DEFAULT_SPACE, SpaceReference.class)));
-    Optional<SpaceReference> spaceRef = getModelUtils().extractRef(docRef, SpaceReference.class);
-    return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME, spaceRef
-        .get()));
+    Optional<DocumentReference> docRef = getCurrentDocRef();
+    SpaceReference spaceRef;
+    if (docRef.isPresent()) {
+      spaceRef = getModelUtils().extractRef(docRef.get(), SpaceReference.class).get();
+    } else {
+      spaceRef = new RefBuilder().space(refValProvider.getDefaultValue(EntityType.SPACE)).build(
+          SpaceReference.class);
+    }
+    return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME, spaceRef));
   }
 
   private XWikiDocument getSpacePrefDoc(EntityReference ref) {

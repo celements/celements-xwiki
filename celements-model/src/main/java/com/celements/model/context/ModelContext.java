@@ -23,8 +23,6 @@ import com.xpn.xwiki.web.XWikiResponse;
 @ComponentRole
 public interface ModelContext {
 
-  public static final String DEFAULT_DOC_NAME = "WebHome";
-  public static final String DEFAULT_SPACE = "Content";
   public static final String XWIKI_SPACE = "XWiki";
   public static final String WEB_PREF_DOC_NAME = "WebPreferences";
   public static final String XWIKI_PREF_DOC_NAME = "XWikiPreferences";
@@ -138,7 +136,7 @@ public interface ModelContext {
    * @return the current language or null
    */
   @Nullable
-  String getLanguage();
+  java.util.Optional<String> getLanguage();
 
   /**
    * @return the default language for the current wiki
