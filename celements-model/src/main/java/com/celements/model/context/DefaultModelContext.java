@@ -280,15 +280,19 @@ public class DefaultModelContext implements ModelContext {
 
   @Override
   public XWikiDocument getOrCreateSpacePreferenceDoc() {
+    return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME,
+        getCurrentSpaceReference()));
+  }
+
+  @Override
+  public SpaceReference getCurrentSpaceReference() {
     Optional<DocumentReference> docRef = getCurrentDocRef();
-    SpaceReference spaceRef;
     if (docRef.isPresent()) {
-      spaceRef = getModelUtils().extractRef(docRef.get(), SpaceReference.class).get();
+      return getModelUtils().extractRef(docRef.get(), SpaceReference.class).get();
     } else {
-      spaceRef = new RefBuilder().space(refValProvider.getDefaultValue(EntityType.SPACE)).build(
+      return new RefBuilder().space(refValProvider.getDefaultValue(EntityType.SPACE)).build(
           SpaceReference.class);
     }
-    return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME, spaceRef));
   }
 
   private XWikiDocument getSpacePrefDoc(EntityReference ref) {

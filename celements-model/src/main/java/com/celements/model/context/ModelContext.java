@@ -184,4 +184,13 @@ public interface ModelContext {
   @NotNull
   XWikiDocument getOrCreateSpacePreferenceDoc();
 
+  /**
+   * Returns the SpaceReference for the current document, if present. Otherwise a spaceReference for
+   * the default space.
+   * 
+   * @return the SpaceReference for the current document
+   */
+  @NotNull
+  SpaceReference getCurrentSpaceReference();
+
 }
