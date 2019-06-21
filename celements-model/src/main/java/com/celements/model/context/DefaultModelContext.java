@@ -128,6 +128,17 @@ public class DefaultModelContext implements ModelContext {
     return Optional.absent();
   }
 
+  @Override
+  public SpaceReference getCurrentSpaceRefOrDefault() {
+    Optional<DocumentReference> docRef = getCurrentDocRef();
+    if (docRef.isPresent()) {
+      return getModelUtils().extractRef(docRef.get(), SpaceReference.class).get();
+    } else {
+      return new RefBuilder().wiki(getWikiRef().getName()).space(refValProvider.getDefaultValue(
+          EntityType.SPACE)).build(SpaceReference.class);
+    }
+  }
+
   private XWikiDocument getDocInternal() {
     return getXWikiContext().getDoc();
   }
@@ -273,8 +284,8 @@ public class DefaultModelContext implements ModelContext {
 
   @Override
   public XWikiDocument getOrCreateXWikiPreferenceDoc() {
-    DocumentReference docRef = new RefBuilder().space(XWIKI_SPACE).doc(XWIKI_PREF_DOC_NAME).build(
-        DocumentReference.class);
+    DocumentReference docRef = new RefBuilder().wiki(getWikiRef().getName()).space(XWIKI_SPACE).doc(
+        XWIKI_PREF_DOC_NAME).build(DocumentReference.class);
     return getModelAccess().getOrCreateDocument(docRef);
   }
 
@@ -282,17 +293,6 @@ public class DefaultModelContext implements ModelContext {
   public XWikiDocument getOrCreateSpacePreferenceDoc(SpaceReference spaceRef) {
     checkNotNull(spaceRef);
     return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME, spaceRef));
-  }
-
-  @Override
-  public SpaceReference getCurrentSpaceReference() {
-    Optional<DocumentReference> docRef = getCurrentDocRef();
-    if (docRef.isPresent()) {
-      return getModelUtils().extractRef(docRef.get(), SpaceReference.class).get();
-    } else {
-      return new RefBuilder().space(refValProvider.getDefaultValue(EntityType.SPACE)).build(
-          SpaceReference.class);
-    }
   }
 
   private XWikiDocument getSpacePrefDoc(EntityReference ref) {
