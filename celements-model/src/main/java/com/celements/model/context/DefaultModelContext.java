@@ -279,9 +279,9 @@ public class DefaultModelContext implements ModelContext {
   }
 
   @Override
-  public XWikiDocument getOrCreateSpacePreferenceDoc() {
-    return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME,
-        getCurrentSpaceReference()));
+  public XWikiDocument getOrCreateSpacePreferenceDoc(SpaceReference spaceRef) {
+    checkNotNull(spaceRef);
+    return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME, spaceRef));
   }
 
   @Override

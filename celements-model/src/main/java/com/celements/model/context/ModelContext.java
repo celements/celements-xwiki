@@ -175,19 +175,22 @@ public interface ModelContext {
   XWikiDocument getOrCreateXWikiPreferenceDoc();
 
   /**
-   * Returns the space preferences document for the current document. Creates it if it does not
-   * exist. If there is no current document, the preferences for the default space 'Content' are
-   * returned.
+   * Returns the space preferences document for the given SpaceReference. Creates it if it does not
+   * exist.
    *
-   * @return the space preferences document for current document
+   * @param spaceRef
+   *          a SpaceReference to the space you want the space preference document for
+   * @return the space preferences document for given space
+   * @throws NullPointerException
+   *           if spaceRef is null
    */
   @NotNull
-  XWikiDocument getOrCreateSpacePreferenceDoc();
+  XWikiDocument getOrCreateSpacePreferenceDoc(@Nullable SpaceReference spaceRef);
 
   /**
    * Returns the SpaceReference for the current document, if present. Otherwise a spaceReference for
    * the default space.
-   * 
+   *
    * @return the SpaceReference for the current document
    */
   @NotNull
