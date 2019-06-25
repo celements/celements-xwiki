@@ -194,6 +194,6 @@ public interface ModelContext {
    *           if spaceRef is null
    */
   @NotNull
-  XWikiDocument getOrCreateSpacePreferenceDoc(@Nullable SpaceReference spaceRef);
+  XWikiDocument getOrCreateSpacePreferenceDoc(@NotNull SpaceReference spaceRef);
 
 }
