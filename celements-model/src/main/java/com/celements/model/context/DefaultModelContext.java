@@ -283,14 +283,14 @@ public class DefaultModelContext implements ModelContext {
   }
 
   @Override
-  public XWikiDocument getOrCreateXWikiPreferenceDoc() {
+  public XWikiDocument getXWikiPreferenceDoc() {
     DocumentReference docRef = new RefBuilder().wiki(getWikiRef().getName()).space(XWIKI_SPACE).doc(
         XWIKI_PREF_DOC_NAME).build(DocumentReference.class);
     return getModelAccess().getOrCreateDocument(docRef);
   }
 
   @Override
-  public XWikiDocument getOrCreateSpacePreferenceDoc(SpaceReference spaceRef) {
+  public XWikiDocument getSpacePreferenceDoc(SpaceReference spaceRef) {
     checkNotNull(spaceRef);
     return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME, spaceRef));
   }

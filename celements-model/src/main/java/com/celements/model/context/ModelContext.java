@@ -176,16 +176,16 @@ public interface ModelContext {
   Optional<URL> setUrl(@Nullable URL url);
 
   /**
-   * Returns the XWikiPreferences document. Creates it if it does not exist.
+   * Returns the XWikiPreferences document. Creates it (in memory) if it does not exist.
    *
    * @return the XWikiPreferences document
    */
   @NotNull
-  XWikiDocument getOrCreateXWikiPreferenceDoc();
+  XWikiDocument getXWikiPreferenceDoc();
 
   /**
-   * Returns the space preferences document for the given SpaceReference. Creates it if it does not
-   * exist.
+   * Returns the space preferences document for the given SpaceReference. Creates it (in memory) if
+   * it does not exist.
    *
    * @param spaceRef
    *          a SpaceReference to the space you want the space preference document for
@@ -194,6 +194,6 @@ public interface ModelContext {
    *           if spaceRef is null
    */
   @NotNull
-  XWikiDocument getOrCreateSpacePreferenceDoc(@NotNull SpaceReference spaceRef);
+  XWikiDocument getSpacePreferenceDoc(@NotNull SpaceReference spaceRef);
 
 }
