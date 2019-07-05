@@ -12,8 +12,10 @@ import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.context.Execution;
 import org.xwiki.context.ExecutionContextException;
 import org.xwiki.context.ExecutionContextInitializer;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.EntityReferenceValueProvider;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
@@ -23,6 +25,7 @@ import com.celements.auth.user.UserService;
 import com.celements.configuration.CelementsFromWikiConfigurationSource;
 import com.celements.model.access.IModelAccessFacade;
 import com.celements.model.access.exception.DocumentNotExistsException;
+import com.celements.model.reference.RefBuilder;
 import com.celements.model.util.ModelUtils;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
@@ -47,6 +50,9 @@ public class DefaultModelContext implements ModelContext {
 
   @Requirement
   ConfigurationSource defaultConfigSrc;
+
+  @Requirement
+  EntityReferenceValueProvider refValProvider;
 
   @Requirement
   private Execution execution;
@@ -120,6 +126,17 @@ public class DefaultModelContext implements ModelContext {
       return Optional.of(getDocInternal().getDocumentReference().getLastSpaceReference());
     }
     return Optional.absent();
+  }
+
+  @Override
+  public SpaceReference getCurrentSpaceRefOrDefault() {
+    Optional<DocumentReference> docRef = getCurrentDocRef();
+    if (docRef.isPresent()) {
+      return getModelUtils().extractRef(docRef.get(), SpaceReference.class).get();
+    } else {
+      return new RefBuilder().wiki(getWikiRef().getName()).space(refValProvider.getDefaultValue(
+          EntityType.SPACE)).build(SpaceReference.class);
+    }
   }
 
   private XWikiDocument getDocInternal() {
@@ -213,6 +230,11 @@ public class DefaultModelContext implements ModelContext {
   }
 
   @Override
+  public java.util.Optional<String> getLanguage() {
+    return java.util.Optional.ofNullable(getXWikiContext().getLanguage());
+  }
+
+  @Override
   public String getDefaultLanguage() {
     return getDefaultLanguage(getWikiRef());
   }
@@ -234,7 +256,7 @@ public class DefaultModelContext implements ModelContext {
       try {
         ret = getModelAccess().getDocument(docRef.get()).getDefaultLanguage();
       } catch (DocumentNotExistsException exc) {
-        LOGGER.info("trying to get language for inexistent document '{}'", docRef);
+        LOGGER.info("trying to get default language for inexistent document '{}'", docRef);
       }
     }
     return ret;
@@ -258,6 +280,19 @@ public class DefaultModelContext implements ModelContext {
       setWikiRef(wikiBefore);
       setDoc(docBefore);
     }
+  }
+
+  @Override
+  public XWikiDocument getXWikiPreferenceDoc() {
+    DocumentReference docRef = new RefBuilder().wiki(getWikiRef().getName()).space(XWIKI_SPACE).doc(
+        XWIKI_PREF_DOC_NAME).build(DocumentReference.class);
+    return getModelAccess().getOrCreateDocument(docRef);
+  }
+
+  @Override
+  public XWikiDocument getSpacePreferenceDoc(SpaceReference spaceRef) {
+    checkNotNull(spaceRef);
+    return getModelAccess().getOrCreateDocument(new DocumentReference(WEB_PREF_DOC_NAME, spaceRef));
   }
 
   private XWikiDocument getSpacePrefDoc(EntityReference ref) {
