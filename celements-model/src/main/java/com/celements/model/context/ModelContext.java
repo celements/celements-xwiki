@@ -23,7 +23,9 @@ import com.xpn.xwiki.web.XWikiResponse;
 @ComponentRole
 public interface ModelContext {
 
+  public static final String XWIKI_SPACE = "XWiki";
   public static final String WEB_PREF_DOC_NAME = "WebPreferences";
+  public static final String XWIKI_PREF_DOC_NAME = "XWikiPreferences";
   public static final String CFG_KEY_DEFAULT_LANG = "default_language";
   public static final String FALLBACK_DEFAULT_LANG = "en";
 
@@ -88,6 +90,15 @@ public interface ModelContext {
   Optional<SpaceReference> getCurrentSpaceRef();
 
   /**
+   * Returns the SpaceReference for the current document, if present. Otherwise a spaceReference for
+   * the default space.
+   *
+   * @return the SpaceReference for the current document
+   */
+  @NotNull
+  SpaceReference getCurrentSpaceRefOrDefault();
+
+  /**
    * @param doc
    *          to be set in context
    * @return the doc which was set before
@@ -131,6 +142,12 @@ public interface ModelContext {
   Optional<XWikiResponse> getResponse();
 
   /**
+   * @return the current language or null
+   */
+  @Nullable
+  java.util.Optional<String> getLanguage();
+
+  /**
    * @return the default language for the current wiki
    */
   @NotNull
@@ -157,5 +174,26 @@ public interface ModelContext {
    */
   @NotNull
   Optional<URL> setUrl(@Nullable URL url);
+
+  /**
+   * Returns the XWikiPreferences document. Creates it (in memory) if it does not exist.
+   *
+   * @return the XWikiPreferences document
+   */
+  @NotNull
+  XWikiDocument getXWikiPreferenceDoc();
+
+  /**
+   * Returns the space preferences document for the given SpaceReference. Creates it (in memory) if
+   * it does not exist.
+   *
+   * @param spaceRef
+   *          a SpaceReference to the space you want the space preference document for
+   * @return the space preferences document for given space
+   * @throws NullPointerException
+   *           if spaceRef is null
+   */
+  @NotNull
+  XWikiDocument getSpacePreferenceDoc(@NotNull SpaceReference spaceRef);
 
 }
