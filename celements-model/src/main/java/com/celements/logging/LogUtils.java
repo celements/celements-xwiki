@@ -1,11 +1,13 @@
 package com.celements.logging;
 
+import java.util.Objects;
+import java.util.function.Supplier;
+
 import org.slf4j.Logger;
 
-public class LogUtils {
+public final class LogUtils {
 
-  private LogUtils() {
-  }
+  private LogUtils() {}
 
   public static void log(Logger logger, LogLevel LogLevel, String msg) {
     if ((logger != null) && (LogLevel != null)) {
@@ -95,6 +97,29 @@ public class LogUtils {
       }
     }
     return ret;
+  }
+
+  /**
+   * Defers given supplier call to {@link #toString()}. This allows lazy evaluation of lambda
+   * expressions for Loggers (slf4j 1.x). Won't be needed anymore once slf4j 2+ is released.
+   * Usage: {@code LOGGER.info(message, defer(() -> expensiveCall()))}.
+   */
+  public static <T> LogSupplier defer(Supplier<T> supplier) {
+    return new LogSupplier() {
+
+      @Override
+      public String get() {
+        return Objects.toString(supplier.get());
+      }
+    };
+  }
+
+  public static abstract class LogSupplier implements Supplier<String> {
+
+    @Override
+    public final String toString() {
+      return this.get();
+    }
   }
 
 }
