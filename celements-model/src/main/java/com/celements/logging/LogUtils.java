@@ -100,26 +100,25 @@ public final class LogUtils {
   }
 
   /**
-   * Defers given supplier call to {@link #toString()}. This allows lazy evaluation of lambda
-   * expressions for Loggers (slf4j 1.x). Won't be needed anymore once slf4j 2+ is released.
+   * Defers given supplier call to {@link #toString()}. This allows lazy evaluation with lambda
+   * expressions for slf4j 1.x loggers.
    * Usage: {@code LOGGER.info(message, defer(() -> expensiveCall()))}.
+   *
+   * @see https://jira.qos.ch/browse/SLF4J-371
    */
-  public static <T> LogSupplier defer(Supplier<T> supplier) {
-    return new LogSupplier() {
+  public static <T> Supplier<String> defer(final Supplier<T> supplier) {
+    return new Supplier<String>() {
 
       @Override
       public String get() {
         return Objects.toString(supplier.get());
       }
+
+      @Override
+      public String toString() {
+        return this.get();
+      }
     };
-  }
-
-  public static abstract class LogSupplier implements Supplier<String> {
-
-    @Override
-    public final String toString() {
-      return this.get();
-    }
   }
 
 }
