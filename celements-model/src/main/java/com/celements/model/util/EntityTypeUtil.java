@@ -13,6 +13,7 @@ import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.ImmutableDocumentReference;
+import org.xwiki.model.reference.ImmutableEntityReference;
 import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.ObjectReference;
 import org.xwiki.model.reference.SpaceReference;
@@ -57,6 +58,7 @@ public class EntityTypeUtil {
     ImmutableMap.Builder<Class<? extends EntityReference>, Class<? extends EntityReference>> overrideBuilder;
     overrideBuilder = ImmutableMap.builder();
     overrideBuilder.put(DocumentReference.class, ImmutableDocumentReference.class);
+    overrideBuilder.put(EntityReference.class, ImmutableEntityReference.class);
     // XXX add new (immutable) sub classes here
     OVERRIDE_MAP = overrideBuilder.build();
   }

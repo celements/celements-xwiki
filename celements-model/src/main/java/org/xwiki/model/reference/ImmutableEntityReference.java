@@ -8,29 +8,24 @@ import javax.annotation.concurrent.Immutable;
 import org.xwiki.model.EntityType;
 
 @Immutable
-public class ImmutableDocumentReference extends DocumentReference implements ImmutableReference {
+public class ImmutableEntityReference extends EntityReference implements ImmutableReference {
 
   private static final long serialVersionUID = 4196990820112451663L;
 
   private boolean initialised = false;
 
-  public ImmutableDocumentReference(EntityReference reference) {
-    super(reference);
+  public ImmutableEntityReference(EntityReference reference) {
+    super(reference.getName(), reference.getType(), reference.getParent());
     setChild(reference.getChild());
     initialised = true;
   }
 
-  public ImmutableDocumentReference(String wikiName, String spaceName, String docName) {
-    super(wikiName, spaceName, docName);
+  public ImmutableEntityReference(String name, EntityType type, EntityReference parent) {
+    super(name, type, parent);
     initialised = true;
   }
 
-  public ImmutableDocumentReference(String docName, SpaceReference parent) {
-    super(docName, parent);
-    initialised = true;
-  }
-
-  private void checkInit() {
+  protected final void checkInit() {
     if (initialised) {
       throw new IllegalStateException(format("unable to modify already initialised {0}: {1}",
           this.getClass().getSimpleName(), this));
@@ -44,14 +39,22 @@ public class ImmutableDocumentReference extends DocumentReference implements Imm
   }
 
   @Override
-  public SpaceReference getParent() {
-    return (SpaceReference) super.getParent().clone();
+  public void setType(EntityType type) {
+    checkInit();
+    super.setType(type);
+  }
+
+  @Override
+  public EntityReference getParent() {
+    return super.getParent() != null ? super.getParent().clone() : null;
   }
 
   @Override
   public void setParent(EntityReference parent) {
     checkInit();
-    super.setParent(cloneRef(parent)); // TODO no clone?
+    if (parent != null) {
+      super.setParent(cloneRef(parent));
+    }
   }
 
   @Override
@@ -68,25 +71,13 @@ public class ImmutableDocumentReference extends DocumentReference implements Imm
   }
 
   @Override
-  public void setType(EntityType type) {
-    checkInit();
-    super.setType(type);
-  }
-
-  @Override
-  public void setWikiReference(WikiReference newWikiReference) {
-    checkInit();
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public ImmutableDocumentReference clone() {
+  public ImmutableEntityReference clone() {
     return this;
   }
 
   @Override
-  public DocumentReference getMutable() {
-    DocumentReference ret = new DocumentReference(this);
+  public EntityReference getMutable() {
+    EntityReference ret = new EntityReference(getName(), getType(), getParent());
     ret.setChild(getChild());
     return ret;
   }

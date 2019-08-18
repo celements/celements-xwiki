@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.ImmutableEntityReference;
 import org.xwiki.model.reference.ImmutableReference;
 
 import com.celements.model.reference.RefBuilder;
@@ -92,7 +93,8 @@ public final class References {
 
   private static void assertAssignability(EntityReference ref, Class<?> token)
       throws IllegalArgumentException {
-    if ((token != EntityReference.class) && !token.isAssignableFrom(determineClass(ref))) {
+    if ((token != EntityReference.class) && (token != ImmutableEntityReference.class)
+        && !token.isAssignableFrom(determineClass(ref))) {
       String msg = "Given " + (isAbsoluteRef(ref) ? "absolute reference (" + determineClass(
           ref).getSimpleName() + ")" : "relative reference") + " is not assignable to '"
           + token.getSimpleName() + "' - " + ref;
