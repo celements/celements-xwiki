@@ -13,7 +13,7 @@ import com.celements.common.MoreObjectsCel;
 import com.xpn.xwiki.objects.BaseObject;
 
 /**
- * similar to {@link ObjectReference} but immutable and doesn't extend {@link EntityReference}
+ * similar to {@link ObjectReference} but immutable and doesn't extend {@link EntityReference} for now
  * <p>
  * TODO [CELDEV-521] Immutable References
  * let it extend EntityReference and implement ImmutableReference
