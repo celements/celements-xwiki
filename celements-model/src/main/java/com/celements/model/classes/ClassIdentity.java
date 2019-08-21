@@ -15,4 +15,7 @@ public interface ClassIdentity {
 
   boolean isValidObjectClass();
 
+  @NotNull
+  String serialize();
+
 }

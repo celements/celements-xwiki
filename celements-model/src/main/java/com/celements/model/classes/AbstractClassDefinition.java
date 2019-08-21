@@ -153,8 +153,13 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
   }
 
   @Override
+  public String serialize() {
+    return getClassReference().serialize();
+  }
+
+  @Override
   public String toString() {
-    return modelUtils.serializeRef(getClassReference());
+    return serialize();
   }
 
 }

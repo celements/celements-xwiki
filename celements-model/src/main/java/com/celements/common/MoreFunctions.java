@@ -13,41 +13,23 @@ import com.xpn.xwiki.web.Utils;
 
 public final class MoreFunctions {
 
-  private MoreFunctions() {
-  }
+  private MoreFunctions() {}
 
   public static Function<Object, Integer> hashCodeFunction() {
     return HASHCODE_FUNCTION;
   }
 
-  private static final Function<Object, Integer> HASHCODE_FUNCTION = new Function<Object, Integer>() {
-
-    @Override
-    public Integer apply(Object o) {
-      return checkNotNull(o).hashCode();
-    }
-  };
+  private static final Function<Object, Integer> HASHCODE_FUNCTION = o -> checkNotNull(o)
+      .hashCode();
 
   public static <T extends EntityReference> Function<T, String> serializeRefFunction(
       @NotNull final ReferenceSerializationMode mode) {
-    return new Function<T, String>() {
-
-      @Override
-      public String apply(T reference) {
-        return getModelUtils().serializeRef(reference, mode);
-      }
-    };
+    return reference -> getModelUtils().serializeRef(reference, mode);
   }
 
   public static <T extends EntityReference> Function<String, T> resolveRefFunction(
       final Class<T> token) {
-    return new Function<String, T>() {
-
-      @Override
-      public T apply(String name) {
-        return getModelUtils().resolveRef(name, token);
-      }
-    };
+    return name -> getModelUtils().resolveRef(name, token);
   }
 
   private static ModelUtils getModelUtils() {
