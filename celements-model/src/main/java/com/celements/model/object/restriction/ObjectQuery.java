@@ -8,7 +8,6 @@ import java.util.function.Predicate;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.celements.model.classes.ClassIdentity;
-import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 
 @NotThreadSafe
@@ -41,7 +40,7 @@ public class ObjectQuery<O> {
     return restrictions.stream()
         .filter(new ClassPredicate(classId))
         .reduce((p1, p2) -> p1.and(p2))
-        .orElse(Predicates.alwaysTrue());
+        .orElse(o -> true);
   }
 
   public Set<ClassIdentity> getObjectClasses() {

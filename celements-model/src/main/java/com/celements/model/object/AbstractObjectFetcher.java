@@ -47,7 +47,9 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
   @Override
   public int count() {
-    return (int) stream().count();
+    long count = stream().count();
+    checkArgument(count <= Integer.MAX_VALUE, count);
+    return (int) count;
   }
 
   @Override
