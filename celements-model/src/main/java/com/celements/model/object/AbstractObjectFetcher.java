@@ -1,11 +1,13 @@
 package com.celements.model.object;
 
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.collect.ImmutableList.*;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.NotNull;
@@ -17,7 +19,6 @@ import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.field.FieldAccessor;
 import com.celements.model.field.FieldGetterFunction;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
@@ -46,12 +47,12 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
   @Override
   public int count() {
-    return iter().size();
+    return (int) stream().count();
   }
 
   @Override
   public Optional<O> first() {
-    return iter().first();
+    return Optional.fromJavaUtil(stream().findFirst());
   }
 
   @Override
@@ -63,7 +64,7 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
   @Override
   public O unique() {
-    Iterator<O> iter = iter().iterator();
+    Iterator<O> iter = stream().iterator();
     checkArgument(iter.hasNext(), "empty - %s", this);
     O ret = iter.next();
     checkArgument(!iter.hasNext(), "non unique - %s", this);
@@ -72,23 +73,24 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
   @Override
   public List<O> list() {
-    return iter().toList();
+    return stream().collect(toImmutableList());
   }
 
   @Override
   public FluentIterable<O> iter() {
-    FluentIterable<O> iter = FluentIterable.of();
-    for (ClassIdentity classId : getObjectClasses()) {
-      iter = iter.append(getObjects(classId));
-    }
-    return iter;
+    return FluentIterable.from(stream()::iterator);
+  }
+
+  @Override
+  public Stream<O> stream() {
+    return getObjectClasses().stream().flatMap(this::getObjects);
   }
 
   @Override
   public Map<ClassIdentity, List<O>> map() {
     ImmutableMap.Builder<ClassIdentity, List<O>> builder = ImmutableMap.builder();
     for (ClassIdentity classId : getObjectClasses()) {
-      builder.put(classId, getObjects(classId).toList());
+      builder.put(classId, getObjects(classId).collect(toImmutableList()));
     }
     return builder.build();
   }
@@ -101,19 +103,16 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
     return classes;
   }
 
-  protected FluentIterable<O> getObjects(ClassIdentity classId) {
-    FluentIterable<O> objects = getBridge().getObjects(getDocument(), classId);
-    objects = objects.filter(Predicates.and(getQuery().getRestrictions(classId)));
+  protected Stream<O> getObjects(ClassIdentity classId) {
+    Stream<O> objects = getBridge().getObjects(getDocument(), classId).stream()
+        .filter(getQuery().predicate(classId));
     if (clone) {
       LOGGER.debug("{} clone objects", this);
-      objects = objects.transform(new ObjectCloner());
+      objects = objects.map(getBridge()::cloneObject);
     }
-    if (LOGGER.isTraceEnabled()) {
-      LOGGER.trace("{} fetched for {}: {}", this, classId, objects);
-    } else if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("{} fetched for {} {} objects", this, classId, objects.size());
-    }
-    return objects;
+    LOGGER.info("{} fetching for {}", this, classId);
+    return objects
+        .peek(o -> LOGGER.trace("fetched: {}", o));
   }
 
   /**
@@ -122,14 +121,6 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   protected R disableCloning() {
     clone = false;
     return getThis();
-  }
-
-  private class ObjectCloner implements Function<O, O> {
-
-    @Override
-    public O apply(O obj) {
-      return getBridge().cloneObject(obj);
-    }
   }
 
   @Override

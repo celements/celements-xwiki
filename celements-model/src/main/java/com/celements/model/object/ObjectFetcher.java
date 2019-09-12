@@ -3,6 +3,7 @@ package com.celements.model.object;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.validation.constraints.NotNull;
 
@@ -69,6 +70,12 @@ public interface ObjectFetcher<D, O> extends ObjectHandler<D, O> {
    */
   @NotNull
   FluentIterable<O> iter();
+
+  /**
+   * @return streams all fetched objects
+   */
+  @NotNull
+  Stream<O> stream();
 
   /**
    * @return a {@link Map} of all fetched objects indexed by their {@link ClassIdentity}
