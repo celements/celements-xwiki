@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.NotNull;
@@ -34,17 +35,17 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
   }
 
   /**
-   * restricts to objects for the given {@link ObjectRestriction}
+   * restricts to objects for the given {@link Predicate}
    */
-  public final @NotNull B filter(@NotNull ObjectRestriction<O> restriction) {
+  public final @NotNull B filter(@NotNull Predicate<O> restriction) {
     query.add(checkNotNull(restriction));
     return getThis();
   }
 
   /**
-   * restricts to objects for the given {@link ObjectRestriction}s
+   * restricts to objects for the given {@link Predicate}s
    */
-  public final @NotNull B filter(@NotNull Iterable<? extends ObjectRestriction<O>> restrictions) {
+  public final @NotNull B filter(@NotNull Iterable<? extends Predicate<O>> restrictions) {
     query.addAll(restrictions);
     return getThis();
   }
