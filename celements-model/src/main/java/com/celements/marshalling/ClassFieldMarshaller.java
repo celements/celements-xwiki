@@ -1,5 +1,7 @@
 package com.celements.marshalling;
 
+import static com.google.common.base.Preconditions.*;
+
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.ClassReference;
@@ -15,10 +17,10 @@ public class ClassFieldMarshaller<T> extends AbstractMarshaller<ClassField<T>> {
   private final ClassReference classRef;
 
   @SuppressWarnings("unchecked")
-  ClassFieldMarshaller(Class<T> token, ClassReference classRef) {
+  public ClassFieldMarshaller(Class<T> token, ClassReference classRef) {
     super((Class<ClassField<T>>) (Object) ClassField.class);
-    this.token = token;
-    this.classRef = classRef;
+    this.token = checkNotNull(token);
+    this.classRef = checkNotNull(classRef);
   }
 
   @Override
