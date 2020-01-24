@@ -14,6 +14,7 @@ import com.celements.common.test.ExceptionAsserter;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.TestClassDefinition;
 import com.celements.model.classes.fields.ClassField;
+import com.celements.store.id.IdVersion;
 import com.celements.web.classes.oldcore.XWikiDocumentClass;
 import com.celements.web.classes.oldcore.XWikiObjectClass;
 import com.xpn.xwiki.XWikiException;
@@ -58,10 +59,13 @@ public class XObjectFieldAccessorTest extends AbstractComponentTest {
     ClassReference classRef = testClassDef.getClassReference();
     BaseObject obj = new BaseObject();
     obj.setXClassReference(classRef);
+    Long id = 9876543210L;
+    obj.setId(id, IdVersion.CELEMENTS_3);
     DocumentReference docRef = new DocumentReference("wiki", "space", "doc");
     obj.setDocumentReference(docRef);
     Integer number = 5;
     obj.setNumber(number);
+    assertEquals(id, accessor.getValue(obj, XWikiObjectClass.FIELD_ID).get());
     assertEquals(docRef, accessor.getValue(obj, XWikiObjectClass.FIELD_DOC_REF).get());
     assertEquals(classRef, accessor.getValue(obj, XWikiObjectClass.FIELD_CLASS_REF).get());
     assertEquals(number, accessor.getValue(obj, XWikiObjectClass.FIELD_NUMBER).get());
@@ -126,9 +130,17 @@ public class XObjectFieldAccessorTest extends AbstractComponentTest {
 
   @Test
   public void test_FieldAccessException_setValue_xObjFields() {
-    final ClassReference classRef = testClassDef.getClassReference();
     final BaseObject obj = new BaseObject();
+    final ClassReference classRef = testClassDef.getClassReference();
     obj.setXClassReference(classRef);
+    Long id = 9876543210L;
+    new ExceptionAsserter<FieldAccessException>(FieldAccessException.class) {
+
+      @Override
+      protected void execute() throws FieldAccessException {
+        accessor.setValue(obj, XWikiObjectClass.FIELD_ID, id);
+      }
+    }.evaluate();
     new ExceptionAsserter<FieldAccessException>(FieldAccessException.class) {
 
       @Override
