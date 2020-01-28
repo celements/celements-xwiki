@@ -2,13 +2,14 @@ package com.celements.model.object;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
-import com.google.common.base.Optional;
 
 /**
  * Manipulates objects O on a document D for the defined query or fetches them for manipulation. Use
@@ -97,6 +98,14 @@ public interface ObjectEditor<D, O> extends ObjectHandler<D, O> {
      * @return if at least one object has changed
      */
     public boolean all(@Nullable final T value);
+
+    /**
+     * sets the field to the returned value of {@code supplier} for all objects
+     *
+     * @param supplier
+     * @return if at least one object has changed
+     */
+    public boolean all(@NotNull final Supplier<T> supplier);
 
   }
 
