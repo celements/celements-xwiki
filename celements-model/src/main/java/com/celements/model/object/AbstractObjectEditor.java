@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.NotNull;
@@ -92,21 +91,19 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
   @Override
   public List<O> delete() {
-    return streamDelete().collect(Collectors.toList());
+    return fetch().stream().filter(this::deleteObject).collect(Collectors.toList());
   }
 
   @Override
   public Optional<O> deleteFirst() {
-    return streamDelete().findFirst();
+    return fetch().stream().findFirst().filter(this::deleteObject);
   }
 
-  private Stream<O> streamDelete() {
-    return fetch().stream().filter(obj -> {
-      boolean success = getBridge().deleteObject(getDocument(), obj);
-      LOGGER.info("{} deleted object {} for {}: {}", this, getBridge().getObjectNumber(obj),
-          getBridge().getObjectClass(obj), success);
-      return success;
-    });
+  private boolean deleteObject(O obj) {
+    boolean success = getBridge().deleteObject(getDocument(), obj);
+    LOGGER.info("{} deleted object {} for {}: {}", this, getBridge().getObjectNumber(obj),
+        getBridge().getObjectClass(obj), success);
+    return success;
   }
 
   @Override
