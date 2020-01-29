@@ -2,10 +2,13 @@ package com.celements.model.object;
 
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.collect.ImmutableList.*;
+import static com.google.common.collect.ImmutableSet.*;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -19,8 +22,6 @@ import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.field.FieldAccessor;
 import com.celements.model.field.FieldGetterFunction;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 
@@ -53,13 +54,14 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
-  public Optional<O> first() {
-    return Optional.fromJavaUtil(stream().findFirst());
+  @Deprecated
+  public com.google.common.base.Optional<O> first() {
+    return com.google.common.base.Optional.fromJavaUtil(stream().findFirst());
   }
 
   @Override
   public O firstAssert() {
-    Optional<O> ret = first();
+    Optional<O> ret = stream().findFirst();
     checkArgument(ret.isPresent(), "empty - %s", this);
     return ret.get();
   }
@@ -79,6 +81,7 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
   }
 
   @Override
+  @Deprecated
   public FluentIterable<O> iter() {
     return FluentIterable.from(stream()::iterator);
   }
@@ -127,40 +130,54 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
 
   @Override
   public <T> FieldFetcher<T> fetchField(final ClassField<T> field) {
-    final FluentIterable<O> objects = clone().filter(field.getClassDef()).iter();
+    final AbstractObjectFetcher<?, D, O> fetcher = clone().filter(field.getClassDef());
     return new FieldFetcher<T>() {
 
       @Override
-      public Optional<T> first() {
-        return iter().first();
+      @Deprecated
+      public com.google.common.base.Optional<T> first() {
+        return com.google.common.base.Optional.fromJavaUtil(stream().findFirst());
       }
 
       @Override
       public List<T> list() {
-        return iter().toList();
+        return stream().collect(toImmutableList());
       }
 
       @Override
       public Set<T> set() {
-        return iter().toSet();
+        return stream().collect(toImmutableSet());
       }
 
       @Override
+      @Deprecated
       public FluentIterable<T> iter() {
-        return iterNullable().filter(Predicates.notNull());
+        return FluentIterable.from(stream()::iterator);
       }
 
       @Override
+      @Deprecated
       public FluentIterable<T> iterNullable() {
-        FluentIterable<T> iter;
+        return FluentIterable.from(streamNullable()::iterator);
+      }
+
+      @Override
+      public @NotNull Stream<T> stream() {
+        return streamNullable().filter(Objects::nonNull);
+      }
+
+      @Override
+      public @NotNull Stream<T> streamNullable() {
+        Stream<T> stream;
         if (field.getClassDef().isValidObjectClass()) {
           FieldAccessor<O> accessor = getBridge().getObjectFieldAccessor();
-          iter = objects.transform(new FieldGetterFunction<>(accessor, field));
+          stream = fetcher.stream().map(new FieldGetterFunction<>(accessor, field));
         } else {
           FieldAccessor<D> accessor = getBridge().getDocumentFieldAccessor();
-          iter = FluentIterable.from(accessor.getValue(getDocument(), field).asSet());
+          stream = accessor.getValue(getDocument(), field)
+              .toJavaUtil().map(Stream::of).orElseGet(Stream::empty);
         }
-        return iter;
+        return stream;
       }
     };
   }

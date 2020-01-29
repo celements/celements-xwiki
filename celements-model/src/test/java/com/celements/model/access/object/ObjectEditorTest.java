@@ -25,7 +25,6 @@ import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.web.classes.oldcore.XWikiDocumentClass;
-import com.google.common.base.Optional;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
@@ -357,7 +356,7 @@ public class ObjectEditorTest extends AbstractComponentTest {
   public void test_deleteFirst() {
     BaseObject obj = addObj(classRef, null, null);
     BaseObject objNotDelted = addObj(classRef, null, null);
-    Optional<BaseObject> ret = newEditor().deleteFirst();
+    java.util.Optional<BaseObject> ret = newEditor().deleteFirst();
     assertTrue(ret.isPresent());
     assertSame(obj, ret.get());
     assertObjs(newEditor(), objNotDelted);
@@ -365,7 +364,7 @@ public class ObjectEditorTest extends AbstractComponentTest {
 
   @Test
   public void test_deleteFirst_none() {
-    Optional<BaseObject> ret = newEditor().deleteFirst();
+    java.util.Optional<BaseObject> ret = newEditor().deleteFirst();
     assertFalse(ret.isPresent());
   }
 
