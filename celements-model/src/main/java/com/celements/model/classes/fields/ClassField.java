@@ -2,21 +2,29 @@ package com.celements.model.classes.fields;
 
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.celements.model.classes.ClassDefinition;
 import com.xpn.xwiki.objects.PropertyInterface;
 
 public interface ClassField<T> {
 
   @NotNull
-  public ClassDefinition getClassDef();
+  ClassDefinition getClassDef();
 
   @NotNull
-  public String getName();
+  ClassReference getClassReference();
 
   @NotNull
-  public Class<T> getType();
+  String getName();
 
   @NotNull
-  public PropertyInterface getXField();
+  Class<T> getType();
+
+  @NotNull
+  PropertyInterface getXField();
+
+  @NotNull
+  String serialize();
 
 }

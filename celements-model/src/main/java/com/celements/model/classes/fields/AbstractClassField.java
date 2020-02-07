@@ -2,21 +2,23 @@ package com.celements.model.classes.fields;
 
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Strings.*;
+import static org.glassfish.jersey.internal.guava.Predicates.*;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.StringUtils;
+import org.xwiki.model.reference.ClassReference;
 
-import com.celements.common.MorePredicates;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.util.ModelUtils;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 import com.xpn.xwiki.web.Utils;
@@ -26,7 +28,7 @@ import com.xpn.xwiki.web.Utils;
  */
 public abstract class AbstractClassField<T> implements ClassField<T> {
 
-  private final String classDefName;
+  private final ClassReference classRef;
   private final String name;
   private final String prettyName;
   private final String validationRegExp;
@@ -34,14 +36,22 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   public abstract static class Builder<B extends Builder<B, T>, T> {
 
-    protected final String classDefName;
+    protected final ClassReference classRef;
     protected final String name;
     protected String prettyName;
     protected String validationRegExp;
     protected String validationMessage;
 
+    /**
+     * @deprecated instead use {@link Builder#Builder(ClassReference, String)}
+     */
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
-      this.classDefName = checkNotNull(classDefName);
+      this(getModelUtils().resolveRef(classDefName, ClassReference.class), name);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      this.classRef = checkNotNull(classRef);
       this.name = checkNotNull(Strings.emptyToNull(name));
     }
 
@@ -67,31 +77,33 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
   }
 
   protected AbstractClassField(@NotNull Builder<?, T> builder) {
-    this.classDefName = builder.classDefName;
+    this.classRef = builder.classRef;
     this.name = builder.name;
-    this.prettyName = ((builder.prettyName != null) ? builder.prettyName
-        : generatePrettyName(builder));
+    this.prettyName = Optional.ofNullable(builder.prettyName)
+        .orElseGet(() -> generatePrettyName(builder));
     this.validationRegExp = builder.validationRegExp;
-    this.validationMessage = firstNonNull(builder.validationMessage, builder.classDefName + "_"
-        + builder.name);
+    this.validationMessage = firstNonNull(builder.validationMessage,
+        builder.classRef.serialize() + "_" + builder.name);
   }
 
   protected String generatePrettyName(Builder<?, T> builder) {
-    String prettyName = FluentIterable.from(StringUtils.splitByCharacterTypeCamelCase(
-        builder.name)).transform(new Function<String, String>() {
-
-          @Override
-          public String apply(String s) {
-            return StringUtils.capitalize(s.replaceAll("[^A-Za-z0-9]", ""));
-          }
-
-        }).filter(MorePredicates.stringNotEmptyPredicate()).join(Joiner.on(' '));
-    return !prettyName.isEmpty() ? prettyName : builder.name;
+    String generatedPrettyName = Stream.of(
+        StringUtils.splitByCharacterTypeCamelCase(builder.name))
+        .map(s -> s.replaceAll("[^A-Za-z0-9]", ""))
+        .map(StringUtils::capitalize)
+        .filter(not(String::isEmpty))
+        .collect(Collectors.joining(" "));
+    return Optional.ofNullable(emptyToNull(generatedPrettyName)).orElse(builder.name);
   }
 
   @Override
   public ClassDefinition getClassDef() {
-    return Utils.getComponent(ClassDefinition.class, classDefName);
+    return Utils.getComponent(ClassDefinition.class, getClassReference().serialize());
+  }
+
+  @Override
+  public ClassReference getClassReference() {
+    return getClassDef().getClassReference();
   }
 
   @Override
@@ -129,22 +141,27 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   @Override
   public int hashCode() {
-    return Objects.hash(classDefName, name);
+    return Objects.hash(classRef, name);
   }
 
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof AbstractClassField) {
       AbstractClassField<?> other = (AbstractClassField<?>) obj;
-      return Objects.equals(this.classDefName, other.classDefName) && Objects.equals(this.name,
+      return Objects.equals(this.classRef, other.classRef) && Objects.equals(this.name,
           other.name);
     }
     return false;
   }
 
   @Override
+  public String serialize() {
+    return getClassDef().serialize() + "." + name;
+  }
+
+  @Override
   public String toString() {
-    return getClassDef() + "." + name;
+    return serialize();
   }
 
   protected static ModelUtils getModelUtils() {
