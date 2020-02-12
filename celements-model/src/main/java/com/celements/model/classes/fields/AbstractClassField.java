@@ -17,7 +17,6 @@ import org.apache.commons.lang.StringUtils;
 import org.xwiki.model.reference.ClassReference;
 
 import com.celements.model.classes.ClassDefinition;
-import com.celements.model.util.ModelUtils;
 import com.google.common.base.Strings;
 import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.PropertyClass;
@@ -73,6 +72,11 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
     }
 
     public abstract AbstractClassField<T> build();
+
+    // is called in static context, do not use ModelUtils
+    private static final ClassReference resolveClassRef(String classDefName) {
+      return new ClassReference(classDefName.split("\\.")[0], classDefName.split("\\.")[1]);
+    }
 
   }
 
@@ -162,14 +166,6 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
   @Override
   public String toString() {
     return serialize();
-  }
-
-  protected static ModelUtils getModelUtils() {
-    return Utils.getComponent(ModelUtils.class);
-  }
-
-  private static final ClassReference resolveClassRef(String classDefName) {
-    return new ClassReference(getModelUtils().resolveRef(classDefName));
   }
 
 }
