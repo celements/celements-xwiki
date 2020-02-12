@@ -36,7 +36,7 @@ public class ClassReference extends EntityReference implements ImmutableReferenc
   }
 
   public ClassReference(String fullName) {
-    this(extractPart(fullName, 0), extractPart(fullName, 0));
+    this(extractPart(fullName, 0), extractPart(fullName, 1));
   }
 
   private void checkInit() {
