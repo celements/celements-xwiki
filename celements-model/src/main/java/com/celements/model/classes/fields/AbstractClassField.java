@@ -46,7 +46,7 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
      */
     @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
-      this(resolveClassRef(classDefName), name);
+      this(new ClassReference(classDefName), name);
     }
 
     public Builder(@NotNull ClassReference classRef, @NotNull String name) {
@@ -72,11 +72,6 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
     }
 
     public abstract AbstractClassField<T> build();
-
-    // is called in static context, do not use ModelUtils
-    private static final ClassReference resolveClassRef(String classDefName) {
-      return new ClassReference(classDefName.split("\\.")[0], classDefName.split("\\.")[1]);
-    }
 
   }
 
@@ -160,7 +155,7 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   @Override
   public String serialize() {
-    return getClassDef().serialize() + "." + name;
+    return getClassReference().serialize() + "." + name;
   }
 
   @Override
