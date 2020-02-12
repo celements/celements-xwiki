@@ -47,7 +47,7 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
      */
     @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
-      this(getModelUtils().resolveRef(classDefName, ClassReference.class), name);
+      this(resolveClassRef(classDefName), name);
     }
 
     public Builder(@NotNull ClassReference classRef, @NotNull String name) {
@@ -166,6 +166,10 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   protected static ModelUtils getModelUtils() {
     return Utils.getComponent(ModelUtils.class);
+  }
+
+  private static final ClassReference resolveClassRef(String classDefName) {
+    return new ClassReference(getModelUtils().resolveRef(classDefName));
   }
 
 }
