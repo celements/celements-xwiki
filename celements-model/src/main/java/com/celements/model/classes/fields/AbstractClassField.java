@@ -103,7 +103,7 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   @Override
   public ClassReference getClassReference() {
-    return getClassDef().getClassReference();
+    return classRef;
   }
 
   @Override
