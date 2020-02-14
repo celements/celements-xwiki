@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xwiki.model.reference.ClassReference;
 
 import com.celements.marshalling.Marshaller;
 import com.celements.model.classes.fields.AbstractClassField;
@@ -45,9 +46,16 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
     protected DisplayType displayType;
     protected Boolean picker;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name,
         @NotNull Marshaller<E> marshaller) {
       super(classDefName, name);
+      this.marshaller = checkNotNull(marshaller);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name,
+        @NotNull Marshaller<E> marshaller) {
+      super(classRef, name);
       this.marshaller = checkNotNull(marshaller);
     }
 

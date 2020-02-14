@@ -7,6 +7,8 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.celements.marshalling.Marshaller;
 import com.google.common.base.Strings;
 import com.xpn.xwiki.objects.classes.ListClass;
@@ -23,44 +25,20 @@ public abstract class ListField<T> extends AbstractListField<List<T>, T> {
     protected Boolean multiSelect;
     protected String separator;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name,
         @NotNull Marshaller<T> marshaller) {
       super(classDefName, name, marshaller);
     }
 
+    public Builder(@NotNull ClassReference classRef, @NotNull String name,
+        @NotNull Marshaller<T> marshaller) {
+      super(classRef, name, marshaller);
+    }
+
     public B multiSelect(@Nullable Boolean val) {
       multiSelect = val;
       return getThis();
-    }
-
-    /**
-     * @deprecated since 1.2, deprecated override needed for backwards compatibility with older
-     *             version to avoid NoSuchMethodError
-     */
-    @Deprecated
-    @Override
-    public B size(@Nullable Integer val) {
-      return super.size(val);
-    }
-
-    /**
-     * @deprecated since 1.2, deprecated override needed for backwards compatibility with older
-     *             version to avoid NoSuchMethodError
-     */
-    @Deprecated
-    @Override
-    public B displayType(@Nullable String val) {
-      return super.displayType(val);
-    }
-
-    /**
-     * @deprecated since 1.2, deprecated override needed for backwards compatibility with older
-     *             version to avoid NoSuchMethodError
-     */
-    @Deprecated
-    @Override
-    public B picker(@Nullable Boolean val) {
-      return super.picker(val);
     }
 
     public B separator(@Nullable String val) {

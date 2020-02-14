@@ -43,6 +43,7 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
     /**
      * @deprecated instead use {@link Builder#Builder(ClassReference, String)}
+     * @since 4.3
      */
     @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {

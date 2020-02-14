@@ -1,6 +1,8 @@
 package com.celements.logging;
 
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -118,6 +120,26 @@ public final class LogUtils {
       public String toString() {
         return this.get();
       }
+    };
+  }
+
+  public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger, LogLevel LogLevel,
+      String msg) {
+    return t -> {
+      boolean ret = predicate.test(t);
+      if (!ret) {
+        log(logger, LogLevel, "{} [{}]", msg, t);
+      }
+      return ret;
+    };
+  }
+
+  public static <T, R> Function<T, R> log(Function<T, R> function, Logger logger,
+      LogLevel LogLevel, String msg) {
+    return t -> {
+      R ret = function.apply(t);
+      log(logger, LogLevel, "{} [{}]", msg, t);
+      return ret;
     };
   }
 

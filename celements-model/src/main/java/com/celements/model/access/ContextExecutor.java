@@ -23,6 +23,10 @@ public abstract class ContextExecutor<T, E extends Throwable> {
 
   private WikiReference wiki;
 
+  public WikiReference getWiki() {
+    return References.cloneRef(wiki, WikiReference.class);
+  }
+
   public ContextExecutor<T, E> inWiki(WikiReference wiki) {
     this.wiki = References.cloneRef(wiki, WikiReference.class);
     return this;

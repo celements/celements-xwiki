@@ -3,6 +3,8 @@ package com.celements.model.classes.fields.list;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.celements.marshalling.DefaultMarshaller;
 import com.xpn.xwiki.objects.classes.GroupsClass;
 
@@ -15,8 +17,14 @@ public final class ListOfGroupsField extends ListField<String> {
 
     private Boolean usesList;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name, new DefaultMarshaller());
+      separator(",");
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      super(classRef, name, new DefaultMarshaller());
       separator(",");
     }
 

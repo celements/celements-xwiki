@@ -1,7 +1,11 @@
 package com.celements.model.classes.fields;
 
+import static com.google.common.base.Preconditions.*;
+
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
+
+import org.xwiki.model.reference.ClassReference;
 
 import com.celements.marshalling.Marshaller;
 import com.xpn.xwiki.objects.classes.PropertyClass;
@@ -17,10 +21,17 @@ public class CustomStringField<T> extends AbstractClassField<T> implements Custo
     private final Marshaller<T> marshaller;
     private Integer size;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name,
         @NotNull Marshaller<T> marshaller) {
       super(classDefName, name);
-      this.marshaller = marshaller;
+      this.marshaller = checkNotNull(marshaller);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name,
+        @NotNull Marshaller<T> marshaller) {
+      super(classRef, name);
+      this.marshaller = checkNotNull(marshaller);
     }
 
     @Override
