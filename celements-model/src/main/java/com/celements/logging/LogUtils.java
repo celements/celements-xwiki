@@ -1,6 +1,7 @@
 package com.celements.logging;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -131,7 +132,7 @@ public final class LogUtils {
     return t -> {
       boolean ret = predicate.test(t);
       if (ret && isLevelEnabled(logger, levelMatched)) {
-        log(logger, levelMatched, "{}: matched [{}]", msg, t);
+        log(logger, levelMatched, "{}: [{}]", msg, t);
       } else if (!ret && isLevelEnabled(logger, levelSkipped)) {
         log(logger, levelMatched, "{}: skipped [{}]", msg, t);
       }
@@ -145,8 +146,15 @@ public final class LogUtils {
    */
   public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger,
       LogLevel level, String msg) {
-    LogLevel lower = LogLevel.values()[Math.max(level.ordinal() - 1, 0)];
+    LogLevel lower = (level.ordinal() > 0) ? LogLevel.values()[level.ordinal() - 1] : null;
     return log(predicate, logger, level, lower, msg);
+  }
+
+  /**
+   * Simplifies logging with lambda expressions. Logs present {@link Optional}.
+   */
+  public static <T> Predicate<Optional<T>> isPresentLog(Logger logger, LogLevel level, String msg) {
+    return log(Optional<T>::isPresent, logger, level, null, msg);
   }
 
   /**
