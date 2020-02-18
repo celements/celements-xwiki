@@ -11,9 +11,9 @@ public final class LogUtils {
 
   private LogUtils() {}
 
-  public static void log(Logger logger, LogLevel LogLevel, String msg) {
-    if ((logger != null) && (LogLevel != null)) {
-      switch (LogLevel) {
+  public static void log(Logger logger, LogLevel level, String msg) {
+    if ((logger != null) && (level != null)) {
+      switch (level) {
         case TRACE:
           logger.trace(msg);
           break;
@@ -33,9 +33,9 @@ public final class LogUtils {
     }
   }
 
-  public static void log(Logger logger, LogLevel LogLevel, String msg, Throwable throwable) {
-    if ((logger != null) && (LogLevel != null)) {
-      switch (LogLevel) {
+  public static void log(Logger logger, LogLevel level, String msg, Throwable throwable) {
+    if ((logger != null) && (level != null)) {
+      switch (level) {
         case TRACE:
           logger.trace(msg, throwable);
           break;
@@ -55,9 +55,9 @@ public final class LogUtils {
     }
   }
 
-  public static void log(Logger logger, LogLevel LogLevel, String msg, Object... args) {
-    if ((logger != null) && (LogLevel != null)) {
-      switch (LogLevel) {
+  public static void log(Logger logger, LogLevel level, String msg, Object... args) {
+    if ((logger != null) && (level != null)) {
+      switch (level) {
         case TRACE:
           logger.trace(msg, args);
           break;
@@ -77,10 +77,10 @@ public final class LogUtils {
     }
   }
 
-  public static boolean isLevelEnabled(Logger logger, LogLevel LogLevel) {
+  public static boolean isLevelEnabled(Logger logger, LogLevel level) {
     boolean ret = false;
-    if ((logger != null) && (LogLevel != null)) {
-      switch (LogLevel) {
+    if ((logger != null) && (level != null)) {
+      switch (level) {
         case TRACE:
           ret = logger.isTraceEnabled();
           break;
@@ -123,22 +123,42 @@ public final class LogUtils {
     };
   }
 
-  public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger, LogLevel LogLevel,
-      String msg) {
+  /**
+   * Simplifies logging with lambda expressions. Logs object filtering.
+   */
+  public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger,
+      LogLevel levelMatched, LogLevel levelSkipped, String msg) {
     return t -> {
       boolean ret = predicate.test(t);
-      if (!ret) {
-        log(logger, LogLevel, "{} [{}]", msg, t);
+      if (ret && isLevelEnabled(logger, levelMatched)) {
+        log(logger, levelMatched, "{}: matched [{}]", msg, t);
+      } else if (!ret && isLevelEnabled(logger, levelSkipped)) {
+        log(logger, levelMatched, "{}: skipped [{}]", msg, t);
       }
       return ret;
     };
   }
 
+  /**
+   * Simplifies logging with lambda expressions. Logs object filtering. Skipped objects are logged
+   * one level below given level.
+   */
+  public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger,
+      LogLevel level, String msg) {
+    LogLevel lower = LogLevel.values()[Math.max(level.ordinal() - 1, 0)];
+    return log(predicate, logger, level, lower, msg);
+  }
+
+  /**
+   * Simplifies logging with lambda expressions. Logs object mapping.
+   */
   public static <T, R> Function<T, R> log(Function<T, R> function, Logger logger,
-      LogLevel LogLevel, String msg) {
+      LogLevel level, String msg) {
     return t -> {
       R ret = function.apply(t);
-      log(logger, LogLevel, "{} [{}]", msg, t);
+      if (isLevelEnabled(logger, level)) {
+        log(logger, level, "{}: [{}] -> [{}]", msg, t, ret);
+      }
       return ret;
     };
   }
