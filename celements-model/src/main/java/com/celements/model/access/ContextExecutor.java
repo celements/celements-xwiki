@@ -21,22 +21,22 @@ import com.xpn.xwiki.web.Utils;
  */
 public abstract class ContextExecutor<T, E extends Throwable> {
 
-  private WikiReference wiki;
+  private WikiReference wikiRef;
 
-  public WikiReference getWiki() {
-    return References.cloneRef(wiki, WikiReference.class);
+  public WikiReference getWikiRef() {
+    return References.cloneRef(wikiRef, WikiReference.class);
   }
 
   public ContextExecutor<T, E> inWiki(WikiReference wiki) {
-    this.wiki = References.cloneRef(wiki, WikiReference.class);
+    this.wikiRef = References.cloneRef(wiki, WikiReference.class);
     return this;
   }
 
   public T execute() throws E {
-    checkState(wiki != null, "No wiki set for ContextExecutor");
+    checkState(wikiRef != null, "No wiki set for ContextExecutor");
     WikiReference currWiki = getContext().getWikiRef();
     try {
-      getContext().setWikiRef(wiki);
+      getContext().setWikiRef(wikiRef);
       return call();
     } finally {
       getContext().setWikiRef(currWiki);
