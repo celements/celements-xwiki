@@ -1,5 +1,6 @@
 package com.celements.model.classes.fields.list.single;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
@@ -24,6 +25,12 @@ public final class DBSingleListField extends CustomDBSingleListField<String> {
     @Override
     public Builder getThis() {
       return this;
+    }
+
+    // override needed for backwards compatibility with older version to avoid NoSuchMethodError
+    @Override
+    public Builder sql(@Nullable String val) {
+      return super.sql(val);
     }
 
     @Override

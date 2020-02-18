@@ -1,5 +1,7 @@
 package com.celements.model.classes.fields.list;
 
+import java.util.List;
+
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
@@ -17,6 +19,12 @@ public final class StaticListField extends StringListField {
 
     public Builder(@NotNull ClassReference classRef, @NotNull String name) {
       super(classRef, name);
+    }
+
+    // override needed for backwards compatibility with older version to avoid NoSuchMethodError
+    @Override
+    public Builder values(List<String> values) {
+      return super.values(values);
     }
 
     @Override
