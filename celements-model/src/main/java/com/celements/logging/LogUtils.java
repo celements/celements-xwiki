@@ -153,7 +153,7 @@ public final class LogUtils {
   /**
    * Simplifies logging with lambda expressions. Logs present {@link Optional}.
    */
-  public static <T> Predicate<Optional<T>> isPresentLog(Logger logger, LogLevel level, String msg) {
+  public static <T> Predicate<Optional<T>> logIfPresent(Logger logger, LogLevel level, String msg) {
     return log(Optional<T>::isPresent, logger, level, null, msg);
   }
 
