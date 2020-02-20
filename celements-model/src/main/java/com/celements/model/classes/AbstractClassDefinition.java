@@ -72,12 +72,16 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
   /**
    * @return space name for this class definition.
    */
-  protected abstract @NotNull String getClassSpaceName();
+  protected @NotNull String getClassSpaceName() {
+    return getClassReference().getParent().getName();
+  }
 
   /**
    * @return doc name for this class definition.
    */
-  protected abstract @NotNull String getClassDocName();
+  protected @NotNull String getClassDocName() {
+    return getClassReference().getName();
+  }
 
   @Override
   public boolean isBlacklisted() {
