@@ -1,5 +1,7 @@
 package com.celements.model.classes;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,7 +27,7 @@ import com.google.common.collect.ImmutableMap;
 
 public abstract class AbstractClassDefinition implements ClassDefinition {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClassDefinition.class);
+  protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Requirement
   protected ModelContext context;
@@ -38,6 +40,21 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
 
   private ClassReference classRef;
   private volatile Map<String, ClassField<?>> fields;
+
+  /**
+   * instead use {@link #AbstractClassDefinition(ClassReference)}
+   */
+  @Deprecated
+  protected AbstractClassDefinition() {}
+
+  protected AbstractClassDefinition(ClassReference classRef) {
+    this.classRef = classRef;
+  }
+
+  @Override
+  public String getName() {
+    return getClassReference().serialize();
+  }
 
   @Override
   public ClassReference getClassReference() {
@@ -73,14 +90,16 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
    * @return space name for this class definition.
    */
   protected @NotNull String getClassSpaceName() {
-    return getClassReference().getParent().getName();
+    return checkNotNull(classRef, "use constructor with ClassReference")
+        .getParent().getName();
   }
 
   /**
    * @return doc name for this class definition.
    */
   protected @NotNull String getClassDocName() {
-    return getClassReference().getName();
+    return checkNotNull(classRef, "use constructor with ClassReference")
+        .getName();
   }
 
   @Override
@@ -90,7 +109,7 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
     if (prop instanceof List) {
       ret = ((List<?>) prop).contains(getName());
     }
-    LOGGER.debug("isBlacklisted: '{}' for '{}'", ret, getName());
+    log.debug("isBlacklisted: '{}' for '{}'", ret, getName());
     return ret;
   }
 
@@ -109,7 +128,7 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
             map.put(field.getName(), field);
           }
         } catch (IllegalAccessException | IllegalArgumentException exc) {
-          LOGGER.error("failed to get field '{}", declField, exc);
+          log.error("failed to get field '{}", declField, exc);
         }
       }
       fields = ImmutableMap.copyOf(map);
