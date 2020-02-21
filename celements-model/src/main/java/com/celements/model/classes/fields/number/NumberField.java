@@ -3,6 +3,8 @@ package com.celements.model.classes.fields.number;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.celements.model.classes.fields.AbstractClassField;
 import com.xpn.xwiki.objects.classes.NumberClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
@@ -16,8 +18,13 @@ public abstract class NumberField<T extends Number> extends AbstractClassField<T
 
     private Integer size;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      super(classRef, name);
     }
 
     public B size(@Nullable Integer val) {

@@ -5,6 +5,8 @@ import java.util.List;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.celements.marshalling.Marshaller;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
@@ -22,9 +24,15 @@ public class CustomListField<T> extends ListField<T> {
 
     private List<T> values;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name,
         @NotNull Marshaller<T> marshaller) {
       super(classDefName, name, marshaller);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name,
+        @NotNull Marshaller<T> marshaller) {
+      super(classRef, name, marshaller);
     }
 
     @Override

@@ -5,6 +5,8 @@ import java.util.Arrays;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.celements.marshalling.EnumMarshaller;
 
 @Immutable
@@ -17,9 +19,21 @@ public final class EnumSingleListField<E extends Enum<E>> extends CustomSingleLi
       this(classDefName, name, new EnumMarshaller<>(enumType));
     }
 
+    public Builder(@NotNull ClassReference classRef, @NotNull String name,
+        @NotNull Class<E> enumType) {
+      this(classRef, name, new EnumMarshaller<>(enumType));
+    }
+
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name,
         @NotNull EnumMarshaller<E> marshaller) {
       super(classDefName, name, marshaller);
+      values(Arrays.asList(marshaller.getToken().getEnumConstants()));
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name,
+        @NotNull EnumMarshaller<E> marshaller) {
+      super(classRef, name, marshaller);
       values(Arrays.asList(marshaller.getToken().getEnumConstants()));
     }
 

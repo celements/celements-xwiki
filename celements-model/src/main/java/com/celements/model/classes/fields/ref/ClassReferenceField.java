@@ -10,8 +10,13 @@ public final class ClassReferenceField extends ReferenceField<ClassReference> {
 
   public static class Builder extends ReferenceField.Builder<Builder, ClassReference> {
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      super(classRef, name);
     }
 
     @Override

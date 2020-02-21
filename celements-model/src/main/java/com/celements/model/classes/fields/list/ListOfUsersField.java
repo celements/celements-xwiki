@@ -3,6 +3,8 @@ package com.celements.model.classes.fields.list;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.celements.marshalling.XWikiUserMarshaller;
 import com.xpn.xwiki.objects.classes.UsersClass;
 import com.xpn.xwiki.user.api.XWikiUser;
@@ -16,8 +18,14 @@ public final class ListOfUsersField extends ListField<XWikiUser> {
 
     private Boolean usesList;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name, new XWikiUserMarshaller());
+      separator(",");
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      super(classRef, name, new XWikiUserMarshaller());
       separator(",");
     }
 

@@ -2,7 +2,9 @@ package org.xwiki.model.reference;
 
 import static com.celements.model.util.References.*;
 import static com.google.common.base.Preconditions.*;
-import static java.text.MessageFormat.format;
+import static java.text.MessageFormat.*;
+
+import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -12,9 +14,7 @@ import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.PseudoClassDefinition;
 import com.celements.model.context.ModelContext;
-import com.celements.model.util.ModelUtils;
-import com.celements.model.util.ReferenceSerializationMode;
-import com.google.common.base.Function;
+import com.google.common.base.Splitter;
 import com.xpn.xwiki.web.Utils;
 
 @Immutable
@@ -33,6 +33,10 @@ public class ClassReference extends EntityReference implements ImmutableReferenc
   public ClassReference(String spaceName, String className) {
     super(className, EntityType.DOCUMENT, new EntityReference(spaceName, EntityType.SPACE));
     initialised = true;
+  }
+
+  public ClassReference(String fullName) {
+    this(extractPart(fullName, 0), extractPart(fullName, 1));
   }
 
   private void checkInit() {
@@ -59,6 +63,10 @@ public class ClassReference extends EntityReference implements ImmutableReferenc
   @Override
   public EntityReference getParent() {
     return super.getParent().clone();
+  }
+
+  private String getParentName() {
+    return super.getParent().getName();
   }
 
   @Override
@@ -93,21 +101,25 @@ public class ClassReference extends EntityReference implements ImmutableReferenc
 
   @Override
   public DocumentReference getDocRef(WikiReference wikiRef) {
-    return new ImmutableDocumentReference(getName(), new SpaceReference(getParent().getName(),
-        wikiRef));
+    return new ImmutableDocumentReference(getName(), new SpaceReference(getParentName(), wikiRef));
   }
 
   @Override
   public boolean isValidObjectClass() {
-    return !PseudoClassDefinition.CLASS_SPACE.equals(getParent().getName());
+    return !PseudoClassDefinition.CLASS_SPACE.equals(getParentName());
   }
 
+  @Override
   public String serialize() {
-    return serialize(ReferenceSerializationMode.COMPACT_WIKI);
+    return getParentName() + "." + getName();
   }
 
-  public String serialize(ReferenceSerializationMode mode) {
-    return getModelUtils().serializeRef(this, mode);
+  // is called in static context, do not use ModelUtils
+  private static String extractPart(String fullName, int i) {
+    List<String> parts = Splitter.on('.').omitEmptyStrings()
+        .splitToList(fullName.substring(fullName.indexOf(':') + 1));
+    checkArgument(parts.size() > i, "illegal class fullName [{0}]", fullName);
+    return parts.get(i);
   }
 
   @Override
@@ -118,20 +130,8 @@ public class ClassReference extends EntityReference implements ImmutableReferenc
     return super.equals(obj);
   }
 
-  private static ModelUtils getModelUtils() {
-    return Utils.getComponent(ModelUtils.class);
-  }
-
   private static ModelContext getModelContext() {
     return Utils.getComponent(ModelContext.class);
   }
-
-  public static final Function<DocumentReference, ClassReference> FUNC_DOC_TO_CLASS_REF = new Function<DocumentReference, ClassReference>() {
-
-    @Override
-    public ClassReference apply(DocumentReference docRef) {
-      return new ClassReference(docRef);
-    }
-  };
 
 }

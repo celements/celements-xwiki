@@ -4,6 +4,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.celements.marshalling.Marshaller;
 import com.xpn.xwiki.objects.classes.DBListClass;
 import com.xpn.xwiki.objects.classes.ListClass;
@@ -17,9 +19,15 @@ public class CustomDBListField<T> extends ListField<T> {
 
     private String sql;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name,
         @NotNull Marshaller<T> marshaller) {
       super(classDefName, name, marshaller);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name,
+        @NotNull Marshaller<T> marshaller) {
+      super(classRef, name, marshaller);
     }
 
     @Override

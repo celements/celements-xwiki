@@ -6,6 +6,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.google.common.base.Strings;
 import com.xpn.xwiki.objects.classes.DateClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
@@ -23,8 +25,13 @@ public final class DateField extends AbstractClassField<Date> {
     private Integer emptyIsToday;
     private String dateFormat;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      super(classRef, name);
     }
 
     @Override

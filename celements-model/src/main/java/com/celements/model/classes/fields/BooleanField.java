@@ -4,6 +4,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
+
 import com.google.common.base.Preconditions;
 import com.xpn.xwiki.objects.classes.BooleanClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
@@ -22,8 +24,13 @@ public final class BooleanField extends AbstractClassField<Boolean> implements
     private String displayType;
     private Integer defaultValue;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      super(classRef, name);
     }
 
     @Override
