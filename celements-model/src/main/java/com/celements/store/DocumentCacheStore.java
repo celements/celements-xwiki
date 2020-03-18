@@ -20,6 +20,9 @@
  */
 package com.celements.store;
 
+import static com.google.common.base.MoreObjects.*;
+import static com.google.common.base.Predicates.*;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +67,9 @@ import com.celements.model.metadata.ImmutableDocumentMetaData;
 import com.celements.model.util.ModelUtils;
 import com.celements.model.util.References;
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Streams;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -336,20 +342,12 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     }
     if (getExistCache() != null) {
       if ((doc.getTranslation() == 0) || (Boolean.TRUE.equals(docExists))) {
-        getExistCache().remove(origKey);
-        updateExistsCache(key, docExists);
+        setExistCache(origKey, null);
+        setExistCache(key, docExists);
       }
-      updateExistsCache(getKeyWithLang(doc), docExists);
+      setExistCache(doc, docExists);
     }
     return returnState;
-  }
-
-  private void updateExistsCache(String key, Boolean docExists) {
-    if (docExists == null) {
-      getExistCache().remove(key);
-    } else {
-      getExistCache().set(key, docExists);
-    }
   }
 
   InvalidateState invalidateDocCache(String key) {
@@ -366,7 +364,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
         synchronized (oldCachedDoc) {
           oldCachedDoc = getDocFromCache(key);
           if (oldCachedDoc != null) {
-            getDocCache().remove(key);
+            setDocCache(key, null);
             invalidState = InvalidateState.REMOVED;
           }
         }
@@ -734,18 +732,23 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     String key = getKeyWithLang(doc);
     Boolean exists = getExistCache().get(key);
     if (exists == null) {
-      exists = false;
-      for (String lang : getBackingStore().getTranslationList(doc, context)) {
-        String langKey = getKeyWithLang(doc.getDocumentReference(), lang);
-        getExistCache().set(langKey, true);
-        exists |= langKey.equals(key);
-      }
-      if (!exists) {
-        getExistCache().set(key, false);
-      }
+      List<String> existingLangs = getBackingStore().getTranslationList(doc, context);
+      existingLangs
+          .forEach(lang -> setExistCache(doc.getDocumentReference(), lang, true));
+      streamInexistentLanguages(doc, existingLangs, context)
+          .forEach(lang -> setExistCache(doc.getDocumentReference(), lang, false));
+      exists = firstNonNull(getExistCache().get(key), false);
     }
     LOGGER.trace("exists return '{}' for '{}'", exists, key);
     return exists;
+  }
+
+  private Stream<String> streamInexistentLanguages(XWikiDocument doc, List<String> existingLangs,
+      XWikiContext context) {
+    return Stream.concat(Stream.of(doc.getLanguage()), Streams.stream(Splitter.onPattern(" |,|\\|")
+        .omitEmptyStrings()
+        .split(context.getWiki().getXWikiPreference("languages", context))))
+        .filter(not(existingLangs::contains));
   }
 
   private Cache<XWikiDocument> getDocCache() {
@@ -753,9 +756,35 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     return this.docCache;
   }
 
+  private void setDocCache(String key, XWikiDocument doc) {
+    LOGGER.debug("setDocCache - {}{}", key, (doc == null ? " removed" : ""));
+    if (doc == null) {
+      getDocCache().remove(key);
+    } else {
+      getDocCache().set(key, doc);
+    }
+  }
+
   private Cache<Boolean> getExistCache() {
     initalize(); // make sure cache is initialized
     return this.existCache;
+  }
+
+  private void setExistCache(String key, Boolean exists) {
+    LOGGER.debug("setExistCache - {} to {}", key, exists);
+    if (exists == null) {
+      getExistCache().remove(key);
+    } else {
+      getExistCache().set(key, exists);
+    }
+  }
+
+  private void setExistCache(DocumentReference docRef, String lang, Boolean exists) {
+    setExistCache(getKeyWithLang(docRef, lang), exists);
+  }
+
+  private void setExistCache(XWikiDocument doc, Boolean exists) {
+    setExistCache(getKeyWithLang(doc), exists);
   }
 
   @Override
@@ -862,13 +891,13 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
                   Thread.currentThread().getId(), key);
               final String keyWithLang = getKeyWithLang(newDoc);
               if (!newDoc.isNew()) {
-                getDocCache().set(keyWithLang, newDoc);
-                getExistCache().set(getKey(newDoc.getDocumentReference()), true);
-                getExistCache().set(keyWithLang, true);
+                setDocCache(keyWithLang, newDoc);
+                setExistCache(getKey(newDoc.getDocumentReference()), true);
+                setExistCache(keyWithLang, true);
               } else {
                 LOGGER_DL.debug("DocumentLoader-{}: loading '{}' failed. Setting exists"
                     + " to FALSE for '{}'", Thread.currentThread().getId(), key, keyWithLang);
-                getExistCache().set(keyWithLang, false);
+                setExistCache(keyWithLang, false);
               }
               loadingDoc = newDoc;
             } else {
