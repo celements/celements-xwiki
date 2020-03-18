@@ -9,9 +9,11 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Spliterators;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -60,10 +62,10 @@ public class CelHibernateStoreDocumentPart {
     if (language.equals(doc.getDefaultLanguage())) {
       language = "";
     }
-    return streamExistingLangs(doc, context).anyMatch(language::equals);
+    return getExistingLangs(doc, context).contains(language);
   }
 
-  public Stream<String> streamExistingLangs(XWikiDocument doc, XWikiContext context)
+  public List<String> getExistingLangs(XWikiDocument doc, XWikiContext context)
       throws XWikiException, HibernateException {
     boolean bTransaction = true;
     try {
@@ -77,7 +79,8 @@ public class CelHibernateStoreDocumentPart {
       query.setString("fullName", serialize(doc));
       return streamResults(query)
           .filter(Objects::nonNull)
-          .map(Objects::toString);
+          .map(Objects::toString)
+          .collect(Collectors.toList());
     } finally {
       if (bTransaction) {
         store.endTransaction(context, false);

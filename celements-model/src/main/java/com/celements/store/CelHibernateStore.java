@@ -4,7 +4,6 @@ import static com.xpn.xwiki.XWikiException.*;
 
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
 
@@ -81,8 +80,7 @@ public class CelHibernateStore extends XWikiHibernateStore {
       throws XWikiException {
     try {
       log(LogLevel.INFO, "getTranslationList - start", doc);
-      List<String> ret = documentStorePart.streamExistingLangs(doc, context)
-          .collect(Collectors.toList());
+      List<String> ret = documentStorePart.getExistingLangs(doc, context);
       log(LogLevel.INFO, "getTranslationList - end", doc);
       return ret;
     } catch (HibernateException | XWikiException exc) {
