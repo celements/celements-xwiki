@@ -27,6 +27,7 @@ import com.celements.model.access.exception.DocumentDeleteException;
 import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.model.access.exception.DocumentSaveException;
 import com.celements.model.access.exception.ModelAccessRuntimeException;
+import com.celements.model.access.exception.TranslationCreateException;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
@@ -117,11 +118,17 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   @Override
   public XWikiDocument createDocument(DocumentReference docRef)
       throws DocumentAlreadyExistsException {
+    return createDocument(docRef, DEFAULT_LANG);
+  }
+
+  private XWikiDocument createDocument(DocumentReference docRef, String lang)
+      throws DocumentAlreadyExistsException {
     checkNotNull(docRef);
-    if (!exists(docRef, DEFAULT_LANG)) {
-      return strategy.createDocument(docRef, DEFAULT_LANG);
+    lang = normalizeLang(lang);
+    if (!exists(docRef, lang)) {
+      return strategy.createDocument(docRef, lang);
     } else {
-      throw new DocumentAlreadyExistsException(docRef);
+      throw new DocumentAlreadyExistsException(docRef, lang);
     }
   }
 
@@ -194,16 +201,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   public void deleteDocument(XWikiDocument doc, boolean totrash) throws DocumentDeleteException {
     checkNotNull(doc);
     List<XWikiDocument> toDelDocs = new ArrayList<>();
-    try {
-      for (String lang : doc.getTranslationList(context.getXWikiContext())) {
-        XWikiDocument tdoc = doc.getTranslatedDocument(lang, context.getXWikiContext());
-        if ((tdoc != null) && (tdoc != doc)) {
-          toDelDocs.add(tdoc);
-        }
-      }
-    } catch (XWikiException xwe) {
-      throw new DocumentDeleteException(doc.getDocumentReference(), xwe);
-    }
+    toDelDocs.addAll(getTranslations(doc.getDocumentReference()).values());
     toDelDocs.add(doc);
     for (XWikiDocument toDel : toDelDocs) {
       deleteDocumentWithoutTranslations(toDel, totrash);
@@ -221,7 +219,30 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
           new Throwable());
     }
     strategy.deleteDocument(doc, totrash);
+  }
 
+  @Override
+  public XWikiDocument createTranslation(DocumentReference docRef, String lang)
+      throws TranslationCreateException {
+    if (!isMultiLingual()) {
+      throw new TranslationCreateException(docRef, lang);
+    }
+    try {
+      XWikiDocument mainDoc = getDocument(docRef);
+      // TODO check if lang is valid already happening here?
+      XWikiDocument transDoc = createDocument(docRef, lang);
+      transDoc.setTranslation(1);
+      transDoc.setDefaultLanguage(mainDoc.getDefaultLanguage());
+      transDoc.setStore(mainDoc.getStore());
+      transDoc.setContent(mainDoc.getContent());
+      return transDoc;
+    } catch (DocumentNotExistsException | DocumentAlreadyExistsException exc) {
+      throw new TranslationCreateException(docRef, lang, exc);
+    }
+  }
+
+  private boolean isMultiLingual() {
+    return context.getXWikiContext().getWiki().isMultiLingual(context.getXWikiContext());
   }
 
   @Override

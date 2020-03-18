@@ -31,12 +31,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.cache.Cache;
 import org.xwiki.cache.CacheException;
-import org.xwiki.cache.CacheFactory;
 import org.xwiki.cache.CacheManager;
 import org.xwiki.cache.config.CacheConfiguration;
 import org.xwiki.cache.eviction.EntryEvictionConfiguration;
@@ -85,8 +85,8 @@ import com.xpn.xwiki.web.Utils;
 @Component(DocumentCacheStore.COMPONENT_NAME)
 public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataStoreExtension {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(DocumentCacheStore.class);
-  private final static Logger LOGGER_DL = LoggerFactory.getLogger(DocumentLoader.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DocumentCacheStore.class);
+  private static final Logger LOGGER_DL = LoggerFactory.getLogger(DocumentLoader.class);
 
   public static final String COMPONENT_NAME = "DocumentCacheStore";
 
@@ -130,39 +130,36 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
 
   private final ConcurrentMap<String, DocumentLoader> documentLoaderMap = new ConcurrentHashMap<>();
 
+  // SonarLint Rule squid:S3064 - Assignment of lazy-initialized members should be
+  // the last step with double-checked locking
   void initalize() {
-    if ((this.docCache == null) || (this.existCache == null)) {
-      synchronized (this) {
-        try {
+    try {
+      if (this.docCache == null) {
+        synchronized (this) {
           if (this.docCache == null) {
-            initializeDocCache();
+            this.docCache = newDocCache();
           }
-          if (this.existCache == null) {
-            initializeExistCache();
-          }
-        } catch (CacheException cacheExp) {
-          LOGGER.error("Failed to initialize document cache.", cacheExp);
-          throw new RuntimeException("FATAL: Failed to initialize document cache.", cacheExp);
         }
       }
+      if (this.existCache == null) {
+        synchronized (this) {
+          if (this.existCache == null) {
+            this.existCache = newExistCache();
+          }
+        }
+      }
+    } catch (CacheException | ComponentLookupException exc) {
+      throw new IllegalStateException("FATAL: Failed to initialize document cache.", exc);
     }
   }
 
-  private void initializeExistCache() throws CacheException {
-    CacheConfiguration config = new CacheConfiguration();
-    config.setConfigurationId("xwiki.store.pageexistcache");
+  private Cache<Boolean> newExistCache() throws CacheException, ComponentLookupException {
+    CacheConfiguration cacheCfg = new CacheConfiguration();
+    cacheCfg.setConfigurationId("xwiki.store.pageexistcache");
     LRUEvictionConfiguration lru = new LRUEvictionConfiguration();
     lru.setMaxEntries(getExistCacheCapacity());
-    config.put(EntryEvictionConfiguration.CONFIGURATIONID, lru);
-    existCache = getCacheFactory().newCache(config);
-  }
-
-  private CacheFactory getCacheFactory() {
-    try {
-      return cacheManager.getCacheFactory();
-    } catch (ComponentLookupException exp) {
-      throw new RuntimeException("Failed to get cache factory component", exp);
-    }
+    cacheCfg.put(EntryEvictionConfiguration.CONFIGURATIONID, lru);
+    return cacheManager.getCacheFactory().newCache(cacheCfg);
   }
 
   private int getExistCacheCapacity() {
@@ -187,13 +184,13 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     return existCacheCapacity;
   }
 
-  private void initializeDocCache() throws CacheException {
-    CacheConfiguration config = new CacheConfiguration();
-    config.setConfigurationId("xwiki.store.pagecache");
+  private Cache<XWikiDocument> newDocCache() throws CacheException, ComponentLookupException {
+    CacheConfiguration cacheCfg = new CacheConfiguration();
+    cacheCfg.setConfigurationId("xwiki.store.pagecache");
     LRUEvictionConfiguration lru = new LRUEvictionConfiguration();
     lru.setMaxEntries(getDocCacheCapacity());
-    config.put(EntryEvictionConfiguration.CONFIGURATIONID, lru);
-    docCache = getCacheFactory().newCache(config);
+    cacheCfg.put(EntryEvictionConfiguration.CONFIGURATIONID, lru);
+    return cacheManager.getCacheFactory().newCache(cacheCfg);
   }
 
   private int getDocCacheCapacity() {
@@ -295,7 +292,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
 
   String getKeyWithLang(XWikiDocument doc) {
     String language = doc.getLanguage();
-    if (language.isEmpty() || language.equals(doc.getDefaultLanguage())) {
+    if (language.equals(doc.getDefaultLanguage())) {
       language = "";
     }
     return getKeyWithLang(doc.getDocumentReference(), language);
@@ -338,7 +335,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
       }
     }
     if (getExistCache() != null) {
-      if ((doc.getTranslation() == 0) || (docExists == Boolean.TRUE)) {
+      if ((doc.getTranslation() == 0) || (Boolean.TRUE.equals(docExists))) {
         getExistCache().remove(origKey);
         updateExistsCache(key, docExists);
       }
@@ -414,7 +411,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   }
 
   private boolean doesNotExistsForKey(String key) {
-    return getExistCache().get(key) == Boolean.FALSE;
+    return Boolean.FALSE.equals(getExistCache().get(key));
   }
 
   /**
@@ -734,17 +731,21 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   }
 
   private boolean existsInternal(XWikiDocument doc, XWikiContext context) throws XWikiException {
-    String key = getKey(doc.getDocumentReference());
-    Boolean result = getExistCache().get(key);
-    if (result == null) {
-      result = (getDocCache().get(key) != null);
-      if (!result) {
-        result = getBackingStore().exists(doc, context);
+    String key = getKeyWithLang(doc);
+    Boolean exists = getExistCache().get(key);
+    if (exists == null) {
+      exists = false;
+      for (String lang : getBackingStore().getTranslationList(doc, context)) {
+        String langKey = getKeyWithLang(doc.getDocumentReference(), lang);
+        getExistCache().set(langKey, true);
+        exists |= langKey.equals(key);
       }
-      getExistCache().set(key, result);
+      if (!exists) {
+        getExistCache().set(key, false);
+      }
     }
-    LOGGER.trace("exists return '{}' for '{}'", result, key);
-    return result;
+    LOGGER.trace("exists return '{}' for '{}'", exists, key);
+    return exists;
   }
 
   private Cache<XWikiDocument> getDocCache() {
@@ -775,7 +776,9 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   @Override
   public List<String> getTranslationList(XWikiDocument doc, XWikiContext context)
       throws XWikiException {
-    return getBackingStore().getTranslationList(doc, context);
+    return getBackingStore().getTranslationList(doc, context).stream()
+        .filter(lang -> !lang.isEmpty())
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -783,14 +786,14 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     return getBackingStore().getQueryManager();
   }
 
-  static enum InvalidateState {
+  enum InvalidateState {
 
     CACHE_MISS, REMOVED, LOADING_CANCELED, LOADING_MULTI_CANCELED, LOADING_CANCEL_FAILED
 
   }
 
-  private static final int _DOCSTATE_LOADING = 0;
-  private static final int _DOCSTATE_FINISHED = Integer.MAX_VALUE;
+  private static final int DOCSTATE_LOADING = 0;
+  private static final int DOCSTATE_FINISHED = Integer.MAX_VALUE;
 
   private class DocumentLoader {
 
@@ -804,7 +807,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
      * if loadingState equals _DOCSTATE_FINISHED or is at least greater _DOCSTATE_LOADING loading
      * finished before any canceling happened
      */
-    private final AtomicInteger loadingState = new AtomicInteger(_DOCSTATE_LOADING);
+    private final AtomicInteger loadingState = new AtomicInteger(DOCSTATE_LOADING);
 
     private DocumentLoader(String key) {
       this.key = key;
@@ -842,11 +845,11 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
             // if a thread is just between the document cache miss and getting the documentLoader
             // when the documentLoader removes itself from the map, then a new documentLoader is
             // generated. Therefore we double check here that still no document is in cache.
-            loadedDoc = getDocCache().get(key);
-            if (loadedDoc == null) {
+            XWikiDocument loadingDoc = getDocCache().get(key);
+            if (loadingDoc == null) {
               XWikiDocument newDoc = null;
               do {
-                if ((loadingState.getAndSet(_DOCSTATE_LOADING) < _DOCSTATE_LOADING)
+                if ((loadingState.getAndSet(DOCSTATE_LOADING) < DOCSTATE_LOADING)
                     && (newDoc != null)) {
                   LOGGER_DL.info("DocumentLoader-{}: invalidated docloader '{}' reloading",
                       Thread.currentThread().getId(), key);
@@ -854,7 +857,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
                 // use a further synchronized method call to prevent an unsafe publication of the
                 // new document over the cache
                 newDoc = new DocumentBuilder().buildDocument(key, doc, context);
-              } while (!loadingState.compareAndSet(_DOCSTATE_LOADING, _DOCSTATE_FINISHED));
+              } while (!loadingState.compareAndSet(DOCSTATE_LOADING, DOCSTATE_FINISHED));
               LOGGER_DL.debug("DocumentLoader-{}: put doc '{}' in cache",
                   Thread.currentThread().getId(), key);
               final String keyWithLang = getKeyWithLang(newDoc);
@@ -867,12 +870,15 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
                     + " to FALSE for '{}'", Thread.currentThread().getId(), key, keyWithLang);
                 getExistCache().set(keyWithLang, false);
               }
-              loadedDoc = newDoc;
+              loadingDoc = newDoc;
             } else {
               LOGGER_DL.debug("DocumentLoader-{}: found in cache skip loding for '{}'",
                   Thread.currentThread().getId(), key);
             }
             documentLoaderMap.remove(key);
+            // SonarLint Rule squid:S3064 - Assignment of lazy-initialized members should be
+            // the last step with double-checked locking
+            loadedDoc = loadingDoc;
           }
         }
       }

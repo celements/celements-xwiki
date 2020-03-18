@@ -1,5 +1,8 @@
 package com.celements.model.access;
 
+import static com.celements.model.access.IModelAccessFacade.*;
+import static com.celements.rights.access.EAccessLevel.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,7 +20,7 @@ import com.celements.model.access.exception.DocumentLoadException;
 import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.rights.access.EAccessLevel;
 import com.celements.rights.access.IRightsAccessFacadeRole;
-import com.celements.rights.access.exceptions.NoAccessRightsException;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.api.Document;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -37,42 +40,57 @@ public class ModelAccessScriptService implements ScriptService {
   IRightsAccessFacadeRole rightsAccess;
 
   public Document getDocument(DocumentReference docRef) {
+    return getDocument(docRef, DEFAULT_LANG);
+  }
+
+  public Document getDocument(DocumentReference docRef, String lang) {
     Document ret = null;
     try {
       if (rightsAccess.hasAccessLevel(docRef, EAccessLevel.VIEW)) {
-        XWikiDocument doc = modelAccess.getDocument(docRef);
+        XWikiDocument doc = modelAccess.getDocument(docRef, lang);
         ret = modelAccess.getApiDocument(doc);
       }
-    } catch (DocumentNotExistsException exc) {
-      LOGGER.info("Doc does not exist '{}'", docRef, exc);
-    } catch (DocumentLoadException exc) {
-      LOGGER.error("Failed to load doc '{}'", docRef, exc);
-    } catch (NoAccessRightsException exc) {
-      LOGGER.error("no '{}' access rights for user '{}' on doc '{}'.", exc.getExpectedAccessLevel(),
-          exc.getUser(), docRef, exc);
+    } catch (Exception exc) {
+      LOGGER.info("failed to get doc [{}], lang [{}]", docRef, lang, exc);
     }
     return ret;
   }
 
   public Document getOrCreateDocument(DocumentReference docRef) {
+    return getOrCreateDocument(docRef, DEFAULT_LANG);
+  }
+
+  public Document getOrCreateDocument(DocumentReference docRef, String lang) {
     Document ret = null;
     try {
-      if (rightsAccess.hasAccessLevel(docRef, EAccessLevel.VIEW) && rightsAccess.hasAccessLevel(
-          docRef, EAccessLevel.EDIT)) {
-        XWikiDocument doc = modelAccess.getOrCreateDocument(docRef);
-        ret = modelAccess.getApiDocument(doc);
+      XWikiDocument xdoc = null;
+      if (modelAccess.exists(docRef, lang) && rightsAccess.hasAccessLevel(docRef, VIEW)) {
+        xdoc = modelAccess.getDocument(docRef);
+      } else if (rightsAccess.hasAccessLevel(docRef, EAccessLevel.EDIT)) {
+        // TODO rights check working on not existing doc?
+        if (Strings.isNullOrEmpty(lang)) {
+          xdoc = modelAccess.createDocument(docRef);
+        } else {
+          xdoc = modelAccess.createTranslation(docRef, lang);
+        }
       }
-    } catch (DocumentLoadException exc) {
-      LOGGER.error("Failed to load doc '{}'", docRef, exc);
-    } catch (NoAccessRightsException exc) {
-      LOGGER.error("no '{}' access rights for user '{}' on doc '{}'.", exc.getExpectedAccessLevel(),
-          exc.getUser(), docRef, exc);
+      if (xdoc != null) {
+        ret = modelAccess.getApiDocument(xdoc);
+      }
+    } catch (
+
+    Exception exc) {
+      LOGGER.info("failed to get or create doc [{}]", docRef, exc);
     }
     return ret;
   }
 
   public boolean exists(DocumentReference docRef) {
     return modelAccess.exists(docRef);
+  }
+
+  public boolean exists(DocumentReference docRef, String lang) {
+    return modelAccess.exists(docRef, lang);
   }
 
   public com.xpn.xwiki.api.Object getObject(DocumentReference docRef, DocumentReference classRef) {
@@ -84,7 +102,8 @@ public class ModelAccessScriptService implements ScriptService {
     com.xpn.xwiki.api.Object ret = null;
     try {
       if (rightsAccess.hasAccessLevel(docRef, EAccessLevel.VIEW)) {
-        ret = modelAccess.getApiObjectWithoutRightCheck(modelAccess.getXObject(docRef, classRef));
+        ret = modelAccess.getApiObjectWithoutRightCheck(modelAccess.getXObject(docRef, classRef,
+            key, value));
       }
     } catch (DocumentNotExistsException exc) {
       LOGGER.info("Doc does not exist '{}'", docRef, exc);

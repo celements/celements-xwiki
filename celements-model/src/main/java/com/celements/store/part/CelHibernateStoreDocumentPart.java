@@ -10,6 +10,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -26,6 +30,7 @@ import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
+import com.celements.model.util.ReferenceSerializationMode;
 import com.celements.store.CelHibernateStore;
 import com.celements.web.classes.oldcore.XWikiGroupsClass;
 import com.xpn.xwiki.XWikiContext;
@@ -47,6 +52,33 @@ public class CelHibernateStoreDocumentPart {
   public CelHibernateStoreDocumentPart(CelHibernateStore store) {
     this.store = checkNotNull(store);
     this.savePrepCmd = new DocumentSavePreparationCommand(store);
+  }
+
+  public boolean exists(XWikiDocument doc, XWikiContext context) throws HibernateException {
+    String language = doc.getLanguage();
+    if (language.equals(doc.getDefaultLanguage())) {
+      language = "";
+    }
+    return streamExistingLangs(doc, context).anyMatch(language::equals);
+  }
+
+  public Stream<String> streamExistingLangs(XWikiDocument doc, XWikiContext context)
+      throws HibernateException {
+    doc.setStore(store);
+    store.checkHibernate(context);
+    Session session = store.getSession(context);
+    session.setFlushMode(FlushMode.MANUAL);
+    String hql = "select doc.language from XWikiDocument as doc where doc.fullName=:fullName";
+    Query query = session.createQuery(hql);
+    query.setString("fullName", serialize(doc));
+    return streamResults(query)
+        .filter(Objects::nonNull)
+        .map(Objects::toString);
+  }
+
+  private Stream<?> streamResults(Query query) {
+    Iterator<?> iter = query.iterate();
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iter, 0), false);
   }
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
@@ -254,7 +286,7 @@ public class CelHibernateStoreDocumentPart {
   private Iterator<BaseObject> loadXObjects(XWikiDocument doc, XWikiContext context) {
     String hql = "from BaseObject as obj where obj.name = :name order by obj.className, obj.number";
     Query query = store.getSession(context).createQuery(hql);
-    query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
+    query.setText("name", serialize(doc));
     return query.iterate();
   }
 
@@ -289,7 +321,7 @@ public class CelHibernateStoreDocumentPart {
         + "where obj.name = :name and obj.className = 'XWiki.XWikiGroups' and obj.id = prop.id.id "
         + "and prop.id.name = 'member'";
     Query query = store.getSession(context).createQuery(hql);
-    query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
+    query.setText("name", serialize(doc));
     Iterator<?> dataIter = query.iterate();
     while (dataIter.hasNext()) {
       Object[] row = (Object[]) dataIter.next();
@@ -356,6 +388,11 @@ public class CelHibernateStoreDocumentPart {
     checkArgument(docWiki.equals(providedContextWiki) && docWiki.equals(executionContextWiki),
         "wikis not matching for doc [%s], providedContextWiki [%s], executionContextWiki [%s]",
         doc.getDocumentReference(), providedContextWiki, executionContextWiki);
+  }
+
+  private String serialize(XWikiDocument doc) {
+    return store.getModelUtils().serializeRef(doc.getDocumentReference(),
+        ReferenceSerializationMode.LOCAL);
   }
 
 }
