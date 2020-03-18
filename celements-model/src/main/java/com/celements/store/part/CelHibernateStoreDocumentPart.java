@@ -54,7 +54,8 @@ public class CelHibernateStoreDocumentPart {
     this.savePrepCmd = new DocumentSavePreparationCommand(store);
   }
 
-  public boolean exists(XWikiDocument doc, XWikiContext context) throws HibernateException {
+  public boolean exists(XWikiDocument doc, XWikiContext context)
+      throws XWikiException, HibernateException {
     String language = doc.getLanguage();
     if (language.equals(doc.getDefaultLanguage())) {
       language = "";
@@ -63,17 +64,25 @@ public class CelHibernateStoreDocumentPart {
   }
 
   public Stream<String> streamExistingLangs(XWikiDocument doc, XWikiContext context)
-      throws HibernateException {
-    doc.setStore(store);
-    store.checkHibernate(context);
-    Session session = store.getSession(context);
-    session.setFlushMode(FlushMode.MANUAL);
-    String hql = "select doc.language from XWikiDocument as doc where doc.fullName=:fullName";
-    Query query = session.createQuery(hql);
-    query.setString("fullName", serialize(doc));
-    return streamResults(query)
-        .filter(Objects::nonNull)
-        .map(Objects::toString);
+      throws XWikiException, HibernateException {
+    boolean bTransaction = true;
+    try {
+      doc.setStore(store);
+      store.checkHibernate(context);
+      bTransaction = store.beginTransaction(store.getSessionFactory(), false, context);
+      Session session = store.getSession(context);
+      session.setFlushMode(FlushMode.MANUAL);
+      String hql = "select doc.language from XWikiDocument as doc where doc.fullName=:fullName";
+      Query query = session.createQuery(hql);
+      query.setString("fullName", serialize(doc));
+      return streamResults(query)
+          .filter(Objects::nonNull)
+          .map(Objects::toString);
+    } finally {
+      if (bTransaction) {
+        store.endTransaction(context, false);
+      }
+    }
   }
 
   private Stream<?> streamResults(Query query) {
@@ -190,8 +199,8 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException,
-      HibernateException {
+  public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context)
+      throws XWikiException, HibernateException {
     validateWikis(doc, context);
     boolean bTransaction = true;
     try {
@@ -329,8 +338,8 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException,
-      HibernateException {
+  public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context)
+      throws XWikiException, HibernateException {
     validateWikis(doc, context);
     boolean bTransaction = false;
     boolean commit = false;

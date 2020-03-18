@@ -67,7 +67,7 @@ public class CelHibernateStore extends XWikiHibernateStore {
       boolean ret = documentStorePart.exists(doc, context);
       log(LogLevel.INFO, "exists - end", doc);
       return ret;
-    } catch (HibernateException exc) {
+    } catch (HibernateException | XWikiException exc) {
       throw newXWikiException("exists - failed", doc, exc,
           ERROR_XWIKI_STORE_HIBERNATE_CHECK_EXISTS_DOC);
     } catch (Exception exc) {
@@ -85,7 +85,7 @@ public class CelHibernateStore extends XWikiHibernateStore {
           .collect(Collectors.toList());
       log(LogLevel.INFO, "getTranslationList - end", doc);
       return ret;
-    } catch (HibernateException exc) {
+    } catch (HibernateException | XWikiException exc) {
       throw newXWikiException("getTranslationList - failed", doc, exc,
           ERROR_XWIKI_STORE_HIBERNATE_CHECK_EXISTS_DOC);
     } catch (Exception exc) {
