@@ -3,6 +3,7 @@ package com.celements.store;
 import static com.xpn.xwiki.XWikiException.*;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Singleton;
@@ -80,7 +81,7 @@ public class CelHibernateStore extends XWikiHibernateStore {
       throws XWikiException {
     try {
       log(LogLevel.INFO, "getTranslationList - start", doc);
-      List<String> ret = documentStorePart.getExistingLangs(doc, context);
+      List<String> ret = new ArrayList<>(documentStorePart.getExistingLangs(doc, context));
       log(LogLevel.INFO, "getTranslationList - end", doc);
       return ret;
     } catch (HibernateException | XWikiException exc) {

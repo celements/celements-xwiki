@@ -9,9 +9,11 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,14 +60,10 @@ public class CelHibernateStoreDocumentPart {
 
   public boolean exists(XWikiDocument doc, XWikiContext context)
       throws XWikiException, HibernateException {
-    String language = doc.getLanguage();
-    if (language.equals(doc.getDefaultLanguage())) {
-      language = "";
-    }
-    return getExistingLangs(doc, context).contains(language);
+    return getExistingLangs(doc, context).contains(doc.getLanguage());
   }
 
-  public List<String> getExistingLangs(XWikiDocument doc, XWikiContext context)
+  public Set<String> getExistingLangs(XWikiDocument doc, XWikiContext context)
       throws XWikiException, HibernateException {
     boolean bTransaction = true;
     try {
@@ -74,13 +72,18 @@ public class CelHibernateStoreDocumentPart {
       bTransaction = store.beginTransaction(store.getSessionFactory(), false, context);
       Session session = store.getSession(context);
       session.setFlushMode(FlushMode.MANUAL);
-      String hql = "select doc.language from XWikiDocument as doc where doc.fullName=:fullName";
-      Query query = session.createQuery(hql);
+      Query query = session.createQuery("select doc.translation, doc.language, doc.defaultLanguage"
+          + " from XWikiDocument as doc where doc.fullName=:fullName order by doc.translation");
       query.setString("fullName", serialize(doc));
-      return streamResults(query)
-          .filter(Objects::nonNull)
-          .map(Objects::toString)
-          .collect(Collectors.toList());
+      Set<String> existingLangs = new LinkedHashSet<>();
+      streamRowResults(query).forEach(row -> {
+        if ("0".equals(row.get(0))) { // not translation
+          existingLangs.add("");
+          existingLangs.add(row.get(2)); // add defaultLanguage
+        }
+        existingLangs.add(row.get(1)); // add language
+      });
+      return existingLangs;
     } finally {
       if (bTransaction) {
         store.endTransaction(context, false);
@@ -88,9 +91,12 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  private Stream<?> streamResults(Query query) {
+  private Stream<List<String>> streamRowResults(Query query) {
     Iterator<?> iter = query.iterate();
-    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iter, 0), false);
+    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iter, 0), false)
+        .map(obj -> Stream.of((Object[]) obj)
+            .map(Objects::toString)
+            .collect(Collectors.toList()));
   }
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)

@@ -173,10 +173,12 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     doc.setDefaultLanguage("");
     doc.setLanguage(lang);
     getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, lang);
-    expect(modelAccess.strategy.exists(eq(doc.getDocumentReference()), eq(lang))).andReturn(
-        true).once();
-    expect(modelAccess.strategy.getDocument(eq(doc.getDocumentReference()), eq(lang))).andReturn(
-        doc).once();
+    expect(modelAccess.strategy.exists(eq(doc.getDocumentReference()), eq(lang)))
+        .andReturn(true).once();
+    expect(modelAccess.strategy.getDocument(eq(doc.getDocumentReference()), eq("")))
+        .andReturn(new XWikiDocument(doc.getDocumentReference())).once();
+    expect(modelAccess.strategy.getDocument(eq(doc.getDocumentReference()), eq(lang)))
+        .andReturn(doc).once();
     replayDefault();
     XWikiDocument theDoc = modelAccess.getDocument(doc.getDocumentReference(), lang);
     verifyDefault();
@@ -191,8 +193,8 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     doc.setDefaultLanguage(defaultLang);
     doc.setLanguage("");
     getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
-    expect(modelAccess.strategy.exists(eq(doc.getDocumentReference()), eq(lang))).andReturn(
-        false).once();
+    expect(modelAccess.strategy.exists(eq(doc.getDocumentReference()), eq(lang)))
+        .andReturn(false).once();
     replayDefault();
     try {
       modelAccess.getDocument(doc.getDocumentReference(), lang);
@@ -211,10 +213,29 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     doc.setDefaultLanguage(defaultLang);
     doc.setLanguage(lang);
     getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
-    expect(modelAccess.strategy.exists(eq(doc.getDocumentReference()), eq(lang))).andReturn(
-        true).once();
-    expect(modelAccess.strategy.getDocument(eq(doc.getDocumentReference()), eq(lang))).andReturn(
-        doc).once();
+    expect(modelAccess.strategy.exists(eq(doc.getDocumentReference()), eq(lang)))
+        .andReturn(true).once();
+    expect(modelAccess.strategy.getDocument(eq(doc.getDocumentReference()), eq("")))
+        .andReturn(new XWikiDocument(doc.getDocumentReference())).once();
+    expect(modelAccess.strategy.getDocument(eq(doc.getDocumentReference()), eq(lang)))
+        .andReturn(doc).once();
+    replayDefault();
+    XWikiDocument theDoc = modelAccess.getDocument(doc.getDocumentReference(), lang);
+    verifyDefault();
+    assertSame(doc, theDoc);
+  }
+
+  @Test
+  public void test_getDocument_mainDocByDefaultLang() throws Exception {
+    modelAccess.strategy = registerComponentMock(ModelAccessStrategy.class);
+    String lang = "de";
+    doc.setDefaultLanguage(lang);
+    doc.setLanguage("");
+    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, lang);
+    expect(modelAccess.strategy.exists(eq(doc.getDocumentReference()), eq(lang)))
+        .andReturn(true).once();
+    expect(modelAccess.strategy.getDocument(eq(doc.getDocumentReference()), eq("")))
+        .andReturn(doc).once();
     replayDefault();
     XWikiDocument theDoc = modelAccess.getDocument(doc.getDocumentReference(), lang);
     verifyDefault();

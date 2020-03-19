@@ -109,6 +109,13 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     checkNotNull(docRef);
     lang = normalizeLang(lang);
     if (exists(docRef, lang)) {
+      if (!lang.isEmpty()) {
+        // return main doc if the requested language is the actual default language
+        XWikiDocument mainDoc = strategy.getDocument(docRef, DEFAULT_LANG);
+        if (lang.equals(mainDoc.getDefaultLanguage())) {
+          return mainDoc;
+        }
+      }
       return strategy.getDocument(docRef, lang);
     } else {
       throw new DocumentNotExistsException(docRef);
@@ -285,7 +292,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     lang = Util.normalizeLanguage(lang);
     lang = Strings.nullToEmpty(lang);
     if ("default".equals(lang)) {
-      lang = "";
+      lang = DEFAULT_LANG;
     }
     return lang;
   }
