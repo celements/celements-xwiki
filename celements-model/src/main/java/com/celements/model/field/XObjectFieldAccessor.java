@@ -55,7 +55,9 @@ public class XObjectFieldAccessor implements FieldAccessor<BaseObject> {
   @SuppressWarnings("unchecked")
   private <V> V getXObjFieldValue(BaseObject obj, ClassField<V> field) throws FieldAccessException {
     V value;
-    if (field == FIELD_DOC_REF) {
+    if (field == FIELD_ID) {
+      value = (V) (Long) obj.getId();
+    } else if (field == FIELD_DOC_REF) {
       value = (V) obj.getDocumentReference();
     } else if (field == FIELD_CLASS_REF) {
       value = (V) new ClassReference(obj.getXClassReference());

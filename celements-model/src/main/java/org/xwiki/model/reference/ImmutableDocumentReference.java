@@ -7,6 +7,10 @@ import javax.annotation.concurrent.Immutable;
 
 import org.xwiki.model.EntityType;
 
+import com.celements.model.util.ModelUtils;
+import com.celements.model.util.ReferenceSerializationMode;
+import com.xpn.xwiki.web.Utils;
+
 @Immutable
 public class ImmutableDocumentReference extends DocumentReference implements ImmutableReference {
 
@@ -89,6 +93,14 @@ public class ImmutableDocumentReference extends DocumentReference implements Imm
     DocumentReference ret = new DocumentReference(this);
     ret.setChild(getChild());
     return ret;
+  }
+
+  public String serialize(ReferenceSerializationMode mode) {
+    return getModelUtils().serializeRef(this, mode);
+  }
+
+  private static final ModelUtils getModelUtils() {
+    return Utils.getComponent(ModelUtils.class);
   }
 
 }

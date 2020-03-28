@@ -4,14 +4,20 @@ import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.AttachmentReference;
+import org.xwiki.model.reference.ClassReference;
 
 @Immutable
 public final class AttachmentReferenceField extends ReferenceField<AttachmentReference> {
 
   public static class Builder extends ReferenceField.Builder<Builder, AttachmentReference> {
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      super(classRef, name);
     }
 
     @Override

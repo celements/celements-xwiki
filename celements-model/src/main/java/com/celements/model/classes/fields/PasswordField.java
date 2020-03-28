@@ -10,6 +10,7 @@ import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
+import org.xwiki.model.reference.ClassReference;
 
 import com.xpn.xwiki.objects.classes.PasswordClass;
 import com.xpn.xwiki.objects.classes.StringClass;
@@ -19,8 +20,7 @@ import com.xpn.xwiki.objects.meta.PasswordMetaClass;
 public final class PasswordField extends StringField {
 
   public enum StorageType {
-    Hash,
-    Clear;
+    Hash, Clear;
   }
 
   protected static final String CLASS_FIELD_NAME_STORAGE_TYPE = "storageType";
@@ -33,8 +33,13 @@ public final class PasswordField extends StringField {
     private StorageType storageType;
     private String hashAlgorithm;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      super(classRef, name);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.celements.model.classes.fields.list;
+package com.celements.model.classes.fields.list.single;
 
 import java.util.List;
 
@@ -11,14 +11,9 @@ import com.celements.marshalling.ComponentMarshaller;
 import com.xpn.xwiki.web.Utils;
 
 @Immutable
-public final class ComponentListField<T> extends CustomListField<T> {
+public final class ComponentSingleListField<T> extends CustomSingleListField<T> {
 
-  public static class Builder<T> extends CustomListField.Builder<Builder<T>, T> {
-
-    @Deprecated
-    public Builder(@NotNull String classDefName, @NotNull String name, @NotNull Class<T> role) {
-      super(classDefName, name, new ComponentMarshaller<>(role));
-    }
+  public static class Builder<T> extends CustomSingleListField.Builder<Builder<T>, T> {
 
     public Builder(@NotNull ClassReference classRef, @NotNull String name, @NotNull Class<T> role) {
       super(classRef, name, new ComponentMarshaller<>(role));
@@ -30,13 +25,13 @@ public final class ComponentListField<T> extends CustomListField<T> {
     }
 
     @Override
-    public ComponentListField<T> build() {
-      return new ComponentListField<>(getThis());
+    public ComponentSingleListField<T> build() {
+      return new ComponentSingleListField<>(getThis());
     }
 
   }
 
-  protected ComponentListField(@NotNull Builder<T> builder) {
+  protected ComponentSingleListField(@NotNull Builder<T> builder) {
     super(builder);
   }
 

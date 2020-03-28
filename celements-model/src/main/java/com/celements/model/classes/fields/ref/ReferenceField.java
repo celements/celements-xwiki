@@ -3,6 +3,7 @@ package com.celements.model.classes.fields.ref;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
+import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.EntityReference;
 
 import com.celements.marshalling.ReferenceMarshaller;
@@ -25,8 +26,13 @@ public abstract class ReferenceField<T extends EntityReference> extends Abstract
     private EntityReference baseRef;
     private Integer size;
 
+    @Deprecated
     public Builder(@NotNull String classDefName, @NotNull String name) {
       super(classDefName, name);
+    }
+
+    public Builder(@NotNull ClassReference classRef, @NotNull String name) {
+      super(classRef, name);
     }
 
     public B refSerializationMode(@Nullable ReferenceSerializationMode serializationMode) {

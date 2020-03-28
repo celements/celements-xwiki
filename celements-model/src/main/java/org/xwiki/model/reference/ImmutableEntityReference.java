@@ -49,6 +49,10 @@ public class ImmutableEntityReference extends EntityReference implements Immutab
     return super.getParent() != null ? super.getParent().clone() : null;
   }
 
+  protected String getParentName() {
+    return super.getParent() != null ? super.getParent().getName() : "";
+  }
+
   @Override
   public void setParent(EntityReference parent) {
     checkInit();

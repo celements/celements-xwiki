@@ -34,7 +34,9 @@ public class ClassFieldTest extends AbstractComponentTest {
 
   @Test
   public void test_immutability() {
-    assertInstancesOf(AbstractClassField.class, areImmutable(), allowingForSubclassing());
+    assertInstancesOf(AbstractClassField.class, areImmutable(), allowingForSubclassing(),
+        // ClassReference is effecitvely immutable
+        assumingFields("classRef").areNotModifiedAndDoNotEscape());
     assertImmutable(TestClassField.class);
   }
 
@@ -85,7 +87,7 @@ public class ClassFieldTest extends AbstractComponentTest {
     assertTrue(field.equals(getBuilder().prettyName("asdf").validationRegExp(
         "asdf").validationMessage("asdf").build()));
     assertFalse(field.equals(new TestClassField.Builder(NAME, "other").build()));
-    assertFalse(field.equals(new TestClassField.Builder("other", field.getName()).build()));
+    assertFalse(field.equals(new TestClassField.Builder("Class.Other", field.getName()).build()));
     assertFalse(field.equals(null));
   }
 
@@ -96,7 +98,7 @@ public class ClassFieldTest extends AbstractComponentTest {
     assertTrue(field.hashCode() == getBuilder().prettyName("asdf").validationRegExp(
         "asdf").validationMessage("asdf").build().hashCode());
     assertFalse(field.hashCode() == new TestClassField.Builder(NAME, "other").build().hashCode());
-    assertFalse(field.hashCode() == new TestClassField.Builder("other",
+    assertFalse(field.hashCode() == new TestClassField.Builder("Class.Other",
         field.getName()).build().hashCode());
   }
 

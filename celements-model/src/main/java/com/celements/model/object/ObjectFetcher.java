@@ -3,12 +3,12 @@ package com.celements.model.object;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.validation.constraints.NotNull;
 
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
-import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 
 /**
@@ -37,10 +37,12 @@ public interface ObjectFetcher<D, O> extends ObjectHandler<D, O> {
   int count();
 
   /**
+   * @deprecated instead use {@link #stream()} with {@link Stream#findFirst()}
    * @return the first fetched object
    */
   @NotNull
-  Optional<O> first();
+  @Deprecated
+  com.google.common.base.Optional<O> first();
 
   /**
    * @return the first fetched object
@@ -65,10 +67,18 @@ public interface ObjectFetcher<D, O> extends ObjectHandler<D, O> {
   List<O> list();
 
   /**
+   * @deprecated instead use {@link #stream()}
    * @return an {@link Iterable} of all fetched objects
    */
+  @Deprecated
   @NotNull
   FluentIterable<O> iter();
+
+  /**
+   * @return streams all fetched objects
+   */
+  @NotNull
+  Stream<O> stream();
 
   /**
    * @return a {@link Map} of all fetched objects indexed by their {@link ClassIdentity}
@@ -86,10 +96,12 @@ public interface ObjectFetcher<D, O> extends ObjectHandler<D, O> {
   interface FieldFetcher<T> {
 
     /**
+     * @deprecated instead use {@link #stream()} with {@link Stream#findFirst()}
      * @return the first field value
      */
+    @Deprecated
     @NotNull
-    Optional<T> first();
+    com.google.common.base.Optional<T> first();
 
     /**
      * @return a {@link List} of all field values
@@ -104,16 +116,32 @@ public interface ObjectFetcher<D, O> extends ObjectHandler<D, O> {
     Set<T> set();
 
     /**
+     * @deprecated instead use {@link #stream()}
      * @return an {@link Iterable} of all not-null field values
      */
+    @Deprecated
     @NotNull
     FluentIterable<T> iter();
 
     /**
+     * @deprecated instead use {@link #streamNullable()}
      * @return an {@link Iterable} of all field values, may contain null
      */
+    @Deprecated
     @NotNull
     FluentIterable<T> iterNullable();
+
+    /**
+     * @return streams all not-null field values
+     */
+    @NotNull
+    Stream<T> stream();
+
+    /**
+     * @return streams all field values, may contain null
+     */
+    @NotNull
+    Stream<T> streamNullable();
 
   }
 
