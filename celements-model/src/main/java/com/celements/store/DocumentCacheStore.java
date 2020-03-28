@@ -47,7 +47,6 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
-import org.xwiki.model.reference.ImmutableDocumentReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.query.Query;
@@ -60,6 +59,7 @@ import com.celements.model.access.exception.MetaDataLoadException;
 import com.celements.model.context.ModelContext;
 import com.celements.model.metadata.DocumentMetaData;
 import com.celements.model.metadata.ImmutableDocumentMetaData;
+import com.celements.model.reference.RefBuilder;
 import com.celements.model.util.ModelUtils;
 import com.celements.model.util.References;
 import com.google.common.base.Optional;
@@ -783,7 +783,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     return getBackingStore().getQueryManager();
   }
 
-  static enum InvalidateState {
+  enum InvalidateState {
 
     CACHE_MISS, REMOVED, LOADING_CANCELED, LOADING_MULTI_CANCELED, LOADING_CANCEL_FAILED
 
@@ -906,8 +906,9 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   }
 
   private XWikiDocument createEmptyXWikiDoc(XWikiDocument doc) {
-    DocumentReference docRef = new ImmutableDocumentReference(References.adjustRef(
-        doc.getDocumentReference(), DocumentReference.class, modelContext.getWikiRef()));
+    DocumentReference docRef = RefBuilder.from(doc.getDocumentReference())
+        .with(modelContext.getWikiRef())
+        .build(DocumentReference.class);
     XWikiDocument newDoc = docCreator.createWithoutDefaults(docRef, doc.getLanguage());
     newDoc.setDefaultLanguage(doc.getDefaultLanguage());
     newDoc.setStore(getBackingStore());

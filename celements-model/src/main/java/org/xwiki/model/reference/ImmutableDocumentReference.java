@@ -55,7 +55,7 @@ public class ImmutableDocumentReference extends DocumentReference implements Imm
   @Override
   public void setParent(EntityReference parent) {
     checkInit();
-    super.setParent(cloneRef(parent)); // TODO no clone?
+    super.setParent(cloneRef(parent));
   }
 
   @Override
@@ -95,6 +95,7 @@ public class ImmutableDocumentReference extends DocumentReference implements Imm
     return ret;
   }
 
+  @Override
   public String serialize(ReferenceSerializationMode mode) {
     return getModelUtils().serializeRef(this, mode);
   }

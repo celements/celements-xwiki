@@ -10,7 +10,7 @@ import org.xwiki.model.EntityType;
 @Immutable
 public class ImmutableEntityReference extends EntityReference implements ImmutableReference {
 
-  private static final long serialVersionUID = 4196990820112451663L;
+  private static final long serialVersionUID = 8839861173909863733L;
 
   private boolean initialised = false;
 

@@ -11,7 +11,8 @@ public class EntityTypeUtilTest {
 
   @Test
   public void test_rootRefClass() {
-    assertSame("WikiReference has to be the root reference", WikiReference.class, getRootClass());
+    assertTrue("WikiReference has to be the root reference", WikiReference.class.isAssignableFrom(
+        getRootClass()));
   }
 
   @Test
