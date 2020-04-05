@@ -38,6 +38,11 @@ public final class DateFormat {
   private static final LoadingCache<String, DateTimeFormatter> FORMATTER_CACHE = CacheBuilder
       .newBuilder().maximumSize(100).softValues().build(FORMATTER_LOADER);
 
+  /**
+   * @throws DateTimeException
+   *           on illegal pattern
+   * @see DateTimeFormatter#ofPattern(String)
+   */
   public static DateTimeFormatter ofPattern(String pattern) {
     try {
       return FORMATTER_CACHE.get(pattern);
