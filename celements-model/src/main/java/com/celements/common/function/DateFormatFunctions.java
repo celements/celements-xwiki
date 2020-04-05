@@ -18,7 +18,7 @@ public final class DateFormatFunctions {
   private DateFormatFunctions() {}
 
   /**
-   * @deprecated instead use {@link DateFormat#formatter(String)}
+   * @deprecated since 4.5, instead use {@link DateFormat#formatter(String)}
    */
   @Deprecated
   public static Function<Date, String> format(final String pattern) {
@@ -33,7 +33,7 @@ public final class DateFormatFunctions {
   }
 
   /**
-   * @deprecated instead use {@link DateFormat#parse(String)}
+   * @deprecated since 4.5, instead use {@link DateFormat#parse(String)}
    */
   @Deprecated
   public static Function<String, Date> parser(final String pattern) {
