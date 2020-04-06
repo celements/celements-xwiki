@@ -4,19 +4,28 @@ import static com.google.common.base.Preconditions.*;
 
 import java.lang.ref.SoftReference;
 import java.time.DateTimeException;
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalQuery;
 import java.util.concurrent.ExecutionException;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 @ThreadSafe
 public final class DateFormat {
@@ -43,10 +52,12 @@ public final class DateFormat {
    *           on illegal pattern
    * @see DateTimeFormatter#ofPattern(String)
    */
-  public static DateTimeFormatter ofPattern(String pattern) {
+  @NotNull
+  public static DateTimeFormatter ofPattern(@NotEmpty String pattern) {
+    checkArgument(!Strings.isNullOrEmpty(pattern));
     try {
       return FORMATTER_CACHE.get(pattern);
-    } catch (ExecutionException exc) {
+    } catch (ExecutionException | UncheckedExecutionException exc) {
       throw new DateTimeException("Illegal pattern: " + pattern, exc);
     }
   }
@@ -55,18 +66,42 @@ public final class DateFormat {
    * @throws DateTimeException
    *           by {@link Function#apply(Object)}
    */
-  public static Function<TemporalAccessor, String> formatter(@NotEmpty final String pattern) {
+  @NotNull
+  public static Function<Temporal, String> formatter(@NotEmpty final String pattern) {
     checkArgument(!Strings.isNullOrEmpty(pattern));
-    return temporal -> ofPattern(pattern).format(Instant.from(temporal));
+    return temporal -> ofPattern(pattern).format(DateUtil.atZone(temporal));
   }
 
   /**
    * @throws DateTimeException
    *           by {@link Function#apply(Object)}
    */
-  public static Function<String, TemporalAccessor> parser(@NotEmpty final String pattern) {
+  @NotNull
+  public static Function<String, ZonedDateTime> parser(@NotEmpty final String pattern) {
+    return parser(pattern, DateUtil.getDefaultZone());
+  }
+
+  /**
+   * @throws DateTimeException
+   *           by {@link Function#apply(Object)}
+   */
+  @NotNull
+  public static Function<String, ZonedDateTime> parser(@NotEmpty final String pattern,
+      @NotNull final ZoneId zone) {
+    return parser(pattern, zone, ZonedDateTime::from, LocalDateTime::from, LocalDate::from,
+        LocalTime::from, YearMonth::from, Year::from);
+  }
+
+  /**
+   * @throws DateTimeException
+   *           by {@link Function#apply(Object)}
+   */
+  @NotNull
+  public static Function<String, ZonedDateTime> parser(@NotEmpty final String pattern,
+      @NotNull final ZoneId zone, final TemporalQuery<?>... queries) {
     checkArgument(!Strings.isNullOrEmpty(pattern));
-    return text -> ofPattern(pattern).parse(text);
+    checkNotNull(zone);
+    return text -> DateUtil.atZone(ofPattern(pattern).parseBest(text, queries), zone);
   }
 
 }
