@@ -17,7 +17,7 @@ public class ReflectiveInstanceSupplier<T> implements Supplier<T> {
   @Override
   public T get() {
     try {
-      return token.newInstance();
+      return token.getConstructor().newInstance();
     } catch (ReflectiveOperationException exc) {
       throw new IllegalArgumentException(token.getName(), exc);
     }
