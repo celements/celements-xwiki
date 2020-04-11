@@ -3,6 +3,7 @@ package com.celements.common.lambda;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -22,6 +23,23 @@ public final class LambdaExceptionUtil {
     return t -> {
       try {
         return function.apply(t);
+      } catch (Exception exception) {
+        sneakyThrow(exception);
+        throw new RuntimeException("sneakyThrow always throws");
+      }
+    };
+  }
+
+  @FunctionalInterface
+  public interface ThrowingPredicate<T, E extends Exception> {
+    boolean test(T t) throws E;
+  }
+
+  public static <T, E extends Exception> Predicate<T> rethrowPredicate(
+      ThrowingPredicate<T, E> predicate) throws E {
+    return t -> {
+      try {
+        return predicate.test(t);
       } catch (Exception exception) {
         sneakyThrow(exception);
         throw new RuntimeException("sneakyThrow always throws");

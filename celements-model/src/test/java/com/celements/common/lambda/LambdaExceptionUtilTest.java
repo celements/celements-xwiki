@@ -20,8 +20,20 @@ public class LambdaExceptionUtilTest {
   }
 
   @Test
+  public void test_Predicate_rethrow() throws ClassNotFoundException {
+    Stream.of(Object.class.getName()).filter(rethrowPredicate(n -> (Class.forName(n) != null)))
+        .collect(toList());
+  }
+
+  @Test(expected = ClassNotFoundException.class)
+  public void test_Predicate_rethrow_fail() throws ClassNotFoundException {
+    Stream.of("INVALID").filter(rethrowPredicate(n -> (Class.forName(n) != null)))
+        .collect(toList());
+  }
+
+  @Test
   public void test_Consumer_rethrow() throws ClassNotFoundException {
-    Stream.of(Object.class.getName()).forEach(rethrowConsumer(className -> Class.forName(className)));
+    Stream.of(Object.class.getName()).forEach(rethrowConsumer(Class::forName));
   }
 
   @Test(expected = ClassNotFoundException.class)
