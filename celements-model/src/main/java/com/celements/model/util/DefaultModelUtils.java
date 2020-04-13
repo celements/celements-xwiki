@@ -93,7 +93,7 @@ public class DefaultModelUtils implements ModelUtils {
       throw new IllegalArgumentException("name may not be empty");
     } else if (type == getRootEntityType()) {
       // resolver cannot handle root reference
-      resolvedRef = new WikiReference(name);
+      resolvedRef = RefBuilder.create().wiki(name).build(WikiReference.class);
     } else {
       baseRef = References.combineRef(baseRef, context.getWikiRef()).get();
       resolvedRef = resolver.resolve(name, type, baseRef);
@@ -103,7 +103,7 @@ public class DefaultModelUtils implements ModelUtils {
 
   @Override
   public WikiReference getMainWikiRef() {
-    return new WikiReference("xwiki");
+    return RefBuilder.create().wiki("xwiki").build(WikiReference.class);
   }
 
   @Override
