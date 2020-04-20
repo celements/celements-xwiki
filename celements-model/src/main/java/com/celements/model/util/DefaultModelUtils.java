@@ -123,7 +123,8 @@ public class DefaultModelUtils implements ModelUtils {
       String xwql = "select distinct doc.name from XWikiDocument as doc, BaseObject as obj "
           + "where doc.space = 'XWiki' and doc.name <> 'XWikiServerClassTemplate' "
           + "and obj.name=doc.fullName and obj.className='XWiki.XWikiServerClass'";
-      stream = queryManager.createQuery(xwql, Query.XWQL).setWiki(getMainWikiRef().getName())
+      stream = queryManager.createQuery(xwql, Query.XWQL)
+          .setWiki(getMainWikiRef().getName())
           .<String>execute().stream()
           .filter(name -> name.startsWith(prefix) && (name.length() > prefix.length()))
           .map(name -> name.substring(prefix.length()).toLowerCase())
