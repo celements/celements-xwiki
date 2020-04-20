@@ -80,7 +80,7 @@ public class DefaultModelContext implements ModelContext {
 
   @Override
   public WikiReference getWikiRef() {
-    return new WikiReference(getXWikiContext().getDatabase());
+    return RefBuilder.create().wiki(getXWikiContext().getDatabase()).build(WikiReference.class);
   }
 
   @Override

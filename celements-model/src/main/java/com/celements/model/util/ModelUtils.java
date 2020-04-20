@@ -1,12 +1,17 @@
 package com.celements.model.util;
 
+import java.util.stream.Stream;
+
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
+import com.celements.model.reference.RefBuilder;
 import com.google.common.base.Optional;
 
 @ComponentRole
@@ -16,57 +21,51 @@ public interface ModelUtils {
   WikiReference getMainWikiRef();
 
   @NotNull
+  Stream<WikiReference> getAllWikis();
+
+  @NotNull
+  Stream<SpaceReference> getAllSpaces(@NotNull WikiReference wikiRef);
+
+  @NotNull
+  Stream<DocumentReference> getAllDocsForSpace(@NotNull SpaceReference spaceRef);
+
+  @NotNull
   String getDatabaseName(@NotNull WikiReference wikiRef);
 
   /**
-   * @param ref
-   * @return false if the given reference is relative
+   * @deprecated since 4.5, instead use {@link References#isAbsoluteRef(EntityReference)}
    */
+  @Deprecated
   boolean isAbsoluteRef(@NotNull EntityReference ref);
 
   /**
-   * @param ref
-   *          the reference to be cloned
-   * @return a cloned instance of the reference
+   * @deprecated since 4.5, instead use {@link References#cloneRef(EntityReference)}
    */
   @NotNull
+  @Deprecated
   EntityReference cloneRef(@NotNull EntityReference ref);
 
   /**
-   * @param ref
-   *          the reference to be cloned
-   * @param token
-   *          type of the reference
-   * @return a cloned instance of the reference of type T
-   * @throws IllegalArgumentException
-   *           when relative references are being cloned as subtypes of {@link EntityReference}
+   * @deprecated since 4.5, instead use {@link References#cloneRef(EntityReference, Class)}
    */
   @NotNull
+  @Deprecated
   <T extends EntityReference> T cloneRef(@NotNull EntityReference ref, @NotNull Class<T> token);
 
   /**
-   * @param fromRef
-   *          the reference to extract from
-   * @param token
-   *          reference class to extract
-   * @return optional of the extracted reference
+   * @deprecated since 4.5, instead use {@link References#extractRef(EntityReference, Class)}
    */
-  @Nullable
+  @NotNull
+  @Deprecated
   <T extends EntityReference> Optional<T> extractRef(@Nullable EntityReference fromRef,
       @NotNull Class<T> token);
 
   /**
-   * adjust a reference to another one of higher order, e.g. a docRef to another wikiRef.
-   *
-   * @param ref
-   *          to be adjusted
-   * @param token
-   *          for the reference type
-   * @param toRef
-   *          it is adjusted to
-   * @return a new instance of the adjusted reference or ref if toRef was of lower order
+   * @deprecated since 4.5, instead use {@link RefBuilder} or
+   *             {@link References#adjustRef(EntityReference, Class, EntityReference)}
    */
   @NotNull
+  @Deprecated
   <T extends EntityReference> T adjustRef(@NotNull T ref, @NotNull Class<T> token,
       @Nullable EntityReference toRef);
 

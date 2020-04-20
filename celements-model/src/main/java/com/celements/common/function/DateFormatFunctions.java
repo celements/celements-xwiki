@@ -36,7 +36,7 @@ public final class DateFormatFunctions {
    * @deprecated since 4.5, instead use {@link DateFormat#parse(String)}
    */
   @Deprecated
-  public static Function<String, Date> parser(final String pattern) {
+  public static Function<String, Date> parse(final String pattern) {
     checkArgument(!Strings.isNullOrEmpty(pattern));
     return str -> {
       try {
