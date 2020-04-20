@@ -6,30 +6,39 @@ import static com.google.common.base.Preconditions.*;
 
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.EntityType;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 
-import com.celements.model.access.ContextExecutor;
 import com.celements.model.context.ModelContext;
 import com.celements.model.reference.RefBuilder;
 import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.web.Utils;
 
 @Component
 public class DefaultModelUtils implements ModelUtils {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelUtils.class);
 
   @Requirement
   private ModelContext context;
 
   @Requirement("explicit")
   private EntityReferenceResolver<String> resolver;
+
+  @Requirement
+  private QueryManager queryManager;
 
   private final XWiki getXWiki() {
     return context.getXWikiContext().getWiki();
@@ -110,9 +119,17 @@ public class DefaultModelUtils implements ModelUtils {
   public Stream<WikiReference> getAllWikis() {
     Stream<WikiReference> stream;
     try {
-      stream = getXWiki().getVirtualWikisDatabaseNames(context.getXWikiContext()).stream()
+      String prefix = "XWikiServer";
+      String xwql = "select distinct doc.name from XWikiDocument as doc, BaseObject as obj "
+          + "where doc.space = 'XWiki' and doc.name <> 'XWikiServerClassTemplate' "
+          + "and obj.name=doc.fullName and obj.className='XWiki.XWikiServerClass'";
+      stream = queryManager.createQuery(xwql, Query.XWQL).setWiki(getMainWikiRef().getName())
+          .<String>execute().stream()
+          .filter(name -> name.startsWith(prefix) && (name.length() > prefix.length()))
+          .map(name -> name.substring(prefix.length()).toLowerCase())
           .map(name -> RefBuilder.create().wiki(name).build(WikiReference.class));
-    } catch (XWikiException xwe) {
+    } catch (QueryException exc) {
+      LOGGER.error("getAllWikis - failed", exc);
       stream = Stream.of(context.getWikiRef());
     }
     return Stream.concat(Stream.of(getMainWikiRef()), stream).distinct();
@@ -122,11 +139,28 @@ public class DefaultModelUtils implements ModelUtils {
   public Stream<SpaceReference> getAllSpaces(WikiReference wikiRef) {
     RefBuilder builder = RefBuilder.from(wikiRef);
     try {
-      return ContextExecutor.executeInWikiThrows(wikiRef,
-          () -> getXWiki().getSpaces(context.getXWikiContext()).stream())
+      return queryManager.getNamedQuery("getSpaces")
+          .setWiki(wikiRef.getName())
+          .<String>execute().stream()
           .map(name -> builder.space(name).build(SpaceReference.class))
           .distinct();
-    } catch (XWikiException exc) {
+    } catch (QueryException exc) {
+      LOGGER.error("getAllSpaces - failed for [{}]", wikiRef, exc);
+      return Stream.of();
+    }
+  }
+
+  @Override
+  public Stream<DocumentReference> getAllDocsForSpace(SpaceReference spaceRef) {
+    RefBuilder builder = RefBuilder.from(spaceRef);
+    try {
+      return queryManager.getNamedQuery("getSpaceDocsName")
+          .setWiki(spaceRef.extractReference(EntityType.WIKI).getName())
+          .bindValue("space", spaceRef.getName())
+          .<String>execute().stream()
+          .map(name -> builder.doc(name).build(DocumentReference.class));
+    } catch (QueryException exc) {
+      LOGGER.error("getAllDocsForSpace - failed for [{}]", spaceRef, exc);
       return Stream.of();
     }
   }

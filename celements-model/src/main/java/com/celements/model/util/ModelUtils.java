@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
@@ -24,6 +25,9 @@ public interface ModelUtils {
 
   @NotNull
   Stream<SpaceReference> getAllSpaces(@NotNull WikiReference wikiRef);
+
+  @NotNull
+  Stream<DocumentReference> getAllDocsForSpace(@NotNull SpaceReference spaceRef);
 
   @NotNull
   String getDatabaseName(@NotNull WikiReference wikiRef);
