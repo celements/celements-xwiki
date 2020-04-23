@@ -37,9 +37,6 @@ public class DefaultModelUtils implements ModelUtils {
   @Requirement("explicit")
   private EntityReferenceResolver<String> resolver;
 
-  @Requirement
-  private QueryManager queryManager;
-
   private final XWiki getXWiki() {
     return context.getXWikiContext().getWiki();
   }
@@ -123,7 +120,7 @@ public class DefaultModelUtils implements ModelUtils {
       String xwql = "select distinct doc.name from XWikiDocument as doc, BaseObject as obj "
           + "where doc.space = 'XWiki' and doc.name <> 'XWikiServerClassTemplate' "
           + "and obj.name=doc.fullName and obj.className='XWiki.XWikiServerClass'";
-      stream = queryManager.createQuery(xwql, Query.XWQL)
+      stream = getQueryManager().createQuery(xwql, Query.XWQL)
           .setWiki(getMainWikiRef().getName())
           .<String>execute().stream()
           .filter(name -> name.startsWith(prefix) && (name.length() > prefix.length()))
@@ -140,7 +137,7 @@ public class DefaultModelUtils implements ModelUtils {
   public Stream<SpaceReference> getAllSpaces(WikiReference wikiRef) {
     RefBuilder builder = RefBuilder.from(wikiRef);
     try {
-      return queryManager.getNamedQuery("getSpaces")
+      return getQueryManager().getNamedQuery("getSpaces")
           .setWiki(wikiRef.getName())
           .<String>execute().stream()
           .map(name -> builder.space(name).build(SpaceReference.class))
@@ -155,7 +152,7 @@ public class DefaultModelUtils implements ModelUtils {
   public Stream<DocumentReference> getAllDocsForSpace(SpaceReference spaceRef) {
     RefBuilder builder = RefBuilder.from(spaceRef);
     try {
-      return queryManager.getNamedQuery("getSpaceDocsName")
+      return getQueryManager().getNamedQuery("getSpaceDocsName")
           .setWiki(spaceRef.extractReference(EntityType.WIKI).getName())
           .bindValue("space", spaceRef.getName())
           .<String>execute().stream()
@@ -218,6 +215,13 @@ public class DefaultModelUtils implements ModelUtils {
   @Override
   public String serializeRefLocal(EntityReference ref) {
     return serializeRef(ref, ReferenceSerializationMode.LOCAL);
+  }
+
+  /**
+   * load lazy since it may cause an NPE is some unit tests that require ModelUtils
+   */
+  private QueryManager getQueryManager() {
+    return Utils.getComponent(QueryManager.class);
   }
 
 }
