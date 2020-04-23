@@ -218,7 +218,7 @@ public class DefaultModelUtils implements ModelUtils {
   }
 
   /**
-   * load lazy since it may cause an NPE is some unit tests that require ModelUtils
+   * load lazy since it may cause an NPE if a unit tests requires ModelUtils
    */
   private QueryManager getQueryManager() {
     return Utils.getComponent(QueryManager.class);
