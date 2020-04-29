@@ -14,6 +14,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalQuery;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -71,6 +72,19 @@ public final class DateFormat {
     checkArgument(!Strings.isNullOrEmpty(pattern));
     return temporal -> ofPattern(pattern).format(DateUtil.atZone(temporal));
   }
+
+  /**
+   * @throws DateTimeException
+   *           by {@link Function#apply(Object)}
+   */
+  @NotNull
+  public static Function<Temporal, String> formatter(@NotEmpty final String pattern, @NotNull final Locale locale) {
+    checkArgument(!Strings.isNullOrEmpty(pattern));
+    checkNotNull(locale);
+    return temporal -> ofPattern(pattern).withLocale(locale).format(DateUtil.atZone(temporal));
+  }
+
+
 
   /**
    * @throws DateTimeException
