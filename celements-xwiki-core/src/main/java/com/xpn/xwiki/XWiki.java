@@ -76,8 +76,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.smtp.SMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
 import org.apache.ecs.Filter;
@@ -86,6 +84,8 @@ import org.apache.ecs.xhtml.textarea;
 import org.apache.velocity.VelocityContext;
 import org.hibernate.HibernateException;
 import org.securityfilter.filter.URLPatternMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentCreatingEvent;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
@@ -207,7 +207,7 @@ import com.xpn.xwiki.web.includeservletasstring.IncludeServletAsString;
 public class XWiki implements XWikiDocChangeNotificationInterface, EventListener {
 
   /** Logging helper object. */
-  protected static final Log LOG = LogFactory.getLog(XWiki.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(XWiki.class);
 
   /** Frequently used Document reference, the class which holds virtual wiki definitions. */
   static final DocumentReference VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE = new DocumentReference(
@@ -1960,7 +1960,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       return getRenderingEngine().getRenderer("wiki").render(parseTemplate(template, skin, context),
           context.getDoc(), context.getDoc(), context);
     } catch (Exception ex) {
-      LOG.error(ex);
+      LOG.error(ex.getMessage(), ex);
       return parseTemplate(template, skin, context);
     }
   }
@@ -1970,7 +1970,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       return getRenderingEngine().getRenderer("wiki").render(parseTemplate(template, context),
           context.getDoc(), context.getDoc(), context);
     } catch (Exception ex) {
-      LOG.error(ex);
+      LOG.error(ex.getMessage(), ex);
       return parseTemplate(template, context);
     }
   }

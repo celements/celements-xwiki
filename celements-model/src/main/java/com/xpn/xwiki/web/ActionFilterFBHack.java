@@ -13,15 +13,15 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xpn.xwiki.XWiki;
 
 public class ActionFilterFBHack implements Filter {
 
   /** Logging helper. */
-  private static final Log LOG = LogFactory.getLog(ActionFilterFBHack.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ActionFilterFBHack.class);
 
   /** The query property name prefix that indicates the target action. */
   private static final String ACTION_PREFIX = "action_";
@@ -51,7 +51,7 @@ public class ActionFilterFBHack implements Filter {
    */
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
-    LOG.debug("init ActionFilterFBHack");
+    LOGGER.debug("init ActionFilterFBHack");
     this.servletContext = filterConfig.getServletContext();
   }
 
@@ -65,7 +65,7 @@ public class ActionFilterFBHack implements Filter {
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
     // Only HTTP requests can be dispatched.
-    LOG.debug("starting doFilter in ActionFilterFBHack");
+    LOGGER.debug("starting doFilter in ActionFilterFBHack");
     if ((request instanceof HttpServletRequest) && !Boolean.valueOf((String) request.getAttribute(
         ATTRIBUTE_ACTION_DISPATCHED))) {
       HttpServletRequest hrequest = (HttpServletRequest) request;
@@ -76,7 +76,7 @@ public class ActionFilterFBHack implements Filter {
           String targetURL = getTargetURL(hrequest, parameter);
           RequestDispatcher dispatcher = hrequest.getRequestDispatcher(targetURL);
           if (dispatcher != null) {
-            LOG.debug("Forwarding request to " + targetURL);
+            LOGGER.debug("Forwarding request to " + targetURL);
             request.setAttribute(ATTRIBUTE_ACTION_DISPATCHED, "true");
             dispatcher.forward(hrequest, response);
             // Allow multiple calls to this filter as long as they are not nested.
@@ -97,7 +97,7 @@ public class ActionFilterFBHack implements Filter {
     // TODO find a way to get all valid actions instead
     boolean isValidAction = (action.length() > 0) && !action.endsWith("_map");
     if (parameter.startsWith(ACTION_PREFIX) && isValidAction) {
-      LOG.debug("non \"xwiki action\" action parameter found.");
+      LOGGER.debug("non \"xwiki action\" action parameter found.");
       return true;
     }
     return false;

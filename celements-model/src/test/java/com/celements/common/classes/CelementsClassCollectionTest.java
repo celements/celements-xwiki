@@ -23,8 +23,6 @@ import static com.celements.common.test.CelementsTestUtils.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -99,9 +97,6 @@ public class CelementsClassCollectionTest extends AbstractComponentTest {
 
   static class TestClassCollection extends CelementsClassCollection {
 
-    private final static Log mLogger = LogFactory.getFactory().getInstance(
-        TestClassCollection.class);
-
     boolean initClassExecuted = false;
 
     @Override
@@ -112,11 +107,6 @@ public class CelementsClassCollectionTest extends AbstractComponentTest {
     @Override
     public String getConfigName() {
       return "testcol";
-    }
-
-    @Override
-    protected Log getLogger() {
-      return mLogger;
     }
 
   }

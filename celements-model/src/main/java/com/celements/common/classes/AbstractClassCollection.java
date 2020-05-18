@@ -20,6 +20,9 @@
 package com.celements.common.classes;
 
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.context.Execution;
 import org.xwiki.model.reference.DocumentReference;
@@ -53,6 +56,8 @@ import com.xpn.xwiki.objects.classes.TextAreaClass;
 @Deprecated
 public abstract class AbstractClassCollection implements IClassCollectionRole {
 
+  protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+
   @Requirement
   protected Execution execution;
 
@@ -66,10 +71,10 @@ public abstract class AbstractClassCollection implements IClassCollectionRole {
   @Override
   final public void runUpdate() throws XWikiException {
     if (isActivated()) {
-      getLogger().debug("calling initClasses for database: " + getContext().getDatabase());
+      LOGGER.debug("calling initClasses for database: " + getContext().getDatabase());
       initClasses();
     } else {
-      getLogger().info("skipping not activated class collection: " + getConfigName());
+      LOGGER.info("skipping not activated class collection: " + getConfigName());
     }
   }
 
@@ -84,7 +89,7 @@ public abstract class AbstractClassCollection implements IClassCollectionRole {
     try {
       return modelAccess.getOrCreateDocument(classRef);
     } catch (DocumentLoadException docLoadExp) {
-      getLogger().error("Failed getting classDoc for classRef '" + classRef + "'", docLoadExp);
+      LOGGER.error("Failed getting classDoc for classRef '" + classRef + "'", docLoadExp);
       return new XWikiDocument(classRef);
     }
   }
@@ -107,7 +112,10 @@ public abstract class AbstractClassCollection implements IClassCollectionRole {
 
   abstract protected void initClasses() throws XWikiException;
 
-  abstract protected Log getLogger();
+  @Deprecated
+  protected Log getLogger() {
+    return LogFactory.getFactory().getInstance(this.getClass());
+  }
 
   protected final boolean addBooleanField(BaseClass bclass, String name, String prettyName,
       String displayType, int defaultValue) {

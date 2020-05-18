@@ -20,6 +20,9 @@
 package com.celements.common.classes;
 
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -36,10 +39,12 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Deprecated
 public abstract class CelementsClassCollection implements ICelementsClassCollection {
 
+  protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+
   @Override
   final public void runUpdate(XWikiContext context) throws XWikiException {
     if (isActivated(context)) {
-      getLogger().debug("calling initClasses for database: " + context.getDatabase());
+      LOGGER.debug("calling initClasses for database: " + context.getDatabase());
       initClasses(context);
     }
   }
@@ -65,5 +70,8 @@ public abstract class CelementsClassCollection implements ICelementsClassCollect
 
   abstract protected void initClasses(XWikiContext context) throws XWikiException;
 
-  abstract protected Log getLogger();
+  @Deprecated
+  protected Log getLogger() {
+    return LogFactory.getFactory().getInstance(this.getClass());
+  }
 }
