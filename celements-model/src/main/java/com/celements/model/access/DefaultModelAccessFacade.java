@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
@@ -176,6 +177,17 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
           new Throwable());
     }
     strategy.saveDocument(doc, comment, isMinorEdit);
+  }
+
+  public XWikiDocument getAndSaveDocument(DocumentReference docRef, String comment,
+      Predicate<XWikiDocument> preSavePredicate) throws DocumentSaveException {
+    // TODO lock
+    XWikiDocument doc = getOrCreateDocument(docRef);
+    if (preSavePredicate.test(doc)) {
+      saveDocument(doc, comment);
+    }
+    // TODO unlock
+    return doc;
   }
 
   @Override
