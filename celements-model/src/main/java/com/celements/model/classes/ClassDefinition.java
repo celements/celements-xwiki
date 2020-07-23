@@ -1,32 +1,43 @@
 package com.celements.model.classes;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
+import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.classes.fields.ClassField;
-import com.google.common.base.Optional;
+import com.xpn.xwiki.web.Utils;
 
 @ComponentRole
 public interface ClassDefinition extends ClassIdentity {
 
-  public static final String CFG_SRC_KEY = "celements.classdefinition.blacklist";
+  String CFG_SRC_KEY = "celements.classdefinition.blacklist";
+
+  static Optional<ClassDefinition> lookup(ClassReference classRef) {
+    try {
+      return Optional.of(Utils.getComponentManager()
+          .lookup(ClassDefinition.class, classRef.serialize()));
+    } catch (ComponentLookupException exc) {
+      return Optional.empty();
+    }
+  }
 
   /**
    * @return the name of the component and class definition, used for blacklisting
    */
-  public String getName();
+  String getName();
 
   /**
    * @return the class reference
    */
   @NotNull
-  public ClassReference getClassReference();
+  ClassReference getClassReference();
 
   /**
    * @deprecated instead use {{@link #getClassReference()}
@@ -34,7 +45,7 @@ public interface ClassDefinition extends ClassIdentity {
    */
   @Deprecated
   @NotNull
-  public DocumentReference getClassRef();
+  DocumentReference getClassRef();
 
   /**
    * @deprecated instead use {{@link #getClassReference()}
@@ -43,30 +54,30 @@ public interface ClassDefinition extends ClassIdentity {
    */
   @Deprecated
   @NotNull
-  public DocumentReference getClassRef(@NotNull WikiReference wikiRef);
+  DocumentReference getClassRef(@NotNull WikiReference wikiRef);
 
   /**
    * @return true if the class definition is blacklisted
    */
-  public boolean isBlacklisted();
+  boolean isBlacklisted();
 
   /**
    * @return true if the class is mapped internally (hibernate mapping)
    */
-  public boolean isInternalMapping();
+  boolean isInternalMapping();
 
   /**
    * @return a list of all fields defining this class
    */
   @NotNull
-  public List<ClassField<?>> getFields();
+  List<ClassField<?>> getFields();
 
   /**
    * @param name
    * @return the defined field for the given name
    */
   @NotNull
-  public Optional<ClassField<?>> getField(@NotNull String name);
+  com.google.common.base.Optional<ClassField<?>> getField(@NotNull String name);
 
   /**
    * @param name
@@ -74,6 +85,7 @@ public interface ClassDefinition extends ClassIdentity {
    * @return the defined field for the given name
    */
   @NotNull
-  public <T> Optional<ClassField<T>> getField(@NotNull String name, @NotNull Class<T> token);
+  <T> com.google.common.base.Optional<ClassField<T>> getField(@NotNull String name,
+      @NotNull Class<T> token);
 
 }
