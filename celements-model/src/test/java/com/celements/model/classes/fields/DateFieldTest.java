@@ -21,13 +21,13 @@ public class DateFieldTest extends AbstractComponentTest {
   private DateField field;
 
   Integer size = 5;
-  Integer emptyIsToday = 3;
+  Integer emptyIsToday = 1;
   String dateFormat = "dateFormat";
 
   @Before
   public void prepareTest() throws Exception {
     assertNotNull(STATIC_DEFINITION);
-    field = new DateField.Builder(TestClassDefinition.NAME, "name").size(size).emptyIsToday(
+    field = new DateField.Builder(TestClassDefinition.CLASS_REF, "name").size(size).emptyIsToday(
         emptyIsToday).dateFormat(dateFormat).build();
   }
 
@@ -40,6 +40,7 @@ public class DateFieldTest extends AbstractComponentTest {
   public void test_getters() throws Exception {
     assertEquals(size, field.getSize());
     assertEquals(emptyIsToday, field.getEmptyIsToday());
+    assertTrue(field.isEmptyToday());
     assertEquals(dateFormat, field.getDateFormat());
   }
 
@@ -50,6 +51,15 @@ public class DateFieldTest extends AbstractComponentTest {
     assertEquals(size, (Integer) xField.getSize());
     assertEquals(emptyIsToday, (Integer) xField.getEmptyIsToday());
     assertEquals(dateFormat, xField.getDateFormat());
+  }
+
+  @Test
+  public void test_emptyIsToday_default() throws Exception {
+    field = new DateField.Builder(TestClassDefinition.CLASS_REF, "name").build();
+    assertEquals(0, (int) field.getEmptyIsToday());
+    assertFalse(field.isEmptyToday());
+    DateClass xField = (DateClass) field.getXField();
+    assertEquals(0, xField.getEmptyIsToday());
   }
 
 }
