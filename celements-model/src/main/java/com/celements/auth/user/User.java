@@ -48,4 +48,6 @@ public interface User {
 
   boolean isActive();
 
+  boolean isSuspended();
+
 }
