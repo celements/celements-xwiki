@@ -14,4 +14,8 @@ public class DocumentSaveException extends DocumentAccessException {
     super(docRef, cause);
   }
 
+  public DocumentSaveException(DocumentReference docRef, String lang, String message) {
+    super(docRef, lang, message);
+  }
+
 }
