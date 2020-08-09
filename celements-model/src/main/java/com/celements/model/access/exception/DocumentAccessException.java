@@ -30,6 +30,11 @@ public class DocumentAccessException extends Exception {
     this.docRef = docRef;
   }
 
+  public DocumentAccessException(DocumentReference docRef, String lang, String message) {
+    super(getMessage(docRef, lang) + ": " + message);
+    this.docRef = docRef;
+  }
+
   private static String getMessage(DocumentReference docRef, String lang) {
     if (docRef != null) {
       return new StringBuilder(docRef.toString()).append(" - ").append(lang).toString();
