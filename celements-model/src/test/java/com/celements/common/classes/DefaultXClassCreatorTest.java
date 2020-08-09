@@ -37,6 +37,7 @@ import org.xwiki.test.MockConfigurationSource;
 
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.common.test.ExceptionAsserter;
+import com.celements.configuration.CelementsFromWikiConfigurationSource;
 import com.celements.configuration.CelementsPropertiesConfigurationSource;
 import com.celements.model.access.ModelMock;
 import com.celements.model.access.ModelMock.DocRecord;
@@ -62,6 +63,9 @@ public class DefaultXClassCreatorTest extends AbstractComponentTest {
 
   @Before
   public void prepareTest() throws Exception {
+    registerComponentMock(ConfigurationSource.class, "all", getConfigurationSource());
+    registerComponentMock(ConfigurationSource.class, CelementsFromWikiConfigurationSource.NAME,
+        getConfigurationSource());
     modelMock = ModelMock.init();
     configSrcMock = registerCfgSrc();
     legacyClassPackage = registerLegacyClassPackage();

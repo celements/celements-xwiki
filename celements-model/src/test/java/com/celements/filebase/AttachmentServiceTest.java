@@ -15,12 +15,14 @@ import org.easymock.CaptureType;
 import org.junit.Before;
 import org.junit.Test;
 import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.rendering.syntax.Syntax;
 
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.common.test.TestMessageTool;
+import com.celements.configuration.CelementsFromWikiConfigurationSource;
 import com.celements.filebase.matcher.IAttFileNameMatcherRole;
 import com.celements.filebase.matcher.IAttachmentMatcher;
 import com.celements.model.access.IModelAccessFacade;
@@ -44,6 +46,9 @@ public class AttachmentServiceTest extends AbstractComponentTest {
 
   @Before
   public void setUp_AttachmentServiceTest() throws ComponentLookupException, Exception {
+    registerComponentMock(ConfigurationSource.class, "all", getConfigurationSource());
+    registerComponentMock(ConfigurationSource.class, CelementsFromWikiConfigurationSource.NAME,
+        getConfigurationSource());
     attService = (AttachmentService) Utils.getComponent(IAttachmentServiceRole.class);
     doc = new XWikiDocument(new DocumentReference("db", "space", "doc"));
     doc.setMetaDataDirty(false);
