@@ -1,5 +1,7 @@
 package com.celements.model.classes.fields;
 
+import static com.google.common.base.MoreObjects.*;
+
 import java.util.Date;
 
 import javax.annotation.Nullable;
@@ -16,13 +18,13 @@ import com.xpn.xwiki.objects.classes.PropertyClass;
 public final class DateField extends AbstractClassField<Date> {
 
   private final Integer size;
-  private final Integer emptyIsToday;
+  private final boolean emptyIsToday;
   private final String dateFormat;
 
   public static class Builder extends AbstractClassField.Builder<Builder, Date> {
 
     private Integer size;
-    private Integer emptyIsToday;
+    private boolean emptyIsToday;
     private String dateFormat;
 
     @Deprecated
@@ -45,6 +47,10 @@ public final class DateField extends AbstractClassField<Date> {
     }
 
     public Builder emptyIsToday(@Nullable Integer val) {
+      return emptyIsToday(firstNonNull(val, 0) != 0);
+    }
+
+    public Builder emptyIsToday(boolean val) {
       emptyIsToday = val;
       return getThis();
     }
@@ -86,8 +92,12 @@ public final class DateField extends AbstractClassField<Date> {
     return size;
   }
 
-  public Integer getEmptyIsToday() {
+  public boolean isEmptyToday() {
     return emptyIsToday;
+  }
+
+  public Integer getEmptyIsToday() {
+    return isEmptyToday() ? 1 : 0;
   }
 
   public String getDateFormat() {
@@ -100,9 +110,7 @@ public final class DateField extends AbstractClassField<Date> {
     if (size != null) {
       element.setSize(size);
     }
-    if (emptyIsToday != null) {
-      element.setEmptyIsToday(emptyIsToday);
-    }
+    element.setEmptyIsToday(getEmptyIsToday()); // always set since XWiki default is 1
     if (dateFormat != null) {
       element.setDateFormat(dateFormat);
     }
