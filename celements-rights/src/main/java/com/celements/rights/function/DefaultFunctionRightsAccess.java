@@ -29,8 +29,6 @@ public class DefaultFunctionRightsAccess implements FunctionRightsAccess {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFunctionRightsAccess.class);
 
-  public static final String SPACE_NAME = "FunctionRights";
-
   @Requirement
   private IRightsAccessFacadeRole rightsAccess;
 

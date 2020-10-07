@@ -13,6 +13,8 @@ import com.celements.auth.user.User;
 @ComponentRole
 public interface FunctionRightsAccess {
 
+  String SPACE_NAME = "FunctionRights";
+
   @NotNull
   Set<DocumentReference> getGroupsWithAccess(@Nullable String... functionNames);
 
