@@ -1,2 +1,3 @@
 com.celements.rights.classes.RightsClassPackage
 com.celements.rights.classes.FunctionRightsClass
+com.celements.rights.function.DefaultFunctionRightsAccess
