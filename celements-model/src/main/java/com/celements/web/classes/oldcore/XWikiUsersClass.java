@@ -40,6 +40,9 @@ public class XWikiUsersClass extends AbstractClassDefinition implements IOldCore
   public static final ClassField<Boolean> FIELD_ACTIVE = new BooleanField.Builder(CLASS_FN,
       "active").prettyName("Active").displayType("active").build();
 
+  public static final ClassField<Boolean> FIELD_SUSPENDED = new BooleanField.Builder(CLASS_FN,
+      "suspended").prettyName("Suspended").displayType("suspended").defaultValue(0).build();
+
   public static final ClassField<Type> FIELD_TYPE = new EnumSingleListField.Builder<>(CLASS_FN,
       "usertype", Type.class).prettyName("User type").build();
 
