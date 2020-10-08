@@ -18,7 +18,7 @@ import com.celements.rights.access.RightsAccessScriptService;
 @Component(RightsAccessScriptService.NAME)
 public class FunctionRightsAccessScriptService implements ScriptService {
 
-  public static final String NAME = "functionRightsAccess";
+  public static final String NAME = "funcRightsAccess";
 
   @Requirement
   private FunctionRightsAccess functionRightsAccess;
