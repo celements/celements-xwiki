@@ -74,13 +74,13 @@ public class DefaultFunctionRightsAccess implements FunctionRightsAccess {
 
   @Override
   public boolean hasUserAccess(User user, String... functionNames) {
-    return streamGroupsWithAccess(functionNames)
+    return rightsAccess.isSuperAdmin(user) || streamGroupsWithAccess(functionNames)
         .anyMatch(groupDocRef -> rightsAccess.isInGroup(groupDocRef, user));
   }
 
   @Override
   public boolean hasCurrentUserAccess(String... functionNames) {
-    return rightsAccess.isSuperAdmin() || context.getCurrentUser().toJavaUtil()
+    return context.getCurrentUser().toJavaUtil()
         .map(user -> hasUserAccess(user, functionNames))
         .orElse(false);
   }
