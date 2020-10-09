@@ -49,6 +49,11 @@ public final class GroupSingleListField extends SingleListField<DocumentReferenc
   }
 
   @Override
+  protected String getSeparator() {
+    return ",";
+  }
+
+  @Override
   protected GroupsClass getListClass() {
     GroupsClass element = new GroupsClass();
     if (usesList != null) {
