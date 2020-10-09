@@ -80,7 +80,7 @@ public class DefaultFunctionRightsAccess implements FunctionRightsAccess {
 
   @Override
   public boolean hasCurrentUserAccess(String... functionNames) {
-    return context.getCurrentUser().toJavaUtil()
+    return rightsAccess.isSuperAdmin() || context.getCurrentUser().toJavaUtil()
         .map(user -> hasUserAccess(user, functionNames))
         .orElse(false);
   }
