@@ -13,9 +13,8 @@ import org.xwiki.script.service.ScriptService;
 
 import com.celements.auth.user.UserInstantiationException;
 import com.celements.auth.user.UserService;
-import com.celements.rights.access.RightsAccessScriptService;
 
-@Component(RightsAccessScriptService.NAME)
+@Component(FunctionRightsAccessScriptService.NAME)
 public class FunctionRightsAccessScriptService implements ScriptService {
 
   public static final String NAME = "funcRightsAccess";
