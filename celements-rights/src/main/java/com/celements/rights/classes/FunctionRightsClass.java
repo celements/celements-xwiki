@@ -12,7 +12,7 @@ import com.celements.model.classes.fields.list.single.GroupSingleListField;
 public class FunctionRightsClass extends AbstractClassDefinition implements RightsClassDefinition {
 
   public static final String SPACE_NAME = "Celements";
-  public static final String DOC_NAME = "FunctionRight";
+  public static final String DOC_NAME = "FunctionRightsClass";
   public static final String CLASS_DEF_HINT = SPACE_NAME + "." + DOC_NAME;
   public static final ClassReference CLASS_REF = new ClassReference(SPACE_NAME, DOC_NAME);
 
