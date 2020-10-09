@@ -2,8 +2,6 @@ package com.celements.rights.function;
 
 import static com.google.common.collect.ImmutableSet.*;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -12,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.WikiReference;
 
 import com.celements.auth.user.User;
 import com.celements.model.access.IModelAccessFacade;
@@ -22,7 +19,6 @@ import com.celements.model.reference.RefBuilder;
 import com.celements.model.util.ModelUtils;
 import com.celements.rights.access.IRightsAccessFacadeRole;
 import com.celements.rights.classes.FunctionRightsClass;
-import com.google.common.collect.ImmutableList;
 
 @Component
 public class DefaultFunctionRightsAccess implements FunctionRightsAccess {
@@ -42,46 +38,39 @@ public class DefaultFunctionRightsAccess implements FunctionRightsAccess {
   private ModelContext context;
 
   @Override
-  public Set<DocumentReference> getGroupsWithAccess(String... functionNames) {
-    Set<DocumentReference> groups = streamGroupsWithAccess(functionNames)
+  public Set<DocumentReference> getGroupsWithAccess(String functionName) {
+    Set<DocumentReference> groups = streamGroupsWithAccess(functionName)
         .collect(toImmutableSet());
-    LOGGER.debug("getGroupsWithAccess - for function [{}]: [{}]", functionNames, groups);
+    LOGGER.debug("getGroupsWithAccess - for function [{}]: [{}]", functionName, groups);
     return groups;
   }
 
-  private Stream<DocumentReference> streamGroupsWithAccess(String... functionNames) {
-    return getFunctionRightDocRefs(functionNames)
+  private Stream<DocumentReference> streamGroupsWithAccess(String functionName) {
+    return RefBuilder.from(context.getWikiRef()).space(SPACE_NAME).doc(functionName)
+        .buildOpt(DocumentReference.class)
         .map(modelAccess::getOrCreateDocument)
-        .flatMap(doc -> XWikiObjectFetcher.on(doc)
+        .map(doc -> XWikiObjectFetcher.on(doc)
             .filter(FunctionRightsClass.CLASS_REF)
             .fetchField(FunctionRightsClass.FIELD_GROUP)
-            .stream());
-  }
-
-  private Stream<DocumentReference> getFunctionRightDocRefs(String... functionNames) {
-    List<WikiReference> wikis = ImmutableList.of(context.getWikiRef(), modelUtils.getMainWikiRef());
-    return Stream.of(functionNames)
-        .flatMap(functionName -> wikis.stream()
-            .map(wiki -> RefBuilder.from(wiki).space(SPACE_NAME).doc(functionName)))
-        .map(builder -> builder.nullable().build(DocumentReference.class))
-        .filter(Objects::nonNull);
+            .stream())
+        .orElse(Stream.empty());
   }
 
   @Override
-  public boolean hasGroupAccess(DocumentReference groupDocRef, String... functionNames) {
-    return streamGroupsWithAccess(functionNames).anyMatch(group -> group.equals(groupDocRef));
+  public boolean hasGroupAccess(DocumentReference groupDocRef, String functionName) {
+    return streamGroupsWithAccess(functionName).anyMatch(group -> group.equals(groupDocRef));
   }
 
   @Override
-  public boolean hasUserAccess(User user, String... functionNames) {
-    return rightsAccess.isSuperAdmin(user) || streamGroupsWithAccess(functionNames)
+  public boolean hasUserAccess(User user, String functionName) {
+    return rightsAccess.isSuperAdmin(user) || streamGroupsWithAccess(functionName)
         .anyMatch(groupDocRef -> rightsAccess.isInGroup(groupDocRef, user));
   }
 
   @Override
-  public boolean hasCurrentUserAccess(String... functionNames) {
+  public boolean hasCurrentUserAccess(String functionName) {
     return context.getCurrentUser().toJavaUtil()
-        .map(user -> hasUserAccess(user, functionNames))
+        .map(user -> hasUserAccess(user, functionName))
         .orElse(false);
   }
 

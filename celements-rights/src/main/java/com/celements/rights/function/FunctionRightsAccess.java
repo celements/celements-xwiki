@@ -16,13 +16,12 @@ public interface FunctionRightsAccess {
   String SPACE_NAME = "FunctionRights";
 
   @NotNull
-  Set<DocumentReference> getGroupsWithAccess(@Nullable String... functionNames);
+  Set<DocumentReference> getGroupsWithAccess(@Nullable String functionName);
 
-  boolean hasGroupAccess(@Nullable DocumentReference groupDocRef,
-      @Nullable String... functionNames);
+  boolean hasGroupAccess(@Nullable DocumentReference groupDocRef, @Nullable String functionName);
 
-  boolean hasUserAccess(@Nullable User user, @Nullable String... functionNames);
+  boolean hasUserAccess(@Nullable User user, @Nullable String functionName);
 
-  boolean hasCurrentUserAccess(@Nullable String... functionNames);
+  boolean hasCurrentUserAccess(@Nullable String functionName);
 
 }
