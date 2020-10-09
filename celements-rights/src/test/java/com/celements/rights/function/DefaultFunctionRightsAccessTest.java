@@ -40,38 +40,9 @@ public class DefaultFunctionRightsAccessTest extends AbstractComponentTest {
     String functionName = "editSth";
     String group = "XWiki.SomeGroup";
     expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), group);
-    expectFunctionDoc(new DocumentReference("xwiki", SPACE_NAME, functionName), null);
 
     replayDefault();
     assertEquals(ImmutableSet.of(getModelUtils().resolveRef(group)),
-        functionRightsAccess.getGroupsWithAccess(functionName));
-    verifyDefault();
-  }
-
-  @Test
-  public void test_getGroupsWithAccess_inMainWiki() {
-    String functionName = "editSth";
-    String group = "XWiki.SomeGroup";
-    expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), null);
-    expectFunctionDoc(new DocumentReference("xwiki", SPACE_NAME, functionName), group);
-
-    replayDefault();
-    assertEquals(ImmutableSet.of(getModelUtils().resolveRef(group)),
-        functionRightsAccess.getGroupsWithAccess(functionName));
-    verifyDefault();
-  }
-
-  @Test
-  public void test_getGroupsWithAccess_inLocalAndMainWiki() {
-    String functionName = "editSth";
-    String group = "XWiki.SomeGroup";
-    String groupMain = "XWiki.SomeMainGroup";
-    expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), group);
-    expectFunctionDoc(new DocumentReference("xwiki", SPACE_NAME, functionName), groupMain);
-
-    replayDefault();
-    assertEquals(ImmutableSet.of(getModelUtils().resolveRef(group),
-        getModelUtils().resolveRef(groupMain)),
         functionRightsAccess.getGroupsWithAccess(functionName));
     verifyDefault();
   }
@@ -80,7 +51,6 @@ public class DefaultFunctionRightsAccessTest extends AbstractComponentTest {
   public void test_getGroupsWithAccess_none() {
     String functionName = "editSth";
     expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), null);
-    expectFunctionDoc(new DocumentReference("xwiki", SPACE_NAME, functionName), "");
 
     replayDefault();
     assertEquals(ImmutableSet.of(),
@@ -92,9 +62,9 @@ public class DefaultFunctionRightsAccessTest extends AbstractComponentTest {
   public void test_hasUserAccess() {
     String functionName = "editSth";
     String group = "XWiki.SomeGroup";
-    expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), null);
-    expectFunctionDoc(new DocumentReference("xwiki", SPACE_NAME, functionName), group);
+    expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), group);
     User userMock = createMockAndAddToDefault(User.class);
+    expect(getMock(IRightsAccessFacadeRole.class).isSuperAdmin(same(userMock))).andReturn(false);
     expect(getMock(IRightsAccessFacadeRole.class).isInGroup(getModelUtils().resolveRef(group,
         DocumentReference.class), userMock)).andReturn(true);
 
@@ -104,12 +74,22 @@ public class DefaultFunctionRightsAccessTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_hasUserAccess_isSuperAdmin() {
+    User userMock = createMockAndAddToDefault(User.class);
+    expect(getMock(IRightsAccessFacadeRole.class).isSuperAdmin(same(userMock))).andReturn(true);
+
+    replayDefault();
+    assertTrue(functionRightsAccess.hasUserAccess(userMock, "editSth"));
+    verifyDefault();
+  }
+
+  @Test
   public void test_hasUserAccess_notInGroup() {
     String functionName = "editSth";
     String group = "XWiki.SomeGroup";
-    expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), null);
-    expectFunctionDoc(new DocumentReference("xwiki", SPACE_NAME, functionName), group);
+    expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), group);
     User userMock = createMockAndAddToDefault(User.class);
+    expect(getMock(IRightsAccessFacadeRole.class).isSuperAdmin(same(userMock))).andReturn(false);
     expect(getMock(IRightsAccessFacadeRole.class).isInGroup(getModelUtils().resolveRef(group,
         DocumentReference.class), userMock)).andReturn(false);
 
@@ -121,9 +101,9 @@ public class DefaultFunctionRightsAccessTest extends AbstractComponentTest {
   @Test
   public void test_hasUserAccess_noFunctionRightSet() {
     String functionName = "editSth";
-    expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), null);
-    expectFunctionDoc(new DocumentReference("xwiki", SPACE_NAME, functionName), null);
+    expectFunctionDoc(new DocumentReference(currentDb, SPACE_NAME, functionName), "");
     User userMock = createMockAndAddToDefault(User.class);
+    expect(getMock(IRightsAccessFacadeRole.class).isSuperAdmin(same(userMock))).andReturn(false);
 
     replayDefault();
     assertFalse(functionRightsAccess.hasUserAccess(userMock, functionName));

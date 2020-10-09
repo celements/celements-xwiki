@@ -3,6 +3,7 @@ package com.celements.rights.function;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
@@ -16,12 +17,12 @@ public interface FunctionRightsAccess {
   String SPACE_NAME = "FunctionRights";
 
   @NotNull
-  Set<DocumentReference> getGroupsWithAccess(@Nullable String functionName);
+  Set<DocumentReference> getGroupsWithAccess(@NotEmpty String functionName);
 
-  boolean hasGroupAccess(@Nullable DocumentReference groupDocRef, @Nullable String functionName);
+  boolean hasGroupAccess(@Nullable DocumentReference groupDocRef, @NotEmpty String functionName);
 
-  boolean hasUserAccess(@Nullable User user, @Nullable String functionName);
+  boolean hasUserAccess(@Nullable User user, @NotEmpty String functionName);
 
-  boolean hasCurrentUserAccess(@Nullable String functionName);
+  boolean hasCurrentUserAccess(@NotEmpty String functionName);
 
 }

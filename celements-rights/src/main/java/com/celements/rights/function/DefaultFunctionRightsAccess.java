@@ -1,5 +1,7 @@
 package com.celements.rights.function;
 
+import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Strings.*;
 import static com.google.common.collect.ImmutableSet.*;
 
 import java.util.Set;
@@ -46,6 +48,7 @@ public class DefaultFunctionRightsAccess implements FunctionRightsAccess {
   }
 
   private Stream<DocumentReference> streamGroupsWithAccess(String functionName) {
+    checkNotNull(emptyToNull(functionName));
     return RefBuilder.from(context.getWikiRef()).space(SPACE_NAME).doc(functionName)
         .buildOpt(DocumentReference.class)
         .map(modelAccess::getOrCreateDocument)
