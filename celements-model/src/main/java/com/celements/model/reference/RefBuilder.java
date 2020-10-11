@@ -5,6 +5,7 @@ import static com.celements.model.util.References.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Strings.*;
 
+import java.util.Optional;
 import java.util.TreeMap;
 
 import org.xwiki.model.EntityType;
@@ -115,6 +116,21 @@ public class RefBuilder implements Cloneable {
       }
     }
     return ref;
+  }
+
+  /**
+   * @param token
+   * @return optional of absolute reference of given class
+   */
+  public <T extends EntityReference> Optional<T> buildOpt(Class<T> token) {
+    final boolean nullableTmp = this.nullable;
+    try {
+      return Optional.ofNullable(this.nullable().build(token));
+    } catch (IllegalArgumentException iae) {
+      throw new IllegalStateException("should not happend due to nullable", iae);
+    } finally {
+      this.nullable = nullableTmp;
+    }
   }
 
   /**

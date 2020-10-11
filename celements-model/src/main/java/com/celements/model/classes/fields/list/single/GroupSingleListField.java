@@ -1,35 +1,25 @@
-package com.celements.model.classes.fields.list;
+package com.celements.model.classes.fields.list.single;
 
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.ClassReference;
+import org.xwiki.model.reference.DocumentReference;
 
-import com.celements.marshalling.DefaultMarshaller;
+import com.celements.marshalling.ReferenceMarshaller;
 import com.xpn.xwiki.objects.classes.GroupsClass;
 
-/**
- * @deprecated instead use {@link GroupListField}
- */
-@Deprecated
 @Immutable
-public final class ListOfGroupsField extends ListField<String> {
+public final class GroupSingleListField extends SingleListField<DocumentReference> {
 
   private final Boolean usesList;
 
-  public static class Builder extends ListField.Builder<Builder, String> {
+  public static class Builder extends SingleListField.Builder<Builder, DocumentReference> {
 
     private Boolean usesList;
 
-    @Deprecated
-    public Builder(@NotNull String classDefName, @NotNull String name) {
-      super(classDefName, name, new DefaultMarshaller());
-      separator(",");
-    }
-
     public Builder(@NotNull ClassReference classRef, @NotNull String name) {
-      super(classRef, name, new DefaultMarshaller());
-      separator(",");
+      super(classRef, name, new ReferenceMarshaller<>(DocumentReference.class));
     }
 
     @Override
@@ -43,19 +33,24 @@ public final class ListOfGroupsField extends ListField<String> {
     }
 
     @Override
-    public ListOfGroupsField build() {
-      return new ListOfGroupsField(getThis());
+    public GroupSingleListField build() {
+      return new GroupSingleListField(getThis());
     }
 
   }
 
-  protected ListOfGroupsField(@NotNull Builder builder) {
+  protected GroupSingleListField(@NotNull Builder builder) {
     super(builder);
     this.usesList = builder.usesList;
   }
 
   public Boolean getUsesList() {
     return usesList;
+  }
+
+  @Override
+  protected String getSeparator() {
+    return ",";
   }
 
   @Override

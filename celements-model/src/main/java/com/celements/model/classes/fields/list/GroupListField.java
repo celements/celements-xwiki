@@ -4,31 +4,23 @@ import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.ClassReference;
+import org.xwiki.model.reference.DocumentReference;
 
-import com.celements.marshalling.DefaultMarshaller;
+import com.celements.marshalling.ReferenceMarshaller;
+import com.celements.model.classes.fields.list.ListField.Builder;
 import com.xpn.xwiki.objects.classes.GroupsClass;
 
-/**
- * @deprecated instead use {@link GroupListField}
- */
-@Deprecated
 @Immutable
-public final class ListOfGroupsField extends ListField<String> {
+public final class GroupListField extends ListField<DocumentReference> {
 
   private final Boolean usesList;
 
-  public static class Builder extends ListField.Builder<Builder, String> {
+  public static class Builder extends ListField.Builder<Builder, DocumentReference> {
 
     private Boolean usesList;
 
-    @Deprecated
-    public Builder(@NotNull String classDefName, @NotNull String name) {
-      super(classDefName, name, new DefaultMarshaller());
-      separator(",");
-    }
-
     public Builder(@NotNull ClassReference classRef, @NotNull String name) {
-      super(classRef, name, new DefaultMarshaller());
+      super(classRef, name, new ReferenceMarshaller<>(DocumentReference.class));
       separator(",");
     }
 
@@ -43,13 +35,13 @@ public final class ListOfGroupsField extends ListField<String> {
     }
 
     @Override
-    public ListOfGroupsField build() {
-      return new ListOfGroupsField(getThis());
+    public GroupListField build() {
+      return new GroupListField(getThis());
     }
 
   }
 
-  protected ListOfGroupsField(@NotNull Builder builder) {
+  protected GroupListField(@NotNull Builder builder) {
     super(builder);
     this.usesList = builder.usesList;
   }
