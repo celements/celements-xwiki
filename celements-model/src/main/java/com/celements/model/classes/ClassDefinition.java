@@ -12,10 +12,13 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.classes.fields.ClassField;
+import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.web.Utils;
 
 @ComponentRole
 public interface ClassDefinition extends ClassIdentity {
+
+  ImmutableList<String> LANG_FIELD_NAMES = ImmutableList.of("lang", "language");
 
   String CFG_SRC_KEY = "celements.classdefinition.blacklist";
 
@@ -77,7 +80,7 @@ public interface ClassDefinition extends ClassIdentity {
    * @return the defined field for the given name
    */
   @NotNull
-  com.google.common.base.Optional<ClassField<?>> getField(@NotNull String name);
+  Optional<ClassField<?>> getField(@NotNull String name);
 
   /**
    * @param name
@@ -85,7 +88,12 @@ public interface ClassDefinition extends ClassIdentity {
    * @return the defined field for the given name
    */
   @NotNull
-  <T> com.google.common.base.Optional<ClassField<T>> getField(@NotNull String name,
-      @NotNull Class<T> token);
+  <T> Optional<ClassField<T>> getField(@NotNull String name, @NotNull Class<T> token);
+
+  /**
+   * @return the lang field for any multi-lang class definition, else absent
+   */
+  @NotNull
+  Optional<ClassField<String>> getLangField();
 
 }

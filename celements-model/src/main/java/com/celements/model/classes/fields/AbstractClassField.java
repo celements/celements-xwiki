@@ -2,8 +2,8 @@ package com.celements.model.classes.fields;
 
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Predicates.*;
 import static com.google.common.base.Strings.*;
-import static org.glassfish.jersey.internal.guava.Predicates.*;
 
 import java.util.Objects;
 import java.util.Optional;

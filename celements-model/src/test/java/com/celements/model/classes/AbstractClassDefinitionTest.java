@@ -4,6 +4,7 @@ import static com.celements.common.test.CelementsTestUtils.*;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,6 @@ import org.xwiki.model.reference.WikiReference;
 
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.model.classes.fields.ClassField;
-import com.google.common.base.Optional;
 import com.xpn.xwiki.web.Utils;
 
 public class AbstractClassDefinitionTest extends AbstractComponentTest {
