@@ -17,7 +17,6 @@ public abstract class AbstractObjectHandler<R extends AbstractObjectHandler<R, D
 
   public AbstractObjectHandler(@NotNull D doc) {
     this.doc = checkNotNull(doc);
-    getBridge().checkDoc(doc);
   }
 
   @Override

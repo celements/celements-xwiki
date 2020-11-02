@@ -30,11 +30,11 @@ public class ClassFieldMarshaller<T> extends AbstractMarshaller<ClassField<T>> {
 
   @Override
   public @NotNull Optional<ClassField<T>> resolve(String val) {
-    return getClassDef().getField(val, token);
+    return Optional.fromJavaUtil(getClassDef().getField(val, token));
   }
 
   private ClassDefinition getClassDef() {
     return Utils.getComponent(ClassDefinition.class, classRef.serialize());
-  };
+  }
 
 }

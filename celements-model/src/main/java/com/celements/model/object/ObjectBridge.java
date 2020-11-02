@@ -31,7 +31,11 @@ public interface ObjectBridge<D, O> {
   @NotNull
   Class<O> getObjectType();
 
-  void checkDoc(@NotNull D doc) throws IllegalArgumentException;
+  /**
+   * @deprecated without replacement since 4.8
+   */
+  @Deprecated
+  void checkDoc(@NotNull D doc);
 
   @NotNull
   DocumentReference getDocRef(@NotNull D doc);
