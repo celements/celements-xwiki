@@ -6,14 +6,11 @@ import java.util.Optional;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.classes.fields.ClassField;
 import com.google.common.collect.ImmutableList;
-import com.xpn.xwiki.web.Utils;
 
 @ComponentRole
 public interface ClassDefinition extends ClassIdentity {
@@ -22,25 +19,10 @@ public interface ClassDefinition extends ClassIdentity {
 
   String CFG_SRC_KEY = "celements.classdefinition.blacklist";
 
-  static Optional<ClassDefinition> lookup(ClassReference classRef) {
-    try {
-      return Optional.of(Utils.getComponentManager()
-          .lookup(ClassDefinition.class, classRef.serialize()));
-    } catch (ComponentLookupException exc) {
-      return Optional.empty();
-    }
-  }
-
   /**
    * @return the name of the component and class definition, used for blacklisting
    */
   String getName();
-
-  /**
-   * @return the class reference
-   */
-  @NotNull
-  ClassReference getClassReference();
 
   /**
    * @deprecated instead use {{@link #getClassReference()}

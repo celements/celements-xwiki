@@ -20,7 +20,6 @@ import com.celements.model.classes.ClassDefinition;
 import com.google.common.base.Strings;
 import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.PropertyClass;
-import com.xpn.xwiki.web.Utils;
 
 /**
  * Subclasses are expected to be immutable
@@ -98,7 +97,7 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   @Override
   public ClassDefinition getClassDef() {
-    return Utils.getComponent(ClassDefinition.class, getClassReference().serialize());
+    return getClassReference().getClassDefinition().orElseThrow();
   }
 
   @Override
