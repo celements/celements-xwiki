@@ -41,6 +41,12 @@ public interface ObjectBridge<D, O> {
   DocumentReference getDocRef(@NotNull D doc);
 
   @NotNull
+  String getLanguage(@NotNull D doc);
+
+  @NotNull
+  String getDefaultLanguage(@NotNull D doc);
+
+  @NotNull
   FluentIterable<? extends ClassIdentity> getDocClasses(@NotNull D doc);
 
   @NotNull

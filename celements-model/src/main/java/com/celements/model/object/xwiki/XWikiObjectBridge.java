@@ -1,6 +1,7 @@
 package com.celements.model.object.xwiki;
 
 import static com.celements.logging.LogUtils.*;
+import static com.celements.model.access.IModelAccessFacade.*;
 import static com.celements.model.util.References.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
@@ -24,6 +25,7 @@ import com.celements.model.field.XDocumentFieldAccessor;
 import com.celements.model.field.XObjectFieldAccessor;
 import com.celements.model.object.ObjectBridge;
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.XWikiException;
@@ -70,6 +72,20 @@ public class XWikiObjectBridge implements ObjectBridge<XWikiDocument, BaseObject
   @Override
   public DocumentReference getDocRef(XWikiDocument doc) {
     return cloneRef(doc.getDocumentReference(), DocumentReference.class);
+  }
+
+  @Override
+  public String getLanguage(XWikiDocument doc) {
+    return normalizeLang(doc.getLanguage());
+  }
+
+  @Override
+  public String getDefaultLanguage(XWikiDocument doc) {
+    return normalizeLang(doc.getDefaultLanguage());
+  }
+
+  private String normalizeLang(String lang) {
+    return "default".equals(lang) ? DEFAULT_LANG : Strings.nullToEmpty(lang);
   }
 
   @Override
