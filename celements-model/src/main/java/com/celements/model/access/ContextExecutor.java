@@ -2,6 +2,8 @@ package com.celements.model.access;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.util.function.Supplier;
+
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.context.ModelContext;
@@ -49,4 +51,25 @@ public abstract class ContextExecutor<T, E extends Throwable> {
     return Utils.getComponent(ModelContext.class);
   }
 
+  public static <T> T executeInWiki(WikiReference wikiRef, Supplier<T> supplier) {
+    return executeInWikiThrows(wikiRef, supplier::get);
+  }
+
+  public static <T, E extends Throwable> T executeInWikiThrows(WikiReference wikiRef,
+      ThrowingSupplier<T, E> supplier) throws E {
+    return new ContextExecutor<T, E>() {
+
+      @Override
+      protected T call() throws E {
+        return supplier.get();
+      }
+    }.inWiki(wikiRef).execute();
+  }
+
+  @FunctionalInterface
+  public interface ThrowingSupplier<T, E extends Throwable> {
+
+    T get() throws E;
+
+  }
 }

@@ -29,7 +29,7 @@ public class ReflectiveInstanceSupplierTest {
         new ReflectiveInstanceSupplier<>(EntityReference.class).get();
       }
     }.evaluate().getCause();
-    assertSame(InstantiationException.class, cause.getClass());
+    assertSame(NoSuchMethodException.class, cause.getClass());
   }
 
   @Test

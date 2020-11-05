@@ -8,6 +8,10 @@ import org.xwiki.model.reference.ClassReference;
 import com.celements.marshalling.DefaultMarshaller;
 import com.xpn.xwiki.objects.classes.GroupsClass;
 
+/**
+ * @deprecated instead use {@link GroupListField}
+ */
+@Deprecated
 @Immutable
 public final class ListOfGroupsField extends ListField<String> {
 

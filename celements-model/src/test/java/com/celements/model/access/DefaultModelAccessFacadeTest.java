@@ -13,11 +13,13 @@ import java.util.Map;
 import org.easymock.Capture;
 import org.junit.Before;
 import org.junit.Test;
+import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.ImmutableDocumentReference;
 import org.xwiki.rendering.syntax.Syntax;
 
 import com.celements.common.test.AbstractComponentTest;
+import com.celements.configuration.CelementsFromWikiConfigurationSource;
 import com.celements.model.access.exception.AttachmentNotExistsException;
 import com.celements.model.access.exception.ClassDocumentLoadException;
 import com.celements.model.access.exception.DocumentAlreadyExistsException;
@@ -59,8 +61,13 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   @Before
   public void prepareTest() throws Exception {
     registerComponentMock(XWikiDocumentCreator.class, "default", new TestXWikiDocumentCreator());
+    registerComponentMock(ConfigurationSource.class, "all", getConfigurationSource());
+    registerComponentMock(ConfigurationSource.class, CelementsFromWikiConfigurationSource.NAME,
+        getConfigurationSource());
+    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, "en");
     modelAccess = (DefaultModelAccessFacade) Utils.getComponent(IModelAccessFacade.class);
     doc = new XWikiDocument(new ImmutableDocumentReference("db", "space", "doc"));
+    doc.setDefaultLanguage(getConfigurationSource().getProperty(ModelContext.CFG_KEY_DEFAULT_LANG));
     doc.setSyntax(Syntax.XWIKI_1_0);
     doc.setMetaDataDirty(false);
     storeMock = createMockAndAddToDefault(XWikiStoreInterface.class);
@@ -433,7 +440,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     doc.setAuthor("XWiki.OldAuthor");
     String oldCreator = "XWiki.OldCreator";
     doc.setCreator(oldCreator);
-    Capture<XWikiDocument> docCapture = new Capture<>();
+    Capture<XWikiDocument> docCapture = newCapture();
     getWikiMock().saveDocument(capture(docCapture), eq(""), eq(false), same(getContext()));
     expectLastCall().once();
     doc.setMetaDataDirty(false);
@@ -454,7 +461,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     doc.setAuthor("XWiki.OldAuthor");
     String oldCreator = "XWiki.OldCreator";
     doc.setCreator(oldCreator);
-    Capture<XWikiDocument> docCapture = new Capture<>();
+    Capture<XWikiDocument> docCapture = newCapture();
     getWikiMock().saveDocument(capture(docCapture), eq(""), eq(false), same(getContext()));
     expectLastCall().once();
     doc.setMetaDataDirty(false);
@@ -465,6 +472,56 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     assertEquals(username, docSaved.getAuthor());
     assertEquals(username, docSaved.getCreator());
     assertTrue(docSaved.isMetaDataDirty());
+  }
+
+  @Test
+  public void test_saveDocument_noDefaultLang() throws Exception {
+    doc.setDefaultLanguage("");
+    getWikiMock().saveDocument(same(doc), eq(""), eq(false), same(getContext()));
+    expectLastCall().once();
+    replayDefault();
+    modelAccess.saveDocument(doc);
+    verifyDefault();
+    assertEquals("en", doc.getDefaultLanguage());
+  }
+
+  @Test
+  public void test_saveDocument_langSameAsDefault() throws Exception {
+    String lang = "de";
+    doc.setDefaultLanguage(lang);
+    doc.setLanguage(lang);
+    getWikiMock().saveDocument(same(doc), eq(""), eq(false), same(getContext()));
+    expectLastCall().once();
+    replayDefault();
+    modelAccess.saveDocument(doc);
+    verifyDefault();
+    assertEquals("", doc.getLanguage());
+  }
+
+  @Test
+  public void test_saveDocument_mainDocWithLang() throws Exception {
+    doc.setTranslation(0);
+    doc.setLanguage("de");
+    getWikiMock().saveDocument(same(doc), eq(""), eq(false), same(getContext()));
+    expectLastCall().once();
+    replayDefault();
+    modelAccess.saveDocument(doc);
+    verifyDefault();
+    assertEquals("", doc.getLanguage());
+  }
+
+  @Test
+  public void test_saveDocument_translationWithoutLang() throws Exception {
+    doc.setTranslation(1);
+    doc.setLanguage("");
+    replayDefault();
+    try {
+      modelAccess.saveDocument(doc);
+      fail("expecting DocumentSaveException");
+    } catch (DocumentSaveException exc) {
+      // expected
+    }
+    verifyDefault();
   }
 
   @Test

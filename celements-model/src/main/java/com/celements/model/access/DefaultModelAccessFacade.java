@@ -1,5 +1,6 @@
 package com.celements.model.access;
 
+import static com.celements.logging.LogUtils.*;
 import static com.google.common.base.Preconditions.*;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -19,6 +21,7 @@ import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.access.exception.AttachmentNotExistsException;
@@ -37,6 +40,7 @@ import com.celements.model.object.ObjectFetcher;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.util.ClassFieldValue;
 import com.celements.model.util.ModelUtils;
+import com.celements.model.util.ReferenceSerializationMode;
 import com.celements.rights.access.EAccessLevel;
 import com.celements.rights.access.IRightsAccessFacadeRole;
 import com.celements.rights.access.exceptions.NoAccessRightsException;
@@ -53,6 +57,7 @@ import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
+import com.xpn.xwiki.user.api.XWikiRightService;
 import com.xpn.xwiki.util.Util;
 
 @Component
@@ -182,14 +187,35 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     if (doc.isNew()) {
       doc.setCreator(username);
     }
-    LOGGER.debug("saveDocument: doc '{}, {}', comment '{}', isMinorEdit '{}'",
-        modelUtils.serializeRef(doc.getDocumentReference()), doc.getLanguage(), comment,
-        isMinorEdit);
+    sanitizeLangBeforeSave(doc);
+    LOGGER.info("saveDocument: doc '{}, {}', comment '{}', isMinorEdit '{}'",
+        serialize(doc.getDocumentReference()), doc.getLanguage(), comment, isMinorEdit);
     if (LOGGER.isTraceEnabled()) {
-      LOGGER.trace("saveDocument: context db '{}' and StackTrace:", context.getWikiRef(),
-          new Throwable());
+      LOGGER.trace("saveDocument: context db '{}' and StackTrace:",
+          serialize(context.getWikiRef()), new Throwable());
     }
     strategy.saveDocument(doc, comment, isMinorEdit);
+  }
+
+  private void sanitizeLangBeforeSave(XWikiDocument doc) throws DocumentSaveException {
+    if (doc.getDefaultLanguage().isEmpty()) {
+      LOGGER.warn("sanitizeLangBeforeSave: default lang missing on doc [{}]",
+          serialize(doc.getDocumentReference()));
+      doc.setDefaultLanguage(context.getDefaultLanguage());
+    }
+    if (doc.getLanguage().equals(doc.getDefaultLanguage())) {
+      LOGGER.warn("sanitizeLangBeforeSave: set lang equals default lang on doc [{}]",
+          serialize(doc.getDocumentReference()));
+      doc.setTranslation(0);
+      doc.setLanguage(DEFAULT_LANG);
+    } else if ((doc.getTranslation() == 0) && !doc.getLanguage().equals(DEFAULT_LANG)) {
+      LOGGER.warn("sanitizeLangBeforeSave: lang [{}] set on main doc [{}]",
+          doc.getLanguage(), serialize(doc.getDocumentReference()));
+      doc.setLanguage(DEFAULT_LANG);
+    } else if ((doc.getTranslation() != 0) && doc.getLanguage().equals(DEFAULT_LANG)) {
+      throw new DocumentSaveException(doc.getDocumentReference(), doc.getLanguage(),
+          "translation doc without set language");
+    }
   }
 
   @Override
@@ -198,7 +224,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     try {
       deleteDocument(getDocument(docRef), totrash);
     } catch (DocumentNotExistsException exc) {
-      LOGGER.debug("doc trying to delete does not exist '{}'", docRef, exc);
+      LOGGER.debug("doc trying to delete does not exist '{}'", serialize(docRef), exc);
     } catch (ModelAccessRuntimeException exc) {
       throw new DocumentDeleteException(docRef, exc);
     }
@@ -219,11 +245,11 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   public void deleteDocumentWithoutTranslations(XWikiDocument doc, boolean totrash)
       throws DocumentDeleteException {
     checkNotNull(doc);
-    LOGGER.debug("deleteDocument: doc '{}, {}', totrash '{}'", modelUtils.serializeRef(
-        doc.getDocumentReference()), doc.getLanguage(), totrash);
+    LOGGER.debug("deleteDocument: doc '{}, {}', totrash '{}'",
+        serialize(doc.getDocumentReference()), doc.getLanguage(), totrash);
     if (LOGGER.isTraceEnabled()) {
-      LOGGER.trace("deleteDocument: context db '{}' and StackTrace:", context.getWikiRef(),
-          new Throwable());
+      LOGGER.trace("deleteDocument: context db '{}' and StackTrace:",
+          serialize(context.getWikiRef()), new Throwable());
     }
     strategy.deleteDocument(doc, totrash);
   }
@@ -260,8 +286,8 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       try {
         transMap.put(lang, getDocument(docRef, lang));
       } catch (DocumentNotExistsException exc) {
-        LOGGER.error("failed to load existing translation '{}' for doc '{}'", lang,
-            modelUtils.serializeRef(docRef), exc);
+        LOGGER.error("failed to load existing translation '{}' for doc '{}'",
+            lang, serialize(docRef), exc);
       }
     }
     return transMap;
@@ -734,7 +760,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       }
     }
     LOGGER.debug("getAttachmentNameEqual: not found! file: [{}], doc: [{}]", filename,
-        modelUtils.serializeRef(doc.getDocumentReference()));
+        serialize(doc.getDocumentReference()));
     // FIXME empty or null filename leads to exception:
     // java.lang.IllegalArgumentException: An Entity Reference name cannot be null or
     // empty
@@ -744,6 +770,10 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       throw new AttachmentNotExistsException(new AttachmentReference(filename,
           doc.getDocumentReference()));
     }
+  }
+
+  private Supplier<String> serialize(EntityReference ref) {
+    return defer(() -> modelUtils.serializeRef(ref, ReferenceSerializationMode.GLOBAL));
   }
 
 }

@@ -76,8 +76,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.smtp.SMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
 import org.apache.ecs.Filter;
@@ -86,6 +84,8 @@ import org.apache.ecs.xhtml.textarea;
 import org.apache.velocity.VelocityContext;
 import org.hibernate.HibernateException;
 import org.securityfilter.filter.URLPatternMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentCreatingEvent;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
@@ -207,7 +207,7 @@ import com.xpn.xwiki.web.includeservletasstring.IncludeServletAsString;
 public class XWiki implements XWikiDocChangeNotificationInterface, EventListener {
 
   /** Logging helper object. */
-  protected static final Log LOG = LogFactory.getLog(XWiki.class);
+  protected static final Logger LOG = LoggerFactory.getLogger(XWiki.class);
 
   /** Frequently used Document reference, the class which holds virtual wiki definitions. */
   static final DocumentReference VIRTUAL_WIKI_DEFINITION_CLASS_REFERENCE = new DocumentReference(
@@ -995,16 +995,21 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
   }
 
   /**
+   * @deprecated since 4.4 instead use ModelUtils#getAllWikis
+   * 
    * @return a cached list of all active virtual wikis (i.e. wikis who have been hit by a user
    *         request). To get a full
    *         list of all virtual wikis database names use
    *         {@link #getVirtualWikisDatabaseNames(XWikiContext)}.
    */
+  @Deprecated
   public List<String> getVirtualWikiList() {
     return this.virtualWikiList;
   }
 
   /**
+   * @deprecated since 4.4 instead use ModelUtils#getAllWikis
+   * 
    * @return the full list of all database names of all defined virtual wikis. The database names
    *         are computed from
    *         the names of documents having a XWiki.XWikiServerClass object attached to them by
@@ -1012,6 +1017,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
    *         "XWiki.XWikiServer" prefix and making it lower case. For example a page named
    *         "XWiki.XWikiServerMyDatabase" would return "mydatabase" as the database name.
    */
+  @Deprecated
   public List<String> getVirtualWikisDatabaseNames(XWikiContext context) throws XWikiException {
     String database = context.getDatabase();
     try {
@@ -1954,7 +1960,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       return getRenderingEngine().getRenderer("wiki").render(parseTemplate(template, skin, context),
           context.getDoc(), context.getDoc(), context);
     } catch (Exception ex) {
-      LOG.error(ex);
+      LOG.error(ex.getMessage(), ex);
       return parseTemplate(template, skin, context);
     }
   }
@@ -1964,7 +1970,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       return getRenderingEngine().getRenderer("wiki").render(parseTemplate(template, context),
           context.getDoc(), context.getDoc(), context);
     } catch (Exception ex) {
-      LOG.error(ex);
+      LOG.error(ex.getMessage(), ex);
       return parseTemplate(template, context);
     }
   }
@@ -6017,6 +6023,10 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     }
   }
 
+  /**
+   * @deprecated since 4.4 instead use ModelUtils#getAllSpaces
+   */
+  @Deprecated
   public List<String> getSpaces(XWikiContext context) throws XWikiException {
     try {
       return getStore().getQueryManager().getNamedQuery("getSpaces").execute();
@@ -6025,6 +6035,11 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     }
   }
 
+
+  /**
+   * @deprecated since 4.4 instead use ModelUtils#getAllDocsForSpace
+   */
+  @Deprecated
   public List<String> getSpaceDocsName(String spaceName, XWikiContext context)
       throws XWikiException {
     try {

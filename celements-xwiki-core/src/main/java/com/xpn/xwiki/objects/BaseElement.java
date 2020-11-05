@@ -21,19 +21,19 @@
 
 package com.xpn.xwiki.objects;
 
+import java.io.Serializable;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReferenceSerializer;
+
 import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.Utils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.WikiReference;
-
-import java.io.Serializable;
 
 /**
  * Base class for representing an element having a name (either a reference of a free form name) and a pretty name.
@@ -42,7 +42,7 @@ import java.io.Serializable;
  */
 public abstract class BaseElement implements ElementInterface, Serializable
 {
-    private static final Log LOG = LogFactory.getLog(BaseElement.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BaseElement.class);
 
     /**
      * Used to convert a Document Reference to string (compact form without the wiki part if it matches the current

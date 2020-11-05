@@ -56,8 +56,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.ecs.filter.CharacterFilter;
 import org.apache.velocity.VelocityContext;
 import org.dom4j.Document;
@@ -67,6 +65,8 @@ import org.dom4j.dom.DOMDocument;
 import org.dom4j.dom.DOMElement;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.suigeneris.jrcs.diff.Diff;
 import org.suigeneris.jrcs.diff.DifferentiationFailedException;
 import org.suigeneris.jrcs.diff.Revision;
@@ -91,10 +91,10 @@ import org.xwiki.rendering.block.LinkBlock;
 import org.xwiki.rendering.block.MacroBlock;
 import org.xwiki.rendering.block.SectionBlock;
 import org.xwiki.rendering.block.XDOM;
-import org.xwiki.rendering.listener.reference.DocumentResourceReference;
 import org.xwiki.rendering.listener.HeaderLevel;
-import org.xwiki.rendering.listener.reference.ResourceType;
+import org.xwiki.rendering.listener.reference.DocumentResourceReference;
 import org.xwiki.rendering.listener.reference.ResourceReference;
+import org.xwiki.rendering.listener.reference.ResourceType;
 import org.xwiki.rendering.parser.ParseException;
 import org.xwiki.rendering.parser.Parser;
 import org.xwiki.rendering.renderer.BlockRenderer;
@@ -153,7 +153,7 @@ import com.xpn.xwiki.web.XWikiRequest;
 
 public class XWikiDocument implements DocumentModelBridge
 {
-    private static final Log LOG = LogFactory.getLog(XWikiDocument.class);
+    private static final Logger LOG = LoggerFactory.getLogger(XWikiDocument.class);
 
     /**
      * Regex Pattern to recognize if there's HTML code in a XWiki page.
@@ -963,7 +963,7 @@ public class XWikiDocument implements DocumentModelBridge
             } catch (Exception e) {
                 // Failed to render for some reason. This method should normally throw an exception but this
                 // requires changing the signature of calling methods too.
-                LOG.warn(e);
+                LOG.warn(e.getMessage(), e);
                 result = "";
             } finally {
                 restoreContext(backup, context);

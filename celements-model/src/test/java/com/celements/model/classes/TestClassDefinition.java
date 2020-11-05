@@ -5,6 +5,7 @@ import java.util.List;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.model.classes.fields.BooleanField;
@@ -23,6 +24,7 @@ public class TestClassDefinition extends AbstractClassDefinition implements
   public static final String SPACE_NAME = "Classes";
   public static final String DOC_NAME = "TestClass";
   public static final String NAME = SPACE_NAME + "." + DOC_NAME;
+  public static final ClassReference CLASS_REF = new ClassReference(SPACE_NAME, DOC_NAME);
 
   public static final ClassField<String> FIELD_MY_STRING = getFieldMyString();
   public static final ClassField<Integer> FIELD_MY_INT = getFieldMyInt();
@@ -32,19 +34,13 @@ public class TestClassDefinition extends AbstractClassDefinition implements
   public static final ClassField<List<String>> FIELD_MY_LIST_SS = getFieldMyList(false);
   public static final ClassField<String> FIELD_MY_SINGLE_LIST = getFieldMySingleList();
 
+  public TestClassDefinition() {
+    super(CLASS_REF);
+  }
+
   @Override
   public String getName() {
     return NAME;
-  }
-
-  @Override
-  protected String getClassSpaceName() {
-    return SPACE_NAME;
-  }
-
-  @Override
-  protected String getClassDocName() {
-    return DOC_NAME;
   }
 
   @Override
@@ -53,28 +49,28 @@ public class TestClassDefinition extends AbstractClassDefinition implements
   }
 
   private static ClassField<String> getFieldMyString() {
-    return new StringField.Builder(NAME, "myString").size(30).build();
+    return new StringField.Builder(CLASS_REF, "myString").size(30).build();
   }
 
   private static ClassField<Integer> getFieldMyInt() {
-    return new IntField.Builder(NAME, "myInt").size(30).build();
+    return new IntField.Builder(CLASS_REF, "myInt").size(30).build();
   }
 
   private static ClassField<Boolean> getFieldMyBool() {
-    return new BooleanField.Builder(NAME, "myBool").displayType("asdf").build();
+    return new BooleanField.Builder(CLASS_REF, "myBool").displayType("asdf").build();
   }
 
   private static ClassField<DocumentReference> getFieldMyDocRef() {
-    return new DocumentReferenceField.Builder(NAME, "myDocRef").size(30).build();
+    return new DocumentReferenceField.Builder(CLASS_REF, "myDocRef").size(30).build();
   }
 
   private static ClassField<List<String>> getFieldMyList(boolean multiSelect) {
-    return new StringListField.Builder<>(NAME, "myList" + (multiSelect ? "MS" : "SS")).multiSelect(
-        multiSelect).build();
+    return new StringListField.Builder<>(CLASS_REF, "myList" + (multiSelect ? "MS" : "SS"))
+        .multiSelect(multiSelect).build();
   }
 
   private static ClassField<String> getFieldMySingleList() {
-    return new StringSingleListField.Builder(NAME, "mySingleList").build();
+    return new StringSingleListField.Builder(CLASS_REF, "mySingleList").build();
   }
 
 }
