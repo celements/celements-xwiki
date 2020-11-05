@@ -2,6 +2,7 @@ package com.celements.model.access;
 
 import static com.celements.logging.LogUtils.*;
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Strings.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +57,6 @@ import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
-import com.xpn.xwiki.user.api.XWikiRightService;
 import com.xpn.xwiki.util.Util;
 
 @Component
@@ -112,7 +112,8 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       throws DocumentNotExistsException {
     checkNotNull(docRef);
     lang = normalizeLang(lang);
-    if (exists(docRef, lang)) {
+    XWikiDocument doc = strategy.getDocument(docRef, lang);
+    if (!doc.isNew()) {
       return strategy.getDocument(docRef, lang);
     } else {
       throw new DocumentNotExistsException(docRef);
@@ -132,10 +133,15 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
 
   @Override
   public XWikiDocument getOrCreateDocument(DocumentReference docRef) {
+    return getOrCreateDocument(docRef, DEFAULT_LANG);
+  }
+
+  @Override
+  public XWikiDocument getOrCreateDocument(DocumentReference docRef, String lang) {
     try {
-      return getDocument(docRef, DEFAULT_LANG);
+      return getDocument(docRef, lang);
     } catch (DocumentNotExistsException exc) {
-      return strategy.createDocument(docRef, DEFAULT_LANG);
+      return strategy.createDocument(docRef, lang);
     }
   }
 
@@ -149,7 +155,11 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     boolean exists = false;
     if (docRef != null) {
       lang = normalizeLang(lang);
-      exists = strategy.exists(docRef, lang);
+      if (DEFAULT_LANG.equals(lang)) {
+        exists = strategy.exists(docRef, DEFAULT_LANG);
+      } else {
+        return !strategy.getDocument(docRef, lang).isNew();
+      }
     }
     return exists;
   }
@@ -288,11 +298,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
 
   private String normalizeLang(String lang) {
     lang = Util.normalizeLanguage(lang);
-    lang = Strings.nullToEmpty(lang);
-    if ("default".equals(lang)) {
-      lang = "";
-    }
-    return lang;
+    return "default".equals(lang) ? DEFAULT_LANG : nullToEmpty(lang);
   }
 
   @Override
