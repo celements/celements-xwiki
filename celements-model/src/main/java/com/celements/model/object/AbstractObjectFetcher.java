@@ -174,7 +174,7 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
           stream = fetcher.stream().map(new FieldGetterFunction<>(accessor, field));
         } else {
           FieldAccessor<D> accessor = getBridge().getDocumentFieldAccessor();
-          stream = accessor.getValue(getDocument(), field)
+          stream = accessor.getValue(getTranslationDoc().orElse(getDocument()), field)
               .toJavaUtil().map(Stream::of).orElseGet(Stream::empty);
         }
         return stream;

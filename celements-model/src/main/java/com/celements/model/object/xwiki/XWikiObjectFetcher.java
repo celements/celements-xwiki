@@ -24,7 +24,9 @@ public class XWikiObjectFetcher extends
 
   public static XWikiObjectFetcher from(
       @NotNull ObjectHandler<XWikiDocument, BaseObject> objHandler) {
-    return XWikiObjectFetcher.on(objHandler.getDocument()).with(objHandler.getQuery());
+    return XWikiObjectFetcher.on(objHandler.getDocument())
+        .withTranslation(objHandler.getTranslationDoc().orElse(null))
+        .with(objHandler.getQuery());
   }
 
   public static XWikiObjectFetcher empty() {
