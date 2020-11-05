@@ -160,12 +160,12 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   }
 
   private Cache<Boolean> newExistCache() throws CacheException, ComponentLookupException {
-    CacheConfiguration cacheCfg = new CacheConfiguration();
-    cacheCfg.setConfigurationId("xwiki.store.pageexistcache");
+    CacheConfiguration config = new CacheConfiguration();
+    config.setConfigurationId("xwiki.store.pageexistcache");
     LRUEvictionConfiguration lru = new LRUEvictionConfiguration();
     lru.setMaxEntries(getExistCacheCapacity());
-    cacheCfg.put(EntryEvictionConfiguration.CONFIGURATIONID, lru);
-    return cacheManager.getCacheFactory().newCache(cacheCfg);
+    config.put(EntryEvictionConfiguration.CONFIGURATIONID, lru);
+    return cacheManager.getCacheFactory().newCache(config);
   }
 
   private int getExistCacheCapacity() {
@@ -191,12 +191,12 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
   }
 
   private Cache<XWikiDocument> newDocCache() throws CacheException, ComponentLookupException {
-    CacheConfiguration cacheCfg = new CacheConfiguration();
-    cacheCfg.setConfigurationId("xwiki.store.pagecache");
+    CacheConfiguration config = new CacheConfiguration();
+    config.setConfigurationId("xwiki.store.pagecache");
     LRUEvictionConfiguration lru = new LRUEvictionConfiguration();
     lru.setMaxEntries(getDocCacheCapacity());
-    cacheCfg.put(EntryEvictionConfiguration.CONFIGURATIONID, lru);
-    return cacheManager.getCacheFactory().newCache(cacheCfg);
+    config.put(EntryEvictionConfiguration.CONFIGURATIONID, lru);
+    return cacheManager.getCacheFactory().newCache(config);
   }
 
   private int getDocCacheCapacity() {
