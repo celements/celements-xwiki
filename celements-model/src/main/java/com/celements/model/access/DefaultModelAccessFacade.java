@@ -113,7 +113,9 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     checkNotNull(docRef);
     XWikiDocument mainDoc = getDocumentInternal(docRef, DEFAULT_LANG);
     lang = normalizeLang(lang);
-    if (lang.equals(DEFAULT_LANG) || lang.equals(mainDoc.getDefaultLanguage())) {
+    if (lang.equals(DEFAULT_LANG)) {
+      return mainDoc; // return main doc if the default language is requested
+    } else if (lang.equals(mainDoc.getDefaultLanguage())) {
       return mainDoc; // return main doc if the requested language is the actual default language
     } else {
       return getDocumentInternal(docRef, lang); // load translation
@@ -123,7 +125,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   private XWikiDocument getDocumentInternal(DocumentReference docRef, String lang)
       throws DocumentNotExistsException {
     XWikiDocument doc = strategy.getDocument(docRef, lang);
-    if (doc.isNew()) {
+    if (doc.isNew()) { // faster than exists check when doc exists
       throw new DocumentNotExistsException(docRef, lang);
     }
     return doc;
