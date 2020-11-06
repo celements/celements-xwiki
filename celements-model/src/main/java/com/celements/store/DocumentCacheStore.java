@@ -722,7 +722,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     }.inWiki(new WikiReference(context.getDatabase())).execute();
   }
 
-  // TODO doesn't support multilingual keys
+  // FIXME [CELDEV-924] Store add lang support for exists check and cache
   private boolean existsInternal(XWikiDocument doc, XWikiContext context) throws XWikiException {
     String key = getKey(doc.getDocumentReference());
     Boolean result = getExistCache().get(key);
