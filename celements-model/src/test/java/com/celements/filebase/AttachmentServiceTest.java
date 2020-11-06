@@ -26,11 +26,11 @@ import com.celements.configuration.CelementsFromWikiConfigurationSource;
 import com.celements.filebase.matcher.IAttFileNameMatcherRole;
 import com.celements.filebase.matcher.IAttachmentMatcher;
 import com.celements.model.access.IModelAccessFacade;
+import com.celements.model.access.ModelAccessStrategy;
 import com.celements.model.access.exception.AttachmentNotExistsException;
 import com.celements.model.access.exception.DocumentLoadException;
 import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.rights.access.exceptions.NoAccessRightsException;
-import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.api.Attachment;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -46,6 +46,7 @@ public class AttachmentServiceTest extends AbstractComponentTest {
 
   @Before
   public void setUp_AttachmentServiceTest() throws ComponentLookupException, Exception {
+    registerComponentMock(ModelAccessStrategy.class);
     registerComponentMock(ConfigurationSource.class, "all", getConfigurationSource());
     registerComponentMock(ConfigurationSource.class, CelementsFromWikiConfigurationSource.NAME,
         getConfigurationSource());
@@ -98,7 +99,7 @@ public class AttachmentServiceTest extends AbstractComponentTest {
   }
 
   @Test
-  public void testDeleteAttachmentList_list() throws XWikiException {
+  public void testDeleteAttachmentList_list() throws Exception {
     String name1 = "file1.jpg";
     String name2 = "file2.txt";
     String name3 = "file3.png";
@@ -111,15 +112,13 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiDocument doc = new XWikiDocument(docRef);
     doc.setNew(false);
     doc.setSyntax(Syntax.XWIKI_1_0);
-    expect(getContext().getWiki().exists(eq(docRef), same(getContext()))).andReturn(true).once();
-    expect(getContext().getWiki().getDocument(eq(docRef), same(getContext()))).andReturn(
-        doc).once();
+    expect(getMock(ModelAccessStrategy.class).getDocument(docRef, "")).andReturn(doc).once();
     String comment = "deleted attachments " + names;
     ((TestMessageTool) getContext().getMessageTool()).injectMessage("core.comment."
         + "deleteAttachmentComment", Arrays.asList(names), comment);
-    Capture<XWikiDocument> savedDocCapture = new Capture<>();
-    getContext().getWiki().saveDocument(capture(savedDocCapture), isA(String.class), eq(false),
-        same(getContext()));
+    Capture<XWikiDocument> savedDocCapture = newCapture();
+    getMock(ModelAccessStrategy.class).saveDocument(
+        capture(savedDocCapture), isA(String.class), eq(false));
     expectLastCall();
     XWikiAttachment att1 = new XWikiAttachment(doc, name1);
     doc.getAttachmentList().add(att1);
@@ -131,7 +130,7 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiAttachmentStoreInterface store = createMockAndAddToDefault(
         XWikiAttachmentStoreInterface.class);
     expect(getWikiMock().getAttachmentStore()).andReturn(store).anyTimes();
-    Capture<XWikiAttachment> attCaptures = new Capture<>(CaptureType.ALL);
+    Capture<XWikiAttachment> attCaptures = newCapture(CaptureType.ALL);
     store.deleteXWikiAttachment(capture(attCaptures), same(getContext()), eq(true));
     expectLastCall().times(3);
     replayDefault();
@@ -149,7 +148,7 @@ public class AttachmentServiceTest extends AbstractComponentTest {
   }
 
   @Test
-  public void testDeleteAttachmentList_list_with_nonexistant() throws XWikiException {
+  public void testDeleteAttachmentList_list_with_nonexistant() throws Exception {
     String name1 = "file1.jpg";
     String name3 = "file3.png";
     String name5 = "file5.txt";
@@ -165,25 +164,21 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     attList.add(new AttachmentReference(name3, docRef));
     attList.add(new AttachmentReference(name4, docRef2));
     attList.add(new AttachmentReference(name5, docRef));
-    expect(getContext().getWiki().exists(eq(docRef), same(getContext()))).andReturn(true).once();
-    expect(getContext().getWiki().exists(eq(docRef2), same(getContext()))).andReturn(true).once();
     XWikiDocument doc = new XWikiDocument(docRef);
     doc.setNew(false);
     doc.setSyntax(Syntax.XWIKI_1_0);
-    expect(getContext().getWiki().getDocument(eq(docRef), same(getContext()))).andReturn(
-        doc).once();
+    expect(getMock(ModelAccessStrategy.class).getDocument(docRef, "")).andReturn(doc).once();
     String comment = "deleted attachments " + names;
     ((TestMessageTool) getContext().getMessageTool()).injectMessage("core.comment."
         + "deleteAttachmentComment", Arrays.asList(names), comment);
-    Capture<XWikiDocument> savedDocsCapture = new Capture<>(CaptureType.ALL);
-    getContext().getWiki().saveDocument(capture(savedDocsCapture), isA(String.class), eq(false),
-        same(getContext()));
+    Capture<XWikiDocument> savedDocsCapture = newCapture(CaptureType.ALL);
+    getMock(ModelAccessStrategy.class).saveDocument(
+        capture(savedDocsCapture), isA(String.class), eq(false));
     expectLastCall().atLeastOnce();
     XWikiDocument doc2 = new XWikiDocument(docRef2);
     doc2.setNew(false);
     doc2.setSyntax(Syntax.XWIKI_1_0);
-    expect(getContext().getWiki().getDocument(eq(docRef2), same(getContext()))).andReturn(
-        doc2).once();
+    expect(getMock(ModelAccessStrategy.class).getDocument(docRef2, "")).andReturn(doc2).once();
     String comment2 = "deleted attachments " + names2;
     ((TestMessageTool) getContext().getMessageTool()).injectMessage("core.comment."
         + "deleteAttachmentComment", Arrays.asList(names2), comment2);
@@ -199,7 +194,7 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiAttachmentStoreInterface store = createMockAndAddToDefault(
         XWikiAttachmentStoreInterface.class);
     expect(getWikiMock().getAttachmentStore()).andReturn(store).anyTimes();
-    Capture<XWikiAttachment> attCaptures = new Capture<>(CaptureType.ALL);
+    Capture<XWikiAttachment> attCaptures = newCapture(CaptureType.ALL);
     store.deleteXWikiAttachment(capture(attCaptures), same(getContext()), eq(true));
     expectLastCall().anyTimes();
     replayDefault();
@@ -355,10 +350,8 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiAttachment lastAtt = new XWikiAttachment(doc, "bli.gaga");
     List<XWikiAttachment> attList = Arrays.asList(firstAtt, imageAtt, lastAtt);
     doc.setAttachmentList(attList);
-    expect(getWikiMock().exists(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        true).once();
-    expect(getWikiMock().getDocument(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        doc).once();
+    expect(getMock(ModelAccessStrategy.class).getDocument(doc.getDocumentReference(), ""))
+        .andReturn(doc).once();
     replayDefault();
     XWikiAttachment att = attService.getAttachmentNameEqual(attRef);
     verifyDefault();
@@ -374,10 +367,8 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiAttachment lastAtt = new XWikiAttachment(doc, "bli.gaga");
     List<XWikiAttachment> attList = Arrays.asList(firstAtt, lastAtt);
     doc.setAttachmentList(attList);
-    expect(getWikiMock().exists(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        true).once();
-    expect(getWikiMock().getDocument(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        doc).once();
+    expect(getMock(ModelAccessStrategy.class).getDocument(doc.getDocumentReference(), ""))
+        .andReturn(doc).once();
     replayDefault();
     try {
       attService.getAttachmentNameEqual(attRef);
@@ -396,8 +387,9 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiAttachment lastAtt = new XWikiAttachment(doc, "bli.gaga");
     List<XWikiAttachment> attList = Arrays.asList(firstAtt, lastAtt);
     doc.setAttachmentList(attList);
-    expect(getWikiMock().exists(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        false).once();
+    doc.setNew(true);
+    expect(getMock(ModelAccessStrategy.class).getDocument(doc.getDocumentReference(), ""))
+        .andReturn(doc).once();
     replayDefault();
     try {
       attService.getAttachmentNameEqual(attRef);
@@ -442,10 +434,8 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiAttachment lastAtt = new XWikiAttachment(doc, "bli.gaga");
     List<XWikiAttachment> attList = Arrays.asList(firstAtt, imageAtt, lastAtt);
     doc.setAttachmentList(attList);
-    expect(getWikiMock().exists(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        true).once();
-    expect(getWikiMock().getDocument(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        doc).once();
+    expect(getMock(ModelAccessStrategy.class).getDocument(doc.getDocumentReference(), ""))
+        .andReturn(doc).once();
     replayDefault();
     assertTrue(attService.existsAttachmentNameEqual(attRef));
     verifyDefault();
@@ -459,8 +449,9 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiAttachment lastAtt = new XWikiAttachment(doc, "bli.gaga");
     List<XWikiAttachment> attList = Arrays.asList(firstAtt, lastAtt);
     doc.setAttachmentList(attList);
-    expect(getWikiMock().exists(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        false).once();
+    doc.setNew(true);
+    expect(getMock(ModelAccessStrategy.class).getDocument(doc.getDocumentReference(), ""))
+        .andReturn(doc).once();
     replayDefault();
     assertFalse(attService.existsAttachmentNameEqual(attRef));
     verifyDefault();
@@ -474,10 +465,8 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiAttachment lastAtt = new XWikiAttachment(doc, "bli.gaga");
     List<XWikiAttachment> attList = Arrays.asList(firstAtt, lastAtt);
     doc.setAttachmentList(attList);
-    expect(getWikiMock().exists(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        true).once();
-    expect(getWikiMock().getDocument(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        doc).once();
+    expect(getMock(ModelAccessStrategy.class).getDocument(doc.getDocumentReference(), ""))
+        .andReturn(doc).once();
     replayDefault();
     assertFalse(attService.existsAttachmentNameEqual(attRef));
     verifyDefault();
@@ -491,10 +480,8 @@ public class AttachmentServiceTest extends AbstractComponentTest {
     XWikiAttachment lastAtt = new XWikiAttachment(doc, "bli.gaga");
     List<XWikiAttachment> attList = Arrays.asList(firstAtt, lastAtt);
     doc.setAttachmentList(attList);
-    expect(getWikiMock().exists(eq(doc.getDocumentReference()), same(getContext()))).andReturn(
-        true).once();
-    expect(getWikiMock().getDocument(eq(doc.getDocumentReference()), same(getContext()))).andThrow(
-        new XWikiException()).once();
+    expect(getMock(ModelAccessStrategy.class).getDocument(doc.getDocumentReference(), ""))
+        .andThrow(new DocumentLoadException(doc.getDocumentReference())).once();
     replayDefault();
     try {
       attService.existsAttachmentNameEqual(attRef);
