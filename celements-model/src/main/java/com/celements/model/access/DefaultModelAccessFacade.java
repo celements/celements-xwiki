@@ -2,7 +2,6 @@ package com.celements.model.access;
 
 import static com.celements.logging.LogUtils.*;
 import static com.google.common.base.Preconditions.*;
-import static com.google.common.base.Strings.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +56,6 @@ import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
-import com.xpn.xwiki.util.Util;
 
 @Component
 public class DefaultModelAccessFacade implements IModelAccessFacade {
@@ -112,7 +110,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       throws DocumentNotExistsException {
     checkNotNull(docRef);
     XWikiDocument mainDoc = getDocumentInternal(docRef, DEFAULT_LANG);
-    lang = normalizeLang(lang);
+    lang = modelUtils.normalizeLang(lang);
     if (lang.equals(DEFAULT_LANG)) {
       return mainDoc; // return main doc if the default language is requested
     } else if (lang.equals(mainDoc.getDefaultLanguage())) {
@@ -159,7 +157,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   public XWikiDocument createDocument(DocumentReference docRef, String lang)
       throws DocumentAlreadyExistsException {
     checkNotNull(docRef);
-    lang = normalizeLang(lang);
+    lang = modelUtils.normalizeLang(lang);
     if (!exists(docRef, lang)) {
       return strategy.createDocument(docRef, lang);
     } else {
@@ -177,6 +175,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     try {
       return getDocument(docRef, lang);
     } catch (DocumentNotExistsException exc) {
+      lang = modelUtils.normalizeLang(lang);
       return strategy.createDocument(docRef, lang);
     }
   }
@@ -190,10 +189,11 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   public boolean exists(DocumentReference docRef, String lang) {
     boolean exists = false;
     if (docRef != null) {
-      lang = normalizeLang(lang);
+      lang = modelUtils.normalizeLang(lang);
       if (lang.isEmpty()) {
         exists = strategy.exists(docRef, lang);
-      } else { // TODO workaround, remove when exists properly supports multilang
+      } else {
+        // FIXME workaround until [CELDEV-924] Store add lang support for exists check and cache
         exists = !strategy.getDocument(docRef, lang).isNew();
       }
     }
@@ -299,7 +299,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   public Map<String, XWikiDocument> getTranslations(DocumentReference docRef) {
     Map<String, XWikiDocument> transMap = new HashMap<>();
     for (String lang : getExistingLangs(docRef)) {
-      lang = normalizeLang(lang);
+      lang = modelUtils.normalizeLang(lang);
       try {
         transMap.put(lang, getDocument(docRef, lang));
       } catch (DocumentNotExistsException exc) {
@@ -329,11 +329,6 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       doc.setFromCache(false);
     }
     return doc;
-  }
-
-  private String normalizeLang(String lang) {
-    lang = Util.normalizeLanguage(lang);
-    return "default".equals(lang) ? DEFAULT_LANG : nullToEmpty(lang).trim();
   }
 
   @Override

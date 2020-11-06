@@ -2,7 +2,6 @@ package com.celements.model.access;
 
 import static com.celements.model.access.IModelAccessFacade.*;
 import static com.celements.model.util.References.*;
-import static com.google.common.base.Strings.*;
 
 import java.util.Date;
 
@@ -14,6 +13,7 @@ import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.context.ModelContext;
+import com.celements.model.util.ModelUtils;
 import com.celements.model.util.References;
 import com.xpn.xwiki.doc.XWikiDocument;
 
@@ -22,12 +22,14 @@ public class DefaultXWikiDocumentCreator implements XWikiDocumentCreator {
 
   @Requirement
   private ModelContext context;
+  @Requirement
+  private ModelUtils modelUtils;
 
   @Override
   public XWikiDocument createWithoutDefaults(DocumentReference docRef, String lang) {
     XWikiDocument doc = new XWikiDocument(cloneRef(docRef, DocumentReference.class));
     doc.setNew(true);
-    lang = nullToEmpty(lang).trim();
+    lang = modelUtils.normalizeLang(lang);
     doc.setLanguage(lang);
     doc.setTranslation(DEFAULT_LANG.equals(lang) ? 0 : 1);
     Date creationDate = new Date();

@@ -148,4 +148,7 @@ public interface ModelUtils {
   @NotNull
   String serializeRefLocal(@NotNull EntityReference ref);
 
+  @NotNull
+  String normalizeLang(@Nullable String lang);
+
 }
