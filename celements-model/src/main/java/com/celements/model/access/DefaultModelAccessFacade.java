@@ -112,18 +112,22 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   private XWikiDocument getDocumentReadOnly(DocumentReference docRef, String lang)
       throws DocumentNotExistsException {
     checkNotNull(docRef);
-    XWikiDocument mainDoc = strategy.getDocument(docRef, DEFAULT_LANG);
+    XWikiDocument mainDoc = getDocumentInternal(docRef, DEFAULT_LANG);
     lang = normalizeLang(lang);
     if (lang.equals(DEFAULT_LANG) || lang.equals(mainDoc.getDefaultLanguage())) {
       return mainDoc; // return main doc if the requested language is the actual default language
     } else {
-      XWikiDocument doc = strategy.getDocument(docRef, lang);
-      if (!doc.isNew()) {
-        return doc;
-      } else {
-        throw new DocumentNotExistsException(docRef);
-      }
+      return getDocumentInternal(docRef, lang); // load translation
     }
+  }
+
+  private XWikiDocument getDocumentInternal(DocumentReference docRef, String lang)
+      throws DocumentNotExistsException {
+    XWikiDocument doc = strategy.getDocument(docRef, lang);
+    if (doc.isNew()) {
+      throw new DocumentNotExistsException(docRef, lang);
+    }
+    return doc;
   }
 
   @Override
