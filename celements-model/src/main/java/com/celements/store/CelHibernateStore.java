@@ -3,8 +3,6 @@ package com.celements.store;
 import static com.xpn.xwiki.XWikiException.*;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Singleton;
 
@@ -58,39 +56,6 @@ public class CelHibernateStore extends XWikiHibernateStore {
     documentStorePart = new CelHibernateStoreDocumentPart(this);
     collectionStorePart = new CelHibernateStoreCollectionPart(this);
     propertyStorePart = new CelHibernateStorePropertyPart(this);
-  }
-
-  @Override
-  public boolean exists(XWikiDocument doc, XWikiContext context) throws XWikiException {
-    try {
-      log(LogLevel.INFO, "exists - start", doc);
-      boolean ret = documentStorePart.exists(doc, context);
-      log(LogLevel.INFO, "exists - end", doc);
-      return ret;
-    } catch (HibernateException | XWikiException exc) {
-      throw newXWikiException("exists - failed", doc, exc,
-          ERROR_XWIKI_STORE_HIBERNATE_CHECK_EXISTS_DOC);
-    } catch (Exception exc) {
-      logError("exists - error", doc, exc);
-      throw exc;
-    }
-  }
-
-  @Override
-  public List<String> getTranslationList(XWikiDocument doc, XWikiContext context)
-      throws XWikiException {
-    try {
-      log(LogLevel.INFO, "getTranslationList - start", doc);
-      List<String> ret = new ArrayList<>(documentStorePart.getExistingLangs(doc, context));
-      log(LogLevel.INFO, "getTranslationList - end", doc);
-      return ret;
-    } catch (HibernateException | XWikiException exc) {
-      throw newXWikiException("getTranslationList - failed", doc, exc,
-          ERROR_XWIKI_STORE_HIBERNATE_CHECK_EXISTS_DOC);
-    } catch (Exception exc) {
-      logError("getTranslationList - error", doc, exc);
-      throw exc;
-    }
   }
 
   @Override

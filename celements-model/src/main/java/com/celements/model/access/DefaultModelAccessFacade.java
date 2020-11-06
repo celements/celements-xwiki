@@ -31,7 +31,6 @@ import com.celements.model.access.exception.DocumentDeleteException;
 import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.model.access.exception.DocumentSaveException;
 import com.celements.model.access.exception.ModelAccessRuntimeException;
-import com.celements.model.access.exception.TranslationCreateException;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
@@ -136,7 +135,8 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     return createDocument(docRef, DEFAULT_LANG);
   }
 
-  private XWikiDocument createDocument(DocumentReference docRef, String lang)
+  @Override
+  public XWikiDocument createDocument(DocumentReference docRef, String lang)
       throws DocumentAlreadyExistsException {
     checkNotNull(docRef);
     lang = normalizeLang(lang);
@@ -171,11 +171,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     boolean exists = false;
     if (docRef != null) {
       lang = normalizeLang(lang);
-      if (DEFAULT_LANG.equals(lang)) {
-        exists = strategy.exists(docRef, DEFAULT_LANG);
-      } else {
-        return !strategy.getDocument(docRef, lang).isNew();
-      }
+      exists = strategy.exists(docRef, lang);
     }
     return exists;
   }
@@ -267,33 +263,14 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   }
 
   @Override
-  public XWikiDocument createTranslation(DocumentReference docRef, String lang)
-      throws TranslationCreateException {
-    if (!isMultiLingual()) {
-      throw new TranslationCreateException(docRef, lang);
-    }
-    try {
-      XWikiDocument mainDoc = getDocument(docRef);
-      // TODO check if lang is valid already happening here?
-      XWikiDocument transDoc = createDocument(docRef, lang);
-      transDoc.setTranslation(1);
-      transDoc.setDefaultLanguage(mainDoc.getDefaultLanguage());
-      transDoc.setStore(mainDoc.getStore());
-      transDoc.setContent(mainDoc.getContent());
-      return transDoc;
-    } catch (DocumentNotExistsException | DocumentAlreadyExistsException exc) {
-      throw new TranslationCreateException(docRef, lang, exc);
-    }
-  }
-
-  private boolean isMultiLingual() {
-    return context.getXWikiContext().getWiki().isMultiLingual(context.getXWikiContext());
+  public List<String> getExistingLangs(DocumentReference docRef) {
+    return strategy.getTranslations(docRef);
   }
 
   @Override
   public Map<String, XWikiDocument> getTranslations(DocumentReference docRef) {
     Map<String, XWikiDocument> transMap = new HashMap<>();
-    for (String lang : strategy.getTranslations(docRef)) {
+    for (String lang : getExistingLangs(docRef)) {
       lang = normalizeLang(lang);
       try {
         transMap.put(lang, getDocument(docRef, lang));

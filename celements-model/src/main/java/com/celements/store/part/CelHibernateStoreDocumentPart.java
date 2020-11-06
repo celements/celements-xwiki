@@ -9,15 +9,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -56,47 +48,6 @@ public class CelHibernateStoreDocumentPart {
   public CelHibernateStoreDocumentPart(CelHibernateStore store) {
     this.store = checkNotNull(store);
     this.savePrepCmd = new DocumentSavePreparationCommand(store);
-  }
-
-  public boolean exists(XWikiDocument doc, XWikiContext context)
-      throws XWikiException, HibernateException {
-    return getExistingLangs(doc, context).contains(doc.getLanguage());
-  }
-
-  public Set<String> getExistingLangs(XWikiDocument doc, XWikiContext context)
-      throws XWikiException, HibernateException {
-    boolean bTransaction = true;
-    try {
-      doc.setStore(store);
-      store.checkHibernate(context);
-      bTransaction = store.beginTransaction(store.getSessionFactory(), false, context);
-      Session session = store.getSession(context);
-      session.setFlushMode(FlushMode.MANUAL);
-      Query query = session.createQuery("select doc.translation, doc.language, doc.defaultLanguage"
-          + " from XWikiDocument as doc where doc.fullName=:fullName order by doc.translation");
-      query.setString("fullName", serialize(doc));
-      Set<String> existingLangs = new LinkedHashSet<>();
-      streamRowResults(query).forEach(row -> {
-        if ("0".equals(row.get(0))) { // not translation
-          existingLangs.add("");
-          existingLangs.add(row.get(2)); // add defaultLanguage
-        }
-        existingLangs.add(row.get(1)); // add language
-      });
-      return existingLangs;
-    } finally {
-      if (bTransaction) {
-        store.endTransaction(context, false);
-      }
-    }
-  }
-
-  private Stream<List<String>> streamRowResults(Query query) {
-    Iterator<?> iter = query.iterate();
-    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iter, 0), false)
-        .map(obj -> Stream.of((Object[]) obj)
-            .map(Objects::toString)
-            .collect(Collectors.toList()));
   }
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)

@@ -15,7 +15,6 @@ import com.celements.model.access.exception.DocumentAlreadyExistsException;
 import com.celements.model.access.exception.DocumentDeleteException;
 import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.model.access.exception.DocumentSaveException;
-import com.celements.model.access.exception.TranslationCreateException;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
@@ -46,7 +45,14 @@ public interface IModelAccessFacade {
       throws DocumentAlreadyExistsException;
 
   @NotNull
+  XWikiDocument createDocument(@NotNull DocumentReference docRef, @Nullable String lang)
+      throws DocumentAlreadyExistsException;
+
+  @NotNull
   XWikiDocument getOrCreateDocument(@NotNull DocumentReference docRef);
+
+  @NotNull
+  XWikiDocument getOrCreateDocument(@NotNull DocumentReference docRef, @Nullable String lang);
 
   boolean exists(@NotNull DocumentReference docRef);
 
@@ -70,8 +76,7 @@ public interface IModelAccessFacade {
       throws DocumentDeleteException;
 
   @NotNull
-  XWikiDocument createTranslation(@NotNull DocumentReference docRef, @Nullable String lang)
-      throws TranslationCreateException;
+  List<String> getExistingLangs(@NotNull DocumentReference docRef);
 
   @NotNull
   Map<String, XWikiDocument> getTranslations(@NotNull DocumentReference docRef);

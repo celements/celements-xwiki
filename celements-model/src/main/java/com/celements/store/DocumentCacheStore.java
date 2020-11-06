@@ -20,9 +20,6 @@
  */
 package com.celements.store;
 
-import static com.google.common.base.MoreObjects.*;
-import static com.google.common.base.Predicates.*;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,9 +63,7 @@ import com.celements.model.metadata.ImmutableDocumentMetaData;
 import com.celements.model.util.ModelUtils;
 import com.celements.model.util.References;
 import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.Streams;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -728,27 +722,19 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     }.inWiki(new WikiReference(context.getDatabase())).execute();
   }
 
+  // TODO doesn't support multilingual keys
   private boolean existsInternal(XWikiDocument doc, XWikiContext context) throws XWikiException {
-    String key = getKeyWithLang(doc);
-    Boolean exists = getExistCache().get(key);
-    if (exists == null) {
-      List<String> existingLangs = getBackingStore().getTranslationList(doc, context);
-      existingLangs
-          .forEach(lang -> setExistCache(doc.getDocumentReference(), lang, true));
-      streamInexistentLanguages(doc, existingLangs, context)
-          .forEach(lang -> setExistCache(doc.getDocumentReference(), lang, false));
-      exists = firstNonNull(getExistCache().get(key), false);
+    String key = getKey(doc.getDocumentReference());
+    Boolean result = getExistCache().get(key);
+    if (result == null) {
+      result = (getDocCache().get(key) != null);
+      if (!result) {
+        result = getBackingStore().exists(doc, context);
+      }
+      getExistCache().set(key, result);
     }
-    LOGGER.trace("exists return '{}' for '{}'", exists, key);
-    return exists;
-  }
-
-  private Stream<String> streamInexistentLanguages(XWikiDocument doc, List<String> existingLangs,
-      XWikiContext context) {
-    return Stream.concat(Stream.of(doc.getLanguage()), Streams.stream(Splitter.onPattern(" |,|\\|")
-        .omitEmptyStrings()
-        .split(context.getWiki().getXWikiPreference("languages", context))))
-        .filter(not(existingLangs::contains));
+    LOGGER.trace("exists return '{}' for '{}'", result, key);
+    return result;
   }
 
   private Cache<XWikiDocument> getDocCache() {
