@@ -173,7 +173,11 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     boolean exists = false;
     if (docRef != null) {
       lang = normalizeLang(lang);
-      exists = strategy.exists(docRef, lang);
+      if (lang.isEmpty()) {
+        exists = strategy.exists(docRef, lang);
+      } else { // TODO workaround, remove when exists properly supports multilang
+        exists = !strategy.getDocument(docRef, lang).isNew();
+      }
     }
     return exists;
   }
@@ -225,6 +229,10 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     } else if ((doc.getTranslation() != 0) && doc.getLanguage().equals(DEFAULT_LANG)) {
       throw new DocumentSaveException(doc.getDocumentReference(), doc.getLanguage(),
           "translation doc without set language");
+    }
+    if ((doc.getTranslation() != 0) && !exists(doc.getDocumentReference())) {
+      throw new DocumentSaveException(doc.getDocumentReference(), doc.getLanguage(),
+          "cannot save translation for inexistent doc");
     }
   }
 
@@ -307,7 +315,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
 
   private String normalizeLang(String lang) {
     lang = Util.normalizeLanguage(lang);
-    return "default".equals(lang) ? DEFAULT_LANG : nullToEmpty(lang);
+    return "default".equals(lang) ? DEFAULT_LANG : nullToEmpty(lang).trim();
   }
 
   @Override

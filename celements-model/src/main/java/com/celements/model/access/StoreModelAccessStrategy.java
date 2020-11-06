@@ -1,7 +1,5 @@
 package com.celements.model.access;
 
-import static com.google.common.base.Strings.*;
-
 import java.util.List;
 
 import org.xwiki.component.annotation.Component;
@@ -50,11 +48,8 @@ public class StoreModelAccessStrategy implements ModelAccessStrategy {
 
         @Override
         protected Boolean call() throws XWikiException {
-          XWikiDocument doc = docCreator.createWithoutDefaults(docRef, lang);
-          return isNullOrEmpty(lang)
-              ? getStore().exists(doc, context.getXWikiContext())
-              // TODO workaround, remove when exists properly supports multilang
-              : !getStore().loadXWikiDoc(doc, context.getXWikiContext()).isNew();
+          return getStore().exists(docCreator.createWithoutDefaults(docRef, lang),
+              context.getXWikiContext());
         }
       }.inWiki(docRef.getWikiReference()).execute();
     } catch (XWikiException xwe) {
