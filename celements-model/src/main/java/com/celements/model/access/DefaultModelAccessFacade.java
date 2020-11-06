@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -46,7 +47,6 @@ import com.celements.rights.access.IRightsAccessFacadeRole;
 import com.celements.rights.access.exceptions.NoAccessRightsException;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -129,6 +129,24 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       throw new DocumentNotExistsException(docRef, lang);
     }
     return doc;
+  }
+
+  @Override
+  public Optional<XWikiDocument> getDocumentOpt(DocumentReference docRef) {
+    try {
+      return Optional.of(getDocument(docRef));
+    } catch (DocumentNotExistsException exc) {
+      return Optional.empty();
+    }
+  }
+
+  @Override
+  public Optional<XWikiDocument> getDocumentOpt(DocumentReference docRef, String lang) {
+    try {
+      return Optional.of(getDocument(docRef, lang));
+    } catch (DocumentNotExistsException exc) {
+      return Optional.empty();
+    }
   }
 
   @Override
@@ -349,15 +367,15 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
 
   @Override
   @Deprecated
-  public Optional<BaseObject> getXObject(DocumentReference docRef, DocumentReference classRef,
-      int objectNumber) throws DocumentNotExistsException {
+  public com.google.common.base.Optional<BaseObject> getXObject(DocumentReference docRef,
+      DocumentReference classRef, int objectNumber) throws DocumentNotExistsException {
     return getXObject(getDocumentReadOnly(docRef, DEFAULT_LANG), classRef, objectNumber);
   }
 
   @Override
   @Deprecated
-  public Optional<BaseObject> getXObject(XWikiDocument doc, DocumentReference classRef,
-      int objectNumber) {
+  public com.google.common.base.Optional<BaseObject> getXObject(XWikiDocument doc,
+      DocumentReference classRef, int objectNumber) {
     return XWikiObjectEditor.on(doc).filter(new ClassReference(classRef)).filter(
         objectNumber).fetch().first();
   }
@@ -603,45 +621,48 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(BaseObject obj, ClassField<T> field) {
+  public <T> com.google.common.base.Optional<T> getFieldValue(BaseObject obj, ClassField<T> field) {
     checkClassRef(obj, field);
-    return Optional.fromNullable(resolvePropertyValue(field, getProperty(obj, field.getName())));
+    return com.google.common.base.Optional.fromNullable(resolvePropertyValue(field,
+        getProperty(obj, field.getName())));
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(XWikiDocument doc, ClassField<T> field) {
+  public <T> com.google.common.base.Optional<T> getFieldValue(XWikiDocument doc,
+      ClassField<T> field) {
     checkNotNull(doc);
     checkNotNull(field);
-    return Optional.fromNullable(resolvePropertyValue(field, getProperty(doc,
-        field.getClassDef().getClassRef(), field.getName())));
+    return com.google.common.base.Optional.fromNullable(resolvePropertyValue(field,
+        getProperty(doc, field.getClassDef().getClassRef(), field.getName())));
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(DocumentReference docRef, ClassField<T> field)
-      throws DocumentNotExistsException {
+  public <T> com.google.common.base.Optional<T> getFieldValue(DocumentReference docRef,
+      ClassField<T> field) throws DocumentNotExistsException {
     checkNotNull(docRef);
     checkNotNull(field);
-    return Optional.fromNullable(resolvePropertyValue(field, getProperty(docRef,
-        field.getClassDef().getClassRef(), field.getName())));
+    return com.google.common.base.Optional.fromNullable(resolvePropertyValue(field,
+        getProperty(docRef, field.getClassDef().getClassRef(), field.getName())));
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(XWikiDocument doc, ClassField<T> field, T ignoreValue) {
+  public <T> com.google.common.base.Optional<T> getFieldValue(XWikiDocument doc,
+      ClassField<T> field, T ignoreValue) {
     checkNotNull(ignoreValue);
-    Optional<T> property = getFieldValue(doc, field);
+    com.google.common.base.Optional<T> property = getFieldValue(doc, field);
     if (property.isPresent() && Objects.equal(property.get(), ignoreValue)) {
-      property = Optional.absent();
+      property = com.google.common.base.Optional.absent();
     }
     return property;
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(DocumentReference docRef, ClassField<T> field, T ignoreValue)
-      throws DocumentNotExistsException {
+  public <T> com.google.common.base.Optional<T> getFieldValue(DocumentReference docRef,
+      ClassField<T> field, T ignoreValue) throws DocumentNotExistsException {
     checkNotNull(ignoreValue);
-    Optional<T> property = getFieldValue(docRef, field);
+    com.google.common.base.Optional<T> property = getFieldValue(docRef, field);
     if (property.isPresent() && Objects.equal(property.get(), ignoreValue)) {
-      property = Optional.absent();
+      property = com.google.common.base.Optional.absent();
     }
     return property;
   }
