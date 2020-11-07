@@ -245,6 +245,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     String lang = "de";
     doc.setNew(true);
     getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, lang);
+    expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(true);
     expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(doc);
     expect(strategyMock.createDocument(doc.getDocumentReference(), lang)).andReturn(doc);
     replayDefault();
@@ -359,6 +360,9 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   @Test
   public void test_exists_lang() throws Exception {
     String lang = "en";
+    doc.setTranslation(1);
+    doc.setLanguage(lang);
+    expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(true);
     expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(doc);
     replayDefault();
     boolean ret = modelAccess.exists(doc.getDocumentReference(), lang);
@@ -369,8 +373,24 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   @Test
   public void test_exists_lang_false() throws Exception {
     String lang = "en";
+    doc.setTranslation(1);
+    doc.setLanguage(lang);
     doc.setNew(true);
+    expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(true);
     expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(doc);
+    replayDefault();
+    boolean ret = modelAccess.exists(doc.getDocumentReference(), lang);
+    verifyDefault();
+    assertFalse(ret);
+  }
+
+  @Test
+  public void test_exists_lang_false_noMainDoc() throws Exception {
+    String lang = "en";
+    doc.setTranslation(1);
+    doc.setLanguage(lang);
+    doc.setNew(true);
+    expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(false);
     replayDefault();
     boolean ret = modelAccess.exists(doc.getDocumentReference(), lang);
     verifyDefault();

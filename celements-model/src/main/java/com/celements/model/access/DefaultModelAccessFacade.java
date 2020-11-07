@@ -190,9 +190,8 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     boolean exists = false;
     if (docRef != null) {
       lang = modelUtils.normalizeLang(lang);
-      if (lang.isEmpty()) {
-        exists = strategy.exists(docRef, lang);
-      } else {
+      exists = strategy.exists(docRef, DEFAULT_LANG);
+      if (exists && !DEFAULT_LANG.equals(lang)) {
         // FIXME workaround until [CELDEV-924] Store add lang support for exists check and cache
         exists = !strategy.getDocument(docRef, lang).isNew();
       }

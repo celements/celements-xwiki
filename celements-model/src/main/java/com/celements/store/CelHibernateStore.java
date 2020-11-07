@@ -58,11 +58,11 @@ public class CelHibernateStore extends XWikiHibernateStore {
     propertyStorePart = new CelHibernateStorePropertyPart(this);
   }
 
-  // FIXME [CELDEV-924] Store add lang support for exists check and cache
   @Override
   public boolean exists(XWikiDocument doc, XWikiContext context) throws XWikiException {
     try {
       log(LogLevel.INFO, "exists - start", doc);
+      // FIXME [CELDEV-924] Store add lang support for exists check and cache
       boolean ret = super.exists(doc, context);
       log(LogLevel.INFO, "exists - end", doc);
       return ret;
