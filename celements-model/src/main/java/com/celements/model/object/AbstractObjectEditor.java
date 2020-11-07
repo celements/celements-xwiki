@@ -143,7 +143,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
           }
         } else {
           changed = getBridge().getDocumentFieldAccessor()
-              .setValue(getDocument(), field, supplier.get());
+              .setValue(getTranslationDoc().orElse(getDocument()), field, supplier.get());
         }
         return changed;
       }

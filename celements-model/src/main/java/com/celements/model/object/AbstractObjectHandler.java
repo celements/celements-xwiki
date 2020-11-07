@@ -1,12 +1,10 @@
 package com.celements.model.object;
 
-import static com.celements.common.MoreObjectsCel.*;
 import static com.celements.model.access.IModelAccessFacade.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Predicates.*;
 
 import java.util.Optional;
-import java.util.function.Predicate;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.NotNull;
@@ -15,8 +13,8 @@ import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassIdentity;
-import com.celements.model.object.restriction.ClassRestriction;
 import com.celements.model.object.restriction.FieldRestriction;
+import com.celements.model.object.restriction.ObjectQuery;
 import com.celements.model.object.restriction.ObjectQueryBuilder;
 
 @NotThreadSafe
@@ -55,19 +53,21 @@ public abstract class AbstractObjectHandler<R extends AbstractObjectHandler<R, D
   }
 
   @Override
-  protected R filterInternal(Predicate<O> restriction) {
-    tryCast(restriction, ClassRestriction.class)
-        .filter(classRestr -> getTranslationDoc().isPresent())
-        .ifPresent(this::filterObjectLangIfPresent);
-    return super.filterInternal(restriction);
+  public ObjectQuery<O> getQuery() {
+    ObjectQuery<O> query = super.getQuery();
+    if (getTranslationDoc().isPresent()) {
+      query.getObjectClasses().stream()
+          .map(this::asObjectLangRestriction)
+          .forEach(restriction -> restriction.ifPresent(query::add));
+    }
+    return query;
   }
 
-  private void filterObjectLangIfPresent(ClassRestriction<O> restriction) {
-    restriction.getClassIdentity().getClassDefinition()
+  private Optional<FieldRestriction<O, ?>> asObjectLangRestriction(ClassIdentity classId) {
+    return classId.getClassDefinition()
         .filter(ClassIdentity::isValidObjectClass)
         .flatMap(ClassDefinition::getLangField)
-        .ifPresent(langField -> super.filterInternal(
-            new FieldRestriction<>(getBridge(), langField, getObjectLanguage())));
+        .map(langField -> new FieldRestriction<>(getBridge(), langField, getObjectLanguage()));
   }
 
   private String getObjectLanguage() {
