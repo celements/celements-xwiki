@@ -4,8 +4,6 @@ import static com.celements.common.test.CelementsTestUtils.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
-import java.util.List;
-
 import org.easymock.Capture;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +14,6 @@ import org.xwiki.model.reference.WikiReference;
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.model.util.ModelUtils;
 import com.celements.model.util.References;
-import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.store.XWikiStoreInterface;
@@ -382,12 +379,9 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
   public void testExists_true() throws Exception {
     DocumentReference docRef = new DocumentReference("wiki", "space", "page");
     Capture<XWikiDocument> querySaveDocCapture = newCapture();
-    List<String> langs = ImmutableList.of("");
-    boolean docExists = !langs.isEmpty();
-    expect(mockStore.getTranslationList(capture(querySaveDocCapture), same(getContext())))
-        .andReturn(langs);
-    expect(getWikiMock().getXWikiPreference(eq("languages"), same(getContext())))
-        .andReturn("");
+    boolean docExists = true;
+    expect(mockStore.exists(capture(querySaveDocCapture), same(getContext())))
+        .andReturn(docExists);
 
     replayDefault();
     docCacheStore.initalize();
@@ -407,12 +401,9 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
   public void testExists_false() throws Exception {
     DocumentReference docRef = new DocumentReference("wiki", "space", "page");
     Capture<XWikiDocument> querySaveDocCapture = newCapture();
-    List<String> langs = ImmutableList.of();
-    boolean docExists = !langs.isEmpty();
-    expect(mockStore.getTranslationList(capture(querySaveDocCapture), same(getContext())))
-        .andReturn(langs);
-    expect(getWikiMock().getXWikiPreference(eq("languages"), same(getContext())))
-        .andReturn("");
+    boolean docExists = false;
+    expect(mockStore.exists(capture(querySaveDocCapture), same(getContext())))
+        .andReturn(docExists);
 
     replayDefault();
     docCacheStore.initalize();
@@ -429,27 +420,6 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
   }
 
   @Test
-  public void testExists_otherLang() throws Exception {
-    DocumentReference docRef = new DocumentReference("wiki", "space", "page");
-    List<String> langs = ImmutableList.of("", "en", "de");
-    expect(mockStore.getTranslationList(anyObject(XWikiDocument.class), same(getContext())))
-        .andReturn(langs);
-    expect(getWikiMock().getXWikiPreference(eq("languages"), same(getContext())))
-        .andReturn("en,de,fr");
-
-    replayDefault();
-    docCacheStore.initalize();
-    XWikiDocument inputParamDoc = new XWikiDocument(docRef);
-    assertTrue(docCacheStore.exists(inputParamDoc, getContext()));
-    assertTrue(docCacheStore.getExistFromCache(docCacheStore.getKeyWithLang(docRef, "")));
-    assertTrue(docCacheStore.getExistFromCache(docCacheStore.getKeyWithLang(docRef, "en")));
-    assertTrue(docCacheStore.getExistFromCache(docCacheStore.getKeyWithLang(docRef, "de")));
-    assertFalse(docCacheStore.getExistFromCache(docCacheStore.getKeyWithLang(docRef, "fr")));
-    assertNull(docCacheStore.getExistFromCache(docCacheStore.getKeyWithLang(docRef, "it")));
-    verifyDefault();
-  }
-
-  @Test
   public void testExists_differentProvidedDB() throws Exception {
     getContext().setDatabase("ctxWiki");
     XWikiContext providedContext = (XWikiContext) getContext().clone();
@@ -458,12 +428,9 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
         providedContext.getDatabase(), "space", "page");
     XWikiDocument inputParamDoc = new XWikiDocument(References.adjustRef(actualDocRefToLoad,
         DocumentReference.class, new WikiReference("docWiki")));
-    List<String> langs = ImmutableList.of("");
-    boolean docExists = !langs.isEmpty();
-    expect(mockStore.getTranslationList(anyObject(XWikiDocument.class), same(providedContext)))
-        .andReturn(langs);
-    expect(getWikiMock().getXWikiPreference(eq("languages"), same(providedContext)))
-        .andReturn("");
+    boolean docExists = true;
+    expect(mockStore.exists(anyObject(XWikiDocument.class), anyObject(XWikiContext.class)))
+        .andReturn(docExists);
 
     replayDefault();
     docCacheStore.initalize();

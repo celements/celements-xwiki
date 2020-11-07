@@ -96,8 +96,7 @@ public class BeanXDocMarshallerTest extends AbstractComponentTest {
 
   private XWikiDocument expectDoc(DocumentReference docRef) {
     XWikiDocument doc = new XWikiDocument(docRef);
-    expect(getMock(ModelAccessStrategy.class).exists(doc.getDocumentReference(), "")).andReturn(
-        true).anyTimes();
+    doc.setNew(false);
     expect(getMock(ModelAccessStrategy.class).getDocument(doc.getDocumentReference(),
         "")).andReturn(doc).anyTimes();
     return doc;
