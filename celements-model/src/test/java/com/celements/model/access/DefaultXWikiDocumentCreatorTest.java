@@ -40,11 +40,13 @@ public class DefaultXWikiDocumentCreatorTest extends AbstractComponentTest {
     getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
     Date beforeCreationDate = new Date(System.currentTimeMillis() - 1000); // doc drops ms
     expectSpacePreferences(docRef.getLastSpaceReference());
-    replayDefault();
     String userName = "XWiki.TestUser";
     getContext().setUser(userName);
+
+    replayDefault();
     XWikiDocument ret = docCreator.create(docRef);
     verifyDefault();
+
     assertEquals(docRef, ret.getDocumentReference());
     assertTrue(ret.isNew());
     assertFalse(ret.isFromCache());
@@ -66,11 +68,11 @@ public class DefaultXWikiDocumentCreatorTest extends AbstractComponentTest {
     String lang = "en";
     getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
     expectSpacePreferences(docRef.getLastSpaceReference());
+
     replayDefault();
-    String userName = "XWiki.TestUser";
-    getContext().setUser(userName);
     XWikiDocument ret = docCreator.create(docRef, lang);
     verifyDefault();
+
     assertEquals(defaultLang, ret.getDefaultLanguage());
     assertEquals(lang, ret.getLanguage());
     assertEquals(1, ret.getTranslation());
@@ -82,11 +84,11 @@ public class DefaultXWikiDocumentCreatorTest extends AbstractComponentTest {
     String lang = defaultLang;
     getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
     expectSpacePreferences(docRef.getLastSpaceReference());
+
     replayDefault();
-    String userName = "XWiki.TestUser";
-    getContext().setUser(userName);
     XWikiDocument ret = docCreator.create(docRef, lang);
     verifyDefault();
+
     assertEquals(defaultLang, ret.getDefaultLanguage());
     assertEquals("", ret.getLanguage());
     assertEquals(0, ret.getTranslation());
