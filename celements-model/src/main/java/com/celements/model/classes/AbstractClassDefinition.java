@@ -3,10 +3,11 @@ package com.celements.model.classes;
 import static com.google.common.base.Preconditions.*;
 
 import java.lang.reflect.Field;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 import javax.validation.constraints.NotNull;
 
@@ -21,7 +22,7 @@ import org.xwiki.model.reference.WikiReference;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.context.ModelContext;
 import com.celements.model.util.ModelUtils;
-import com.google.common.base.Optional;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -39,7 +40,8 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
   protected ConfigurationSource configSrc;
 
   private ClassReference classRef;
-  private volatile Map<String, ClassField<?>> fields;
+  private final Supplier<ImmutableMap<String, ClassField<?>>> fields = Suppliers
+      .memoize(this::loadFields);
 
   /**
    * instead use {@link #AbstractClassDefinition(ClassReference)}
@@ -68,6 +70,11 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
   @Override
   public DocumentReference getClassRef() {
     return getDocRef();
+  }
+
+  @Override
+  public Optional<ClassDefinition> getClassDefinition() {
+    return Optional.of(this);
   }
 
   @Override
@@ -118,28 +125,23 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
     return true;
   }
 
-  private synchronized void loadFields() {
-    if (fields == null) {
-      Map<String, ClassField<?>> map = new LinkedHashMap<>();
-      for (Field declField : this.getClass().getDeclaredFields()) {
-        try {
-          if (ClassField.class.isAssignableFrom(declField.getType())) {
-            ClassField<?> field = (ClassField<?>) declField.get(this);
-            map.put(field.getName(), field);
-          }
-        } catch (IllegalAccessException | IllegalArgumentException exc) {
-          log.error("failed to get field '{}", declField, exc);
+  private final ImmutableMap<String, ClassField<?>> loadFields() {
+    ImmutableMap.Builder<String, ClassField<?>> builder = new ImmutableMap.Builder<>();
+    for (Field declField : this.getClass().getDeclaredFields()) {
+      try {
+        if (ClassField.class.isAssignableFrom(declField.getType())) {
+          ClassField<?> field = (ClassField<?>) declField.get(this);
+          builder.put(field.getName(), field);
         }
+      } catch (IllegalAccessException | IllegalArgumentException exc) {
+        log.error("failed to get field '{}", declField, exc);
       }
-      fields = ImmutableMap.copyOf(map);
     }
+    return builder.build();
   }
 
   private Map<String, ClassField<?>> getFieldMap() {
-    if (fields == null) {
-      loadFields();
-    }
-    return fields;
+    return fields.get();
   }
 
   @Override
@@ -149,7 +151,7 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
 
   @Override
   public Optional<ClassField<?>> getField(@NotNull String name) {
-    return Optional.<ClassField<?>>fromNullable(getFieldMap().get(name));
+    return Optional.<ClassField<?>>ofNullable(getFieldMap().get(name));
   }
 
   @Override
@@ -159,7 +161,15 @@ public abstract class AbstractClassDefinition implements ClassDefinition {
     if (field.isPresent() && token.isAssignableFrom(field.get().getType())) {
       return Optional.of((ClassField<T>) field.get());
     }
-    return Optional.absent();
+    return Optional.empty();
+  }
+
+  @Override
+  public Optional<ClassField<String>> getLangField() {
+    return LANG_FIELD_NAMES.stream()
+        .map(name -> getField(name, String.class))
+        .filter(Optional::isPresent).map(Optional::get)
+        .findAny();
   }
 
   @Override

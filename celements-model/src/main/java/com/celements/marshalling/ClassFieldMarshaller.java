@@ -6,10 +6,8 @@ import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.ClassReference;
 
-import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.google.common.base.Optional;
-import com.xpn.xwiki.web.Utils;
 
 public class ClassFieldMarshaller<T> extends AbstractMarshaller<ClassField<T>> {
 
@@ -30,11 +28,8 @@ public class ClassFieldMarshaller<T> extends AbstractMarshaller<ClassField<T>> {
 
   @Override
   public @NotNull Optional<ClassField<T>> resolve(String val) {
-    return getClassDef().getField(val, token);
+    return Optional.fromJavaUtil(classRef.getClassDefinition()
+        .flatMap(classDef -> classDef.getField(val, token)));
   }
-
-  private ClassDefinition getClassDef() {
-    return Utils.getComponent(ClassDefinition.class, classRef.serialize());
-  };
 
 }

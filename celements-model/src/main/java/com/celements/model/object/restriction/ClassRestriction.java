@@ -25,6 +25,7 @@ public class ClassRestriction<O> extends ObjectRestriction<O> {
     return classId.equals(getBridge().getObjectClass(obj));
   }
 
+  @NotNull
   public ClassIdentity getClassIdentity() {
     return classId;
   }

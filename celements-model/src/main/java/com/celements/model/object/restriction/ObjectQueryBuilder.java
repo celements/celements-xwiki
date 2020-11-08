@@ -30,7 +30,7 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
    * adds all restrictions from the the given {@link ObjectQuery}
    */
   public final @NotNull B with(@NotNull ObjectQuery<O> query) {
-    this.query.addAll(query.getRestrictions());
+    query.streamRestrictions().forEach(this::filter);
     return getThis();
   }
 
@@ -46,7 +46,7 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
    * restricts to objects for the given {@link Predicate}s
    */
   public final @NotNull B filter(@NotNull Iterable<? extends Predicate<O>> restrictions) {
-    query.addAll(restrictions);
+    restrictions.forEach(this::filter);
     return getThis();
   }
 
@@ -130,8 +130,8 @@ public abstract class ObjectQueryBuilder<B extends ObjectQueryBuilder<B, O>, O> 
   /**
    * @return a new {@link ObjectQuery} for the current builder state
    */
-  public final ObjectQuery<O> getQuery() {
-    return new ObjectQuery<>(query.getRestrictions());
+  public ObjectQuery<O> getQuery() {
+    return new ObjectQuery<>(query.streamRestrictions());
   }
 
   protected abstract B getThis();

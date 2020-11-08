@@ -24,6 +24,7 @@ import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.web.classes.oldcore.XWikiDocumentClass;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -63,19 +64,19 @@ public class ObjectFetcherTest extends AbstractComponentTest {
 
   @Test
   public void test_isTranslation() throws Exception {
+    doc.setLanguage("en");
+    doc.setTranslation(1);
     IllegalArgumentException iae = new ExceptionAsserter<IllegalArgumentException>(
         IllegalArgumentException.class) {
 
       @Override
       protected void execute() throws IllegalArgumentException {
-        doc.setLanguage("en");
-        doc.setTranslation(1);
-        newFetcher();
+        newFetcher().stream();
       }
     }.evaluate();
-    assertTrue("format not replacing placeholder 0", iae.getMessage().contains("'en'"));
-    assertTrue("format not replacing placeholder 1", iae.getMessage().contains("'"
-        + doc.getDocumentReference() + "'"));
+    assertTrue("wrong message: " + iae.getMessage(), iae.getMessage().contains("[en]"));
+    assertTrue("wrong message: " + iae.getMessage(), iae.getMessage().contains("["
+        + doc.getDocumentReference() + "]"));
   }
 
   @Test
@@ -341,6 +342,64 @@ public class ObjectFetcherTest extends AbstractComponentTest {
     assertObjs(newFetcher().filter(obj1.getNumber()), obj1, obj2);
     assertObjs(newFetcher().filter(obj1.getNumber()).filter(classRef), obj1);
     assertObjs(newFetcher().filter(obj1.getNumber()).filter(classRef2), obj2);
+  }
+
+  @Test
+  public void test_withTranslation() throws Exception {
+    XWikiObjectFetcher fetcher = newFetcher();
+    assertFalse(fetcher.getTranslationDoc().isPresent());
+    XWikiDocument transDoc = new XWikiDocument(doc.getDocumentReference());
+    fetcher.withTranslation(transDoc);
+    assertTrue(fetcher.getTranslationDoc().isPresent());
+    assertSame(transDoc, fetcher.getTranslationDoc().get());
+  }
+
+  @Test
+  public void test_withTranslation_illegalTransDocRef() throws Exception {
+    XWikiDocument transDoc = new XWikiDocument(classRef2.getDocRef());
+    transDoc.setTranslation(1);
+    transDoc.setLanguage("fr");
+    new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+
+      @Override
+      protected void execute() throws Exception {
+        newFetcher().withTranslation(transDoc);
+      }
+    }.evaluate();
+  }
+
+  @Test
+  public void test_fetch_withTranslation_obj() throws Exception {
+    XWikiDocument transDoc = new XWikiDocument(doc.getDocumentReference());
+    transDoc.setTranslation(1);
+    transDoc.setLanguage("fr");
+    BaseObject obj1 = addObj(classRef, FIELD_LANG, "en");
+    BaseObject obj2 = addObj(classRef, FIELD_LANG, "fr");
+    BaseObject obj3 = addObj(classRef, null, null);
+    assertObjs(newFetcher().filter(classRef), obj1, obj2, obj3);
+    assertObjs(newFetcher().filter(classRef).withTranslation(transDoc), obj2);
+  }
+
+  @Test
+  public void test_fetchField_withTranslation_obj() throws Exception {
+    XWikiDocument transDoc = new XWikiDocument(doc.getDocumentReference());
+    transDoc.setTranslation(1);
+    transDoc.setLanguage("fr");
+    addObj(classRef, FIELD_MY_STRING, "nah");
+    addObj(classRef, FIELD_LANG, "fr").setStringValue(FIELD_MY_STRING.getName(), "yep");
+    addObj(classRef, FIELD_LANG, "en").setStringValue(FIELD_MY_STRING.getName(), "nope");
+    assertEquals(newFetcher().withTranslation(transDoc).fetchField(FIELD_MY_STRING).list(),
+        ImmutableList.of("yep"));
+  }
+
+  @Test
+  public void test_fetchField_withTranslation_doc() throws Exception {
+    XWikiDocument transDoc = new XWikiDocument(doc.getDocumentReference());
+    transDoc.setTranslation(1);
+    transDoc.setLanguage("fr");
+    transDoc.setTitle("val");
+    assertEquals(newFetcher().withTranslation(transDoc).fetchField(XWikiDocumentClass.FIELD_TITLE)
+        .list(), ImmutableList.of("val"));
   }
 
   @Test
