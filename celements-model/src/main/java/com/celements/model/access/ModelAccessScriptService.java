@@ -62,7 +62,7 @@ public class ModelAccessScriptService implements ScriptService {
   public Document getOrCreateDocument(DocumentReference docRef, String lang) {
     Document ret = null;
     try {
-      boolean exists = modelAccess.exists(docRef, lang);
+      boolean exists = modelAccess.existsLang(docRef, lang);
       if ((exists && rightsAccess.hasAccessLevel(docRef, VIEW))
           || (!exists && rightsAccess.hasAccessLevel(docRef, EAccessLevel.EDIT))) {
         XWikiDocument doc = modelAccess.getOrCreateDocument(docRef);
@@ -78,8 +78,8 @@ public class ModelAccessScriptService implements ScriptService {
     return modelAccess.exists(docRef);
   }
 
-  public boolean exists(DocumentReference docRef, String lang) {
-    return modelAccess.exists(docRef, lang);
+  public boolean existsLang(DocumentReference docRef, String lang) {
+    return modelAccess.existsLang(docRef, lang);
   }
 
   public com.xpn.xwiki.api.Object getObject(DocumentReference docRef, DocumentReference classRef) {

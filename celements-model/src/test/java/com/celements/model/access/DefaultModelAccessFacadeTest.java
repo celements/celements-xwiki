@@ -358,20 +358,20 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_exists_lang() throws Exception {
+  public void test_existsLang() throws Exception {
     String lang = "en";
     doc.setTranslation(1);
     doc.setLanguage(lang);
     expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(true);
     expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(doc);
     replayDefault();
-    boolean ret = modelAccess.exists(doc.getDocumentReference(), lang);
+    boolean ret = modelAccess.existsLang(doc.getDocumentReference(), lang);
     verifyDefault();
     assertTrue(ret);
   }
 
   @Test
-  public void test_exists_lang_false() throws Exception {
+  public void test_existsLang_false() throws Exception {
     String lang = "en";
     doc.setTranslation(1);
     doc.setLanguage(lang);
@@ -379,38 +379,38 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(true);
     expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(doc);
     replayDefault();
-    boolean ret = modelAccess.exists(doc.getDocumentReference(), lang);
+    boolean ret = modelAccess.existsLang(doc.getDocumentReference(), lang);
     verifyDefault();
     assertFalse(ret);
   }
 
   @Test
-  public void test_exists_lang_false_noMainDoc() throws Exception {
+  public void test_existsLang_false_noMainDoc() throws Exception {
     String lang = "en";
     doc.setTranslation(1);
     doc.setLanguage(lang);
     doc.setNew(true);
     expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(false);
     replayDefault();
-    boolean ret = modelAccess.exists(doc.getDocumentReference(), lang);
+    boolean ret = modelAccess.existsLang(doc.getDocumentReference(), lang);
     verifyDefault();
     assertFalse(ret);
   }
 
   @Test
-  public void test_exists_lang_none() throws Exception {
+  public void test_existsLang_none() throws Exception {
     // empty lang instead of null
     expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(false);
     replayDefault();
-    boolean ret = modelAccess.exists(doc.getDocumentReference(), null);
+    boolean ret = modelAccess.existsLang(doc.getDocumentReference(), null);
     verifyDefault();
     assertFalse(ret);
   }
 
   @Test
-  public void test_exists_lang_null() throws Exception {
+  public void test_existsLang_null() throws Exception {
     replayDefault();
-    boolean ret = modelAccess.exists(null, null);
+    boolean ret = modelAccess.existsLang(null, null);
     verifyDefault();
     assertFalse(ret);
   }

@@ -62,7 +62,7 @@ public interface IModelAccessFacade {
 
   boolean exists(@NotNull DocumentReference docRef);
 
-  boolean exists(@NotNull DocumentReference docRef, @Nullable String lang);
+  boolean existsLang(@NotNull DocumentReference docRef, @Nullable String lang);
 
   void saveDocument(@NotNull XWikiDocument doc) throws DocumentSaveException;
 

@@ -158,7 +158,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       throws DocumentAlreadyExistsException {
     checkNotNull(docRef);
     lang = modelUtils.normalizeLang(lang);
-    if (!exists(docRef, lang)) {
+    if (!existsLang(docRef, lang)) {
       return strategy.createDocument(docRef, lang);
     } else {
       throw new DocumentAlreadyExistsException(docRef, lang);
@@ -182,21 +182,20 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
 
   @Override
   public boolean exists(DocumentReference docRef) {
-    return exists(docRef, DEFAULT_LANG);
+    return Optional.ofNullable(docRef)
+        .map(ref -> strategy.exists(ref, DEFAULT_LANG))
+        .orElse(false);
   }
 
   @Override
-  public boolean exists(DocumentReference docRef, String lang) {
-    boolean exists = false;
-    if (docRef != null) {
-      lang = modelUtils.normalizeLang(lang);
-      exists = strategy.exists(docRef, DEFAULT_LANG);
-      if (exists && !DEFAULT_LANG.equals(lang)) {
-        // FIXME workaround until [CELDEV-924] Store add lang support for exists check and cache
-        exists = !strategy.getDocument(docRef, lang).isNew();
-      }
+  public boolean existsLang(DocumentReference docRef, String lang) {
+    boolean existsLang = exists(docRef);
+    lang = modelUtils.normalizeLang(lang);
+    if (existsLang && !DEFAULT_LANG.equals(lang)) {
+      // FIXME workaround until [CELDEV-924] Store add lang support for exists check and cache
+      existsLang = !strategy.getDocument(docRef, lang).isNew();
     }
-    return exists;
+    return existsLang;
   }
 
   @Override
