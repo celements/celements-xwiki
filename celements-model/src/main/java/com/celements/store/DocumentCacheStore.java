@@ -27,6 +27,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -315,6 +316,10 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
       }
     }
     return docLoader;
+  }
+
+  public String remove(XWikiDocument doc) {
+    return Objects.toString(removeDocFromCache(doc, null));
   }
 
   InvalidateState removeDocFromCache(XWikiDocument doc, Boolean docExists) {
@@ -783,7 +788,7 @@ public class DocumentCacheStore implements XWikiCacheStoreInterface, MetaDataSto
     return getBackingStore().getQueryManager();
   }
 
-  static enum InvalidateState {
+  enum InvalidateState {
 
     CACHE_MISS, REMOVED, LOADING_CANCELED, LOADING_MULTI_CANCELED, LOADING_CANCEL_FAILED
 

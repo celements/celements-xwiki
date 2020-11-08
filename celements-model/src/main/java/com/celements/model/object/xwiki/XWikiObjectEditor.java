@@ -22,7 +22,9 @@ public class XWikiObjectEditor extends
 
   public static XWikiObjectEditor from(
       @NotNull ObjectHandler<XWikiDocument, BaseObject> objHandler) {
-    return XWikiObjectEditor.on(objHandler.getDocument()).with(objHandler.getQuery());
+    return XWikiObjectEditor.on(objHandler.getDocument())
+        .withTranslation(objHandler.getTranslationDoc().orElse(null))
+        .with(objHandler.getQuery());
   }
 
   private XWikiObjectEditor(XWikiDocument doc) {

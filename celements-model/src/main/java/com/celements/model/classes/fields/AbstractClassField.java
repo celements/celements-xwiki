@@ -2,8 +2,8 @@ package com.celements.model.classes.fields;
 
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Predicates.*;
 import static com.google.common.base.Strings.*;
-import static org.glassfish.jersey.internal.guava.Predicates.*;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -20,7 +20,6 @@ import com.celements.model.classes.ClassDefinition;
 import com.google.common.base.Strings;
 import com.xpn.xwiki.objects.PropertyInterface;
 import com.xpn.xwiki.objects.classes.PropertyClass;
-import com.xpn.xwiki.web.Utils;
 
 /**
  * Subclasses are expected to be immutable
@@ -98,7 +97,7 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   @Override
   public ClassDefinition getClassDef() {
-    return Utils.getComponent(ClassDefinition.class, getClassReference().serialize());
+    return getClassReference().getClassDefinition().orElseThrow();
   }
 
   @Override

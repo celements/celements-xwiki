@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -29,6 +30,17 @@ public final class MoreObjectsCel {
     return targetClass.isInstance(candidate)
         ? Optional.of(targetClass.cast(candidate))
         : Optional.empty();
+  }
+
+  /**
+   * When the returned {@code Function} is passed as an argument to {@link Stream#flatMap}, the
+   * result is a stream of instances of {@code targetClass}.
+   */
+  @NotNull
+  public static <F, T> Function<F, Stream<T>> tryCast(@NotNull Class<T> targetClass) {
+    return candidate -> targetClass.isInstance(candidate)
+        ? Stream.of(targetClass.cast(candidate))
+        : Stream.empty();
   }
 
   @Nullable

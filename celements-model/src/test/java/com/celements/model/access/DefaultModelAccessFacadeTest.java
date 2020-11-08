@@ -1285,7 +1285,6 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
 
   private void expectDefaultLang(XWikiDocument docMock) {
     expect(docMock.getTranslation()).andReturn(0).once();
-    expect(docMock.getLanguage()).andReturn("").once();
   }
 
   private BaseObject addObj(DocumentReference classRef, String key, String value) {

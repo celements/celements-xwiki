@@ -6,38 +6,23 @@ import java.util.Optional;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.classes.fields.ClassField;
-import com.xpn.xwiki.web.Utils;
+import com.google.common.collect.ImmutableList;
 
 @ComponentRole
 public interface ClassDefinition extends ClassIdentity {
 
-  String CFG_SRC_KEY = "celements.classdefinition.blacklist";
+  ImmutableList<String> LANG_FIELD_NAMES = ImmutableList.of("lang", "language");
 
-  static Optional<ClassDefinition> lookup(ClassReference classRef) {
-    try {
-      return Optional.of(Utils.getComponentManager()
-          .lookup(ClassDefinition.class, classRef.serialize()));
-    } catch (ComponentLookupException exc) {
-      return Optional.empty();
-    }
-  }
+  String CFG_SRC_KEY = "celements.classdefinition.blacklist";
 
   /**
    * @return the name of the component and class definition, used for blacklisting
    */
   String getName();
-
-  /**
-   * @return the class reference
-   */
-  @NotNull
-  ClassReference getClassReference();
 
   /**
    * @deprecated instead use {{@link #getClassReference()}
@@ -77,7 +62,7 @@ public interface ClassDefinition extends ClassIdentity {
    * @return the defined field for the given name
    */
   @NotNull
-  com.google.common.base.Optional<ClassField<?>> getField(@NotNull String name);
+  Optional<ClassField<?>> getField(@NotNull String name);
 
   /**
    * @param name
@@ -85,7 +70,12 @@ public interface ClassDefinition extends ClassIdentity {
    * @return the defined field for the given name
    */
   @NotNull
-  <T> com.google.common.base.Optional<ClassField<T>> getField(@NotNull String name,
-      @NotNull Class<T> token);
+  <T> Optional<ClassField<T>> getField(@NotNull String name, @NotNull Class<T> token);
+
+  /**
+   * @return the lang field for any multi-lang class definition, else absent
+   */
+  @NotNull
+  Optional<ClassField<String>> getLangField();
 
 }
