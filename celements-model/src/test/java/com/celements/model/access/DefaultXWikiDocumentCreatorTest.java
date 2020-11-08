@@ -36,8 +36,8 @@ public class DefaultXWikiDocumentCreatorTest extends AbstractComponentTest {
 
   @Test
   public void test_create() throws Exception {
-    String lang = "de";
-    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, lang);
+    String defaultLang = "de";
+    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
     Date beforeCreationDate = new Date(System.currentTimeMillis() - 1000); // doc drops ms
     expectSpacePreferences(docRef.getLastSpaceReference());
     replayDefault();
@@ -48,16 +48,48 @@ public class DefaultXWikiDocumentCreatorTest extends AbstractComponentTest {
     assertEquals(docRef, ret.getDocumentReference());
     assertTrue(ret.isNew());
     assertFalse(ret.isFromCache());
-    assertEquals(lang, ret.getDefaultLanguage());
+    assertEquals(defaultLang, ret.getDefaultLanguage());
     assertEquals("", ret.getLanguage());
+    assertEquals(0, ret.getTranslation());
     assertTrue(beforeCreationDate.before(ret.getCreationDate()));
     assertTrue(beforeCreationDate.before(ret.getContentUpdateDate()));
     assertTrue(beforeCreationDate.before(ret.getDate()));
     assertEquals(userName, ret.getCreator());
     assertEquals(userName, ret.getAuthor());
-    assertEquals(0, ret.getTranslation());
     assertEquals("", ret.getContent());
     assertTrue(ret.isMetaDataDirty());
+  }
+
+  @Test
+  public void test_create_withLang() throws Exception {
+    String defaultLang = "de";
+    String lang = "en";
+    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
+    expectSpacePreferences(docRef.getLastSpaceReference());
+    replayDefault();
+    String userName = "XWiki.TestUser";
+    getContext().setUser(userName);
+    XWikiDocument ret = docCreator.create(docRef, lang);
+    verifyDefault();
+    assertEquals(defaultLang, ret.getDefaultLanguage());
+    assertEquals(lang, ret.getLanguage());
+    assertEquals(1, ret.getTranslation());
+  }
+
+  @Test
+  public void test_create_withLang_isDefaultLang() throws Exception {
+    String defaultLang = "de";
+    String lang = defaultLang;
+    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
+    expectSpacePreferences(docRef.getLastSpaceReference());
+    replayDefault();
+    String userName = "XWiki.TestUser";
+    getContext().setUser(userName);
+    XWikiDocument ret = docCreator.create(docRef, lang);
+    verifyDefault();
+    assertEquals(defaultLang, ret.getDefaultLanguage());
+    assertEquals("", ret.getLanguage());
+    assertEquals(0, ret.getTranslation());
   }
 
   private void expectSpacePreferences(SpaceReference spaceRef) throws XWikiException {
