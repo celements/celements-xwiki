@@ -149,19 +149,6 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   @Test
-  public void test_getDocument_defaultLanguage() throws Exception {
-    String lang = "default";
-    doc.setDefaultLanguage("");
-    doc.setLanguage("");
-    // empty lang instead of 'default'
-    expect(strategyMock.getDocument(doc.getDocumentReference(), "")).andReturn(doc);
-    replayDefault();
-    XWikiDocument theDoc = modelAccess.getDocument(doc.getDocumentReference(), lang);
-    verifyDefault();
-    assertSame(doc, theDoc);
-  }
-
-  @Test
   public void test_getDocument_translatedDocument_defaultLanguage_empty() throws Exception {
     String lang = "de";
     XWikiDocument mainDoc = new XWikiDocument(doc.getDocumentReference());
