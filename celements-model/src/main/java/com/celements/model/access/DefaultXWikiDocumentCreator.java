@@ -52,6 +52,7 @@ public class DefaultXWikiDocumentCreator implements XWikiDocumentCreator {
 
   @Override
   public XWikiDocument create(DocumentReference docRef, String lang) {
+    lang = modelUtils.normalizeLang(lang);
     String defaultLang = getDefaultLangForCreatingDoc(docRef);
     if (defaultLang.equals(lang)) {
       lang = DEFAULT_LANG;
