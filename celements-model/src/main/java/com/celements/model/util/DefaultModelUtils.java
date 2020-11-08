@@ -220,10 +220,10 @@ public class DefaultModelUtils implements ModelUtils {
   }
 
   @Override
-  public String normalizeLang(String lang) {
+  public String normalizeLang(final String lang) {
     String ret = nullToEmpty(lang).trim();
     if (!"default".equals(ret)) {
-      lang = Util.normalizeLanguage(ret);
+      ret = Util.normalizeLanguage(ret);
       if ("default".equals(ret)) {
         throw new IllegalArgumentException("Invalid language: " + lang);
       }
