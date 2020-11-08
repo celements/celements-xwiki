@@ -1,9 +1,9 @@
 package com.celements.model.util;
 
-import static com.celements.model.access.IModelAccessFacade.*;
 import static com.celements.model.util.EntityTypeUtil.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Strings.*;
 
 import java.util.stream.Stream;
 
@@ -24,7 +24,6 @@ import org.xwiki.query.QueryManager;
 
 import com.celements.model.context.ModelContext;
 import com.celements.model.reference.RefBuilder;
-import com.google.common.base.Strings;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.util.Util;
 import com.xpn.xwiki.web.Utils;
@@ -222,8 +221,14 @@ public class DefaultModelUtils implements ModelUtils {
 
   @Override
   public String normalizeLang(String lang) {
-    lang = Util.normalizeLanguage(lang);
-    return "default".equals(lang) ? DEFAULT_LANG : Strings.nullToEmpty(lang).trim();
+    String ret = nullToEmpty(lang).trim();
+    if (!"default".equals(ret)) {
+      lang = Util.normalizeLanguage(ret);
+      if ("default".equals(ret)) {
+        throw new IllegalArgumentException("Invalid language: " + lang);
+      }
+    }
+    return ret;
   }
 
   /**

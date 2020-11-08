@@ -148,6 +148,26 @@ public interface ModelUtils {
   @NotNull
   String serializeRefLocal(@NotNull EntityReference ref);
 
+  /**
+   * Normalizes the given language code. Converts the given language code to lower case and checks
+   * if it's a valid an ISO 639 language code.
+   *
+   * <pre>
+   * normalizeLanguage(null)      = ""
+   * normalizeLanguage("")        = ""
+   * normalizeLanguage("  ")      = ""
+   * normalizeLanguage("en")      = "en"
+   * normalizeLanguage("DE_ch")   = "de_CH"
+   * normalizeLanguage("default") = "default"
+   * normalizeLanguage("invalid") throws IAE
+   * </pre>
+   *
+   * @param lang
+   *          the language code to normalize
+   * @return normalized language code
+   * @throws IllegalArgumentException
+   *           if the code is invalid
+   */
   @NotNull
   String normalizeLang(@Nullable String lang);
 
