@@ -60,8 +60,15 @@ public interface IModelAccessFacade {
   @NotNull
   XWikiDocument getOrCreateDocument(@NotNull DocumentReference docRef, @Nullable String lang);
 
+  /**
+   * @return true if the default document denoted by {@code docRef} exists.
+   */
   boolean exists(@NotNull DocumentReference docRef);
 
+  /**
+   * @return true if the document denoted by {@code docRef} exists for the given {@code lang}.
+   *         This may be a translation or the default document with the inquired {@code lang}.
+   */
   boolean existsLang(@NotNull DocumentReference docRef, @Nullable String lang);
 
   void saveDocument(@NotNull XWikiDocument doc) throws DocumentSaveException;
