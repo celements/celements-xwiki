@@ -43,6 +43,11 @@ public final class MoreObjectsCel {
         : Stream.empty();
   }
 
+  public static <F, T> Function<F, Optional<T>> optToJavaUtil(
+      Function<F, com.google.common.base.Optional<T>> func) {
+    return x -> func.apply(x).toJavaUtil();
+  }
+
   @Nullable
   public static <T> T defaultValue(@NotNull Class<T> type) {
     return defaultValue(type, false);
@@ -60,7 +65,24 @@ public final class MoreObjectsCel {
       return value;
     } else if (String.class.equals(type)) {
       return (T) "";
-    } else if (List.class.isAssignableFrom(type)) {
+    } else {
+      return defaultValueNonNullable(type, mutable);
+    }
+  }
+
+  @Nullable
+  public static <T> T defaultValueNonNullable(@NotNull Class<T> type) {
+    return defaultValueNonNullable(type, false);
+  }
+
+  @Nullable
+  public static <T> T defaultMutableValueNonNullable(@NotNull Class<T> type) {
+    return defaultValueNonNullable(type, true);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> T defaultValueNonNullable(Class<T> type, boolean mutable) {
+    if (List.class.isAssignableFrom(type)) {
       return (T) (mutable ? new ArrayList<>() : ImmutableList.of());
     } else if (Set.class.isAssignableFrom(type)) {
       return (T) (mutable ? new LinkedHashSet<>() : ImmutableSet.of());
