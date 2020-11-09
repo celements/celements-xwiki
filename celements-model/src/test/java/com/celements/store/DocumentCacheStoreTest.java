@@ -46,10 +46,10 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
     XWikiDocument savedDoc = new XWikiDocument(docRef);
     savedDoc.setNew(false);
     savedDoc.setOriginalDocument(savedDoc.clone());
-    Capture<XWikiDocument> querySaveDocCapture = new Capture<>();
+    Capture<XWikiDocument> querySaveDocCapture = newCapture();
     expect(mockStore.loadXWikiDoc(capture(querySaveDocCapture), same(getContext()))).andReturn(
         savedDoc).once();
-    Capture<XWikiDocument> savingDocCapture = new Capture<>();
+    Capture<XWikiDocument> savingDocCapture = newCapture();
     mockStore.saveXWikiDoc(capture(savingDocCapture), same(getContext()), eq(true));
     expectLastCall().once();
     replayDefault();
@@ -76,11 +76,11 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
     XWikiDocument savedDoc = new XWikiDocument(docRef);
     savedDoc.setNew(false);
     savedDoc.setOriginalDocument(savedDoc.clone());
-    Capture<XWikiDocument> querySaveDocCapture = new Capture<>();
+    Capture<XWikiDocument> querySaveDocCapture = newCapture();
     boolean bTransaction = false;
     expect(mockStore.loadXWikiDoc(capture(querySaveDocCapture), same(getContext()))).andReturn(
         savedDoc).once();
-    Capture<XWikiDocument> savingDocCapture = new Capture<>();
+    Capture<XWikiDocument> savingDocCapture = newCapture();
     mockStore.saveXWikiDoc(capture(savingDocCapture), same(getContext()), eq(bTransaction));
     expectLastCall().once();
     replayDefault();
@@ -215,7 +215,7 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
     XWikiDocument savedDoc = new XWikiDocument(docRef);
     savedDoc.setNew(false);
     savedDoc.setOriginalDocument(savedDoc.clone());
-    Capture<XWikiDocument> querySaveDocCapture = new Capture<>();
+    Capture<XWikiDocument> querySaveDocCapture = newCapture();
     expect(mockStore.loadXWikiDoc(capture(querySaveDocCapture), same(getContext()))).andReturn(
         savedDoc).once();
     replayDefault();
@@ -247,7 +247,7 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
         DocumentReference.class, new WikiReference("docWiki")));
     XWikiDocument savedDoc = new XWikiDocument(actualDocRefToLoad);
     savedDoc.setNew(false);
-    Capture<XWikiDocument> querySaveDocCapture = new Capture<>();
+    Capture<XWikiDocument> querySaveDocCapture = newCapture();
     expect(mockStore.loadXWikiDoc(capture(querySaveDocCapture), same(providedContext))).andReturn(
         savedDoc).once();
 
@@ -256,8 +256,8 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
     XWikiDocument ret = docCacheStore.loadXWikiDoc(inputParamDoc, providedContext);
     verifyDefault();
 
-    assertNotNull("doc expected in cache", docCacheStore.getDocFromCache(getKey(
-        actualDocRefToLoad)));
+    assertNotNull("doc expected in cache", docCacheStore.getDocFromCache(
+        serialize(actualDocRefToLoad)));
     assertEquals(actualDocRefToLoad.getWikiReference(),
         ret.getDocumentReference().getWikiReference());
     assertEquals(actualDocRefToLoad.getWikiReference(),
@@ -273,7 +273,7 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
     XWikiDocument savedDoc = new XWikiDocument(docRef);
     savedDoc.setNew(false);
     savedDoc.setOriginalDocument(savedDoc.clone());
-    Capture<XWikiDocument> querySaveDocCapture = new Capture<>();
+    Capture<XWikiDocument> querySaveDocCapture = newCapture();
     expect(mockStore.loadXWikiDoc(capture(querySaveDocCapture), same(getContext()))).andReturn(
         savedDoc).once();
     replayDefault();
@@ -304,10 +304,10 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
     savedDoc.setDefaultLanguage("");
     savedDoc.setTranslation(0);
     savedDoc.setOriginalDocument(savedDoc.clone());
-    Capture<XWikiDocument> querySaveDocCapture = new Capture<>();
+    Capture<XWikiDocument> querySaveDocCapture = newCapture();
     expect(mockStore.loadXWikiDoc(capture(querySaveDocCapture), same(getContext()))).andReturn(
         savedDoc).once();
-    Capture<XWikiDocument> queryNotExistDocCapture = new Capture<>();
+    Capture<XWikiDocument> queryNotExistDocCapture = newCapture();
     XWikiDocument notExistsDoc = new XWikiDocument(docRef);
     notExistsDoc.setNew(true);
     notExistsDoc.setLanguage("de");
@@ -352,10 +352,10 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
     XWikiDocument savedDoc = new XWikiDocument(docRef);
     savedDoc.setNew(false);
     savedDoc.setOriginalDocument(savedDoc.clone());
-    Capture<XWikiDocument> querySavedDocCapture = new Capture<>();
+    Capture<XWikiDocument> querySavedDocCapture = newCapture();
     expect(mockStore.loadXWikiDoc(capture(querySavedDocCapture), same(getContext()))).andReturn(
         savedDoc).once();
-    Capture<XWikiDocument> deletingDocCapture = new Capture<>();
+    Capture<XWikiDocument> deletingDocCapture = newCapture();
     mockStore.deleteXWikiDoc(capture(deletingDocCapture), same(getContext()));
     expectLastCall().once();
     replayDefault();
@@ -378,10 +378,11 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
   @Test
   public void testExists_true() throws Exception {
     DocumentReference docRef = new DocumentReference("wiki", "space", "page");
-    Capture<XWikiDocument> querySaveDocCapture = new Capture<>();
+    Capture<XWikiDocument> querySaveDocCapture = newCapture();
     boolean docExists = true;
-    expect(mockStore.exists(capture(querySaveDocCapture), same(getContext()))).andReturn(
-        docExists).once();
+    expect(mockStore.exists(capture(querySaveDocCapture), same(getContext())))
+        .andReturn(docExists);
+
     replayDefault();
     docCacheStore.initalize();
     XWikiDocument inputParamDoc = new XWikiDocument(docRef);
@@ -399,10 +400,11 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
   @Test
   public void testExists_false() throws Exception {
     DocumentReference docRef = new DocumentReference("wiki", "space", "page");
-    Capture<XWikiDocument> querySaveDocCapture = new Capture<>();
+    Capture<XWikiDocument> querySaveDocCapture = newCapture();
     boolean docExists = false;
-    expect(mockStore.exists(capture(querySaveDocCapture), same(getContext()))).andReturn(
-        docExists).once();
+    expect(mockStore.exists(capture(querySaveDocCapture), same(getContext())))
+        .andReturn(docExists);
+
     replayDefault();
     docCacheStore.initalize();
     XWikiDocument inputParamDoc = new XWikiDocument(docRef);
@@ -427,8 +429,8 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
     XWikiDocument inputParamDoc = new XWikiDocument(References.adjustRef(actualDocRefToLoad,
         DocumentReference.class, new WikiReference("docWiki")));
     boolean docExists = true;
-    expect(mockStore.exists(anyObject(XWikiDocument.class), same(providedContext))).andReturn(
-        docExists).once();
+    expect(mockStore.exists(anyObject(XWikiDocument.class), anyObject(XWikiContext.class)))
+        .andReturn(docExists);
 
     replayDefault();
     docCacheStore.initalize();
@@ -436,11 +438,11 @@ public class DocumentCacheStoreTest extends AbstractComponentTest {
     verifyDefault();
 
     assertEquals(docExists, ret);
-    assertEquals("result must be in exists cache", true, docCacheStore.getExistFromCache(getKey(
-        actualDocRefToLoad)));
+    assertEquals("result must be in exists cache", true, docCacheStore.getExistFromCache(
+        serialize(actualDocRefToLoad)));
   }
 
-  private String getKey(DocumentReference docRef) {
+  private static final String serialize(DocumentReference docRef) {
     return Utils.getComponent(ModelUtils.class).serializeRef(docRef);
   }
 

@@ -3,6 +3,7 @@ package com.celements.model.access;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -21,7 +22,6 @@ import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.model.util.ClassFieldValue;
 import com.celements.rights.access.exceptions.NoAccessRightsException;
-import com.google.common.base.Optional;
 import com.xpn.xwiki.api.Document;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -30,48 +30,71 @@ import com.xpn.xwiki.objects.BaseObject;
 @ComponentRole
 public interface IModelAccessFacade {
 
-  public static final String DEFAULT_LANG = "";
+  String DEFAULT_LANG = "";
 
   @NotNull
-  public XWikiDocument getDocument(@NotNull DocumentReference docRef)
+  XWikiDocument getDocument(@NotNull DocumentReference docRef)
       throws DocumentNotExistsException;
 
   @NotNull
-  public XWikiDocument getDocument(@NotNull DocumentReference docRef, @Nullable String lang)
+  XWikiDocument getDocument(@NotNull DocumentReference docRef, @Nullable String lang)
       throws DocumentNotExistsException;
 
   @NotNull
-  public XWikiDocument createDocument(@NotNull DocumentReference docRef)
+  Optional<XWikiDocument> getDocumentOpt(@NotNull DocumentReference docRef);
+
+  @NotNull
+  Optional<XWikiDocument> getDocumentOpt(@NotNull DocumentReference docRef, @Nullable String lang);
+
+  @NotNull
+  XWikiDocument createDocument(@NotNull DocumentReference docRef)
       throws DocumentAlreadyExistsException;
 
   @NotNull
-  public XWikiDocument getOrCreateDocument(@NotNull DocumentReference docRef);
+  XWikiDocument createDocument(@NotNull DocumentReference docRef, @Nullable String lang)
+      throws DocumentAlreadyExistsException;
 
-  public boolean exists(@NotNull DocumentReference docRef);
+  @NotNull
+  XWikiDocument getOrCreateDocument(@NotNull DocumentReference docRef);
 
-  public boolean exists(@NotNull DocumentReference docRef, @Nullable String lang);
+  @NotNull
+  XWikiDocument getOrCreateDocument(@NotNull DocumentReference docRef, @Nullable String lang);
 
-  public void saveDocument(@NotNull XWikiDocument doc) throws DocumentSaveException;
+  /**
+   * @return true if the default document denoted by {@code docRef} exists.
+   */
+  boolean exists(@NotNull DocumentReference docRef);
 
-  public void saveDocument(@NotNull XWikiDocument doc, @Nullable String comment)
+  /**
+   * @return true if the document denoted by {@code docRef} exists for the given {@code lang}.
+   *         This may be a translation or the default document with the inquired {@code lang}.
+   */
+  boolean existsLang(@NotNull DocumentReference docRef, @Nullable String lang);
+
+  void saveDocument(@NotNull XWikiDocument doc) throws DocumentSaveException;
+
+  void saveDocument(@NotNull XWikiDocument doc, @Nullable String comment)
       throws DocumentSaveException;
 
-  public void saveDocument(@NotNull XWikiDocument doc, @Nullable String comment,
+  void saveDocument(@NotNull XWikiDocument doc, @Nullable String comment,
       boolean isMinorEdit) throws DocumentSaveException;
 
-  public void deleteDocument(@NotNull DocumentReference docRef, boolean totrash)
+  void deleteDocument(@NotNull DocumentReference docRef, boolean totrash)
       throws DocumentDeleteException;
 
-  public void deleteDocument(@NotNull XWikiDocument doc, boolean totrash)
+  void deleteDocument(@NotNull XWikiDocument doc, boolean totrash)
       throws DocumentDeleteException;
 
-  public void deleteDocumentWithoutTranslations(@NotNull XWikiDocument doc, boolean totrash)
+  void deleteDocumentWithoutTranslations(@NotNull XWikiDocument doc, boolean totrash)
       throws DocumentDeleteException;
 
   @NotNull
-  public Map<String, XWikiDocument> getTranslations(@NotNull DocumentReference docRef);
+  List<String> getExistingLangs(@NotNull DocumentReference docRef);
 
-  public boolean isTranslation(@NotNull XWikiDocument doc);
+  @NotNull
+  Map<String, XWikiDocument> getTranslations(@NotNull DocumentReference docRef);
+
+  boolean isTranslation(@NotNull XWikiDocument doc);
 
   /**
    * @deprecated instead use {@link XWikiObjectFetcher}
@@ -84,7 +107,7 @@ public interface IModelAccessFacade {
    *           if the document does not exist
    */
   @Deprecated
-  public BaseObject getXObject(DocumentReference docRef, DocumentReference classRef)
+  BaseObject getXObject(DocumentReference docRef, DocumentReference classRef)
       throws DocumentNotExistsException;
 
   /**
@@ -102,7 +125,7 @@ public interface IModelAccessFacade {
    *           if the document does not exist
    */
   @Deprecated
-  public BaseObject getXObject(DocumentReference docRef, DocumentReference classRef, String key,
+  BaseObject getXObject(DocumentReference docRef, DocumentReference classRef, String key,
       Object value) throws DocumentNotExistsException;
 
   /**
@@ -114,7 +137,7 @@ public interface IModelAccessFacade {
    * @return the xobject or null
    */
   @Deprecated
-  public BaseObject getXObject(XWikiDocument doc, DocumentReference classRef);
+  BaseObject getXObject(XWikiDocument doc, DocumentReference classRef);
 
   /**
    * @deprecated instead use {@link XWikiObjectFetcher}
@@ -129,7 +152,7 @@ public interface IModelAccessFacade {
    * @return the xobject or null
    */
   @Deprecated
-  public BaseObject getXObject(XWikiDocument doc, DocumentReference classRef, String key,
+  BaseObject getXObject(XWikiDocument doc, DocumentReference classRef, String key,
       Object value);
 
   /**
@@ -143,8 +166,8 @@ public interface IModelAccessFacade {
    * @return the xobject in a Optional
    */
   @Deprecated
-  public Optional<BaseObject> getXObject(DocumentReference docRef, DocumentReference classRef,
-      int objectNumber) throws DocumentNotExistsException;
+  com.google.common.base.Optional<BaseObject> getXObject(DocumentReference docRef,
+      DocumentReference classRef, int objectNumber) throws DocumentNotExistsException;
 
   /**
    * @deprecated instead use {@link XWikiObjectFetcher}
@@ -157,8 +180,8 @@ public interface IModelAccessFacade {
    * @return the xobject in a Optional
    */
   @Deprecated
-  public Optional<BaseObject> getXObject(XWikiDocument doc, DocumentReference classRef,
-      int objectNumber);
+  com.google.common.base.Optional<BaseObject> getXObject(XWikiDocument doc,
+      DocumentReference classRef, int objectNumber);
 
   /**
    * @deprecated instead use {@link XWikiObjectFetcher}
@@ -171,7 +194,7 @@ public interface IModelAccessFacade {
    *           if the document does not exist
    */
   @Deprecated
-  public List<BaseObject> getXObjects(DocumentReference docRef, DocumentReference classRef)
+  List<BaseObject> getXObjects(DocumentReference docRef, DocumentReference classRef)
       throws DocumentNotExistsException;
 
   /**
@@ -189,7 +212,7 @@ public interface IModelAccessFacade {
    *           if the document does not exist
    */
   @Deprecated
-  public List<BaseObject> getXObjects(DocumentReference docRef, DocumentReference classRef,
+  List<BaseObject> getXObjects(DocumentReference docRef, DocumentReference classRef,
       String key, Object value) throws DocumentNotExistsException;
 
   /**
@@ -207,7 +230,7 @@ public interface IModelAccessFacade {
    *           if the document does not exist
    */
   @Deprecated
-  public List<BaseObject> getXObjects(DocumentReference docRef, DocumentReference classRef,
+  List<BaseObject> getXObjects(DocumentReference docRef, DocumentReference classRef,
       String key, Collection<?> values) throws DocumentNotExistsException;
 
   /**
@@ -219,7 +242,7 @@ public interface IModelAccessFacade {
    * @return an unmodifiable list of xobjects (without null values) or empty list
    */
   @Deprecated
-  public List<BaseObject> getXObjects(XWikiDocument doc, DocumentReference classRef);
+  List<BaseObject> getXObjects(XWikiDocument doc, DocumentReference classRef);
 
   /**
    * @deprecated instead use {@link XWikiObjectFetcher}
@@ -234,7 +257,7 @@ public interface IModelAccessFacade {
    * @return an unmodifiable list of xobjects (without null values) or empty list
    */
   @Deprecated
-  public List<BaseObject> getXObjects(XWikiDocument doc, DocumentReference classRef, String key,
+  List<BaseObject> getXObjects(XWikiDocument doc, DocumentReference classRef, String key,
       Object value);
 
   /**
@@ -250,7 +273,7 @@ public interface IModelAccessFacade {
    * @return an unmodifiable list of xobjects (without null values) or empty list
    */
   @Deprecated
-  public List<BaseObject> getXObjects(XWikiDocument doc, DocumentReference classRef, String key,
+  List<BaseObject> getXObjects(XWikiDocument doc, DocumentReference classRef, String key,
       Collection<?> values);
 
   /**
@@ -261,7 +284,7 @@ public interface IModelAccessFacade {
    * @return an unmodifiable map of all xobjects list
    */
   @Deprecated
-  public Map<DocumentReference, List<BaseObject>> getXObjects(XWikiDocument doc);
+  Map<DocumentReference, List<BaseObject>> getXObjects(XWikiDocument doc);
 
   /**
    * @deprecated instead use {@link XWikiObjectEditor}
@@ -276,7 +299,7 @@ public interface IModelAccessFacade {
    * @return newly created xobject with set key - value
    */
   @Deprecated
-  public BaseObject newXObject(XWikiDocument doc, DocumentReference classRef);
+  BaseObject newXObject(XWikiDocument doc, DocumentReference classRef);
 
   /**
    * @deprecated instead use {@link XWikiObjectEditor}
@@ -287,7 +310,7 @@ public interface IModelAccessFacade {
    * @return already existing or newly created xobject
    */
   @Deprecated
-  public BaseObject getOrCreateXObject(XWikiDocument doc, DocumentReference classRef);
+  BaseObject getOrCreateXObject(XWikiDocument doc, DocumentReference classRef);
 
   /**
    * @deprecated instead use {@link XWikiObjectEditor}
@@ -298,7 +321,7 @@ public interface IModelAccessFacade {
    * @return already existing or newly created xobject
    */
   @Deprecated
-  public BaseObject getOrCreateXObject(XWikiDocument doc, DocumentReference classRef, String key,
+  BaseObject getOrCreateXObject(XWikiDocument doc, DocumentReference classRef, String key,
       Object value);
 
   /**
@@ -310,7 +333,7 @@ public interface IModelAccessFacade {
    * @return true if doc has changed
    */
   @Deprecated
-  public boolean removeXObject(XWikiDocument doc, BaseObject objToRemove);
+  boolean removeXObject(XWikiDocument doc, BaseObject objToRemove);
 
   /**
    * @deprecated instead use {@link XWikiObjectEditor}
@@ -321,7 +344,7 @@ public interface IModelAccessFacade {
    * @return true if doc has changed
    */
   @Deprecated
-  public boolean removeXObjects(XWikiDocument doc, List<BaseObject> objsToRemove);
+  boolean removeXObjects(XWikiDocument doc, List<BaseObject> objsToRemove);
 
   /**
    * @deprecated instead use {@link XWikiObjectEditor}
@@ -332,7 +355,7 @@ public interface IModelAccessFacade {
    * @return true if doc has changed
    */
   @Deprecated
-  public boolean removeXObjects(XWikiDocument doc, DocumentReference classRef);
+  boolean removeXObjects(XWikiDocument doc, DocumentReference classRef);
 
   /**
    * @deprecated instead use {@link XWikiObjectEditor}
@@ -347,7 +370,7 @@ public interface IModelAccessFacade {
    * @return true if doc has changed
    */
   @Deprecated
-  public boolean removeXObjects(XWikiDocument doc, DocumentReference classRef, String key,
+  boolean removeXObjects(XWikiDocument doc, DocumentReference classRef, String key,
       Object value);
 
   /**
@@ -363,13 +386,13 @@ public interface IModelAccessFacade {
    * @return true if doc has changed
    */
   @Deprecated
-  public boolean removeXObjects(XWikiDocument doc, DocumentReference classRef, String key,
+  boolean removeXObjects(XWikiDocument doc, DocumentReference classRef, String key,
       Collection<?> values);
 
-  public Object getProperty(DocumentReference docRef, DocumentReference classRef, String name)
+  Object getProperty(DocumentReference docRef, DocumentReference classRef, String name)
       throws DocumentNotExistsException;
 
-  public Object getProperty(XWikiDocument doc, DocumentReference classRef, String name);
+  Object getProperty(XWikiDocument doc, DocumentReference classRef, String name);
 
   /**
    * Reads out the property value for the given BaseObject and name
@@ -378,14 +401,14 @@ public interface IModelAccessFacade {
    * @param name
    * @return
    */
-  public Object getProperty(BaseObject obj, String name);
+  Object getProperty(BaseObject obj, String name);
 
   /**
    * @deprecated instead use {@link #getFieldValue(DocumentReference, ClassField)
    */
   @Nullable
   @Deprecated
-  public <T> T getProperty(@NotNull DocumentReference docRef, @NotNull ClassField<T> field)
+  <T> T getProperty(@NotNull DocumentReference docRef, @NotNull ClassField<T> field)
       throws DocumentNotExistsException;
 
   /**
@@ -393,41 +416,43 @@ public interface IModelAccessFacade {
    */
   @Nullable
   @Deprecated
-  public <T> T getProperty(@NotNull XWikiDocument doc, @NotNull ClassField<T> field);
+  <T> T getProperty(@NotNull XWikiDocument doc, @NotNull ClassField<T> field);
 
   @NotNull
-  public <T> Optional<T> getFieldValue(@NotNull BaseObject obj, @NotNull ClassField<T> field);
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull BaseObject obj,
+      @NotNull ClassField<T> field);
 
   @NotNull
-  public <T> Optional<T> getFieldValue(@NotNull XWikiDocument doc, @NotNull ClassField<T> field);
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull XWikiDocument doc,
+      @NotNull ClassField<T> field);
 
   @NotNull
-  public <T> Optional<T> getFieldValue(@NotNull DocumentReference docRef,
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull DocumentReference docRef,
       @NotNull ClassField<T> field) throws DocumentNotExistsException;
 
   @NotNull
-  public <T> Optional<T> getFieldValue(@NotNull XWikiDocument doc, @NotNull ClassField<T> field,
-      T ignoreValue);
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull XWikiDocument doc,
+      @NotNull ClassField<T> field, T ignoreValue);
 
   @NotNull
-  public <T> Optional<T> getFieldValue(@NotNull DocumentReference docRef,
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull DocumentReference docRef,
       @NotNull ClassField<T> field, T ignoreValue) throws DocumentNotExistsException;
 
   @NotNull
-  public List<ClassFieldValue<?>> getProperties(@NotNull XWikiDocument doc,
+  List<ClassFieldValue<?>> getProperties(@NotNull XWikiDocument doc,
       @NotNull ClassDefinition classDef);
 
-  public boolean setProperty(BaseObject obj, String name, Object value);
+  boolean setProperty(BaseObject obj, String name, Object value);
 
-  public <T> XWikiDocument setProperty(@NotNull DocumentReference docRef,
+  <T> XWikiDocument setProperty(@NotNull DocumentReference docRef,
       @NotNull ClassField<T> field, @Nullable T value) throws DocumentNotExistsException;
 
-  public <T> boolean setProperty(@NotNull XWikiDocument doc, @NotNull ClassField<T> field,
+  <T> boolean setProperty(@NotNull XWikiDocument doc, @NotNull ClassField<T> field,
       @Nullable T value);
 
-  public <T> boolean setProperty(XWikiDocument doc, ClassFieldValue<T> fieldValue);
+  <T> boolean setProperty(XWikiDocument doc, ClassFieldValue<T> fieldValue);
 
-  public <T> boolean setProperty(@NotNull BaseObject obj, @NotNull ClassField<T> field,
+  <T> boolean setProperty(@NotNull BaseObject obj, @NotNull ClassField<T> field,
       @Nullable T value);
 
   /**
@@ -439,7 +464,7 @@ public interface IModelAccessFacade {
    * @return
    * @throws AttachmentNotExistsException
    */
-  public XWikiAttachment getAttachmentNameEqual(XWikiDocument document, String filename)
+  XWikiAttachment getAttachmentNameEqual(XWikiDocument document, String filename)
       throws AttachmentNotExistsException;
 
   /**
@@ -450,7 +475,7 @@ public interface IModelAccessFacade {
    * @throws NoAccessRightsException
    *           if current context user has no view rights
    */
-  public Document getApiDocument(XWikiDocument doc) throws NoAccessRightsException;
+  Document getApiDocument(XWikiDocument doc) throws NoAccessRightsException;
 
   /**
    * getApiObject creates a com.xpn.xwiki.api.Object for <code>obj</code>
@@ -460,7 +485,7 @@ public interface IModelAccessFacade {
    * @throws NoAccessRightsException
    *           if current context user has no view rights
    */
-  public com.xpn.xwiki.api.Object getApiObject(BaseObject obj) throws NoAccessRightsException;
+  com.xpn.xwiki.api.Object getApiObject(BaseObject obj) throws NoAccessRightsException;
 
   /**
    * getApiObject creates a com.xpn.xwiki.api.Object for <code>obj</code>
@@ -468,7 +493,7 @@ public interface IModelAccessFacade {
    * @param obj
    * @return
    **/
-  public com.xpn.xwiki.api.Object getApiObjectWithoutRightCheck(BaseObject obj);
+  com.xpn.xwiki.api.Object getApiObjectWithoutRightCheck(BaseObject obj);
 
   /**
    * getApiObjects creates for each valid BaseObject in <code>objs</code> a
@@ -479,7 +504,7 @@ public interface IModelAccessFacade {
    * @param objs
    * @return
    */
-  public List<com.xpn.xwiki.api.Object> getApiObjects(List<BaseObject> objs);
+  List<com.xpn.xwiki.api.Object> getApiObjects(List<BaseObject> objs);
 
   /**
    * getApiObjects creates for each valid BaseObject in <code>objs</code> a
@@ -488,6 +513,6 @@ public interface IModelAccessFacade {
    * @param objs
    * @return
    */
-  public List<com.xpn.xwiki.api.Object> getApiObjectsWithoutRightChecks(List<BaseObject> objs);
+  List<com.xpn.xwiki.api.Object> getApiObjectsWithoutRightChecks(List<BaseObject> objs);
 
 }

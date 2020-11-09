@@ -10,6 +10,10 @@ public class DocumentAlreadyExistsException extends DocumentAccessException {
     super(docRef);
   }
 
+  public DocumentAlreadyExistsException(DocumentReference docRef, String lang) {
+    super(docRef, lang);
+  }
+
   public DocumentAlreadyExistsException(DocumentReference docRef, Throwable cause) {
     super(docRef, cause);
   }

@@ -89,7 +89,9 @@ public class ModelMock implements ModelAccessStrategy {
   }
 
   public DocRecord registerDoc(DocumentReference docRef, String lang) {
-    return registerDoc(docRef, lang, docCreator.createWithoutDefaults(docRef, lang));
+    XWikiDocument doc = docCreator.createWithoutDefaults(docRef, lang);
+    doc.setNew(false);
+    return registerDoc(docRef, lang, doc);
   }
 
   public DocRecord registerDoc(DocumentReference docRef) {

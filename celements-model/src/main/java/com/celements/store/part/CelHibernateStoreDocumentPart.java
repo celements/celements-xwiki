@@ -26,6 +26,7 @@ import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
+import com.celements.model.util.ReferenceSerializationMode;
 import com.celements.store.CelHibernateStore;
 import com.celements.web.classes.oldcore.XWikiGroupsClass;
 import com.xpn.xwiki.XWikiContext;
@@ -158,8 +159,8 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException,
-      HibernateException {
+  public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context)
+      throws XWikiException, HibernateException {
     validateWikis(doc, context);
     boolean bTransaction = true;
     try {
@@ -254,7 +255,7 @@ public class CelHibernateStoreDocumentPart {
   private Iterator<BaseObject> loadXObjects(XWikiDocument doc, XWikiContext context) {
     String hql = "from BaseObject as obj where obj.name = :name order by obj.className, obj.number";
     Query query = store.getSession(context).createQuery(hql);
-    query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
+    query.setText("name", serialize(doc));
     return query.iterate();
   }
 
@@ -289,7 +290,7 @@ public class CelHibernateStoreDocumentPart {
         + "where obj.name = :name and obj.className = 'XWiki.XWikiGroups' and obj.id = prop.id.id "
         + "and prop.id.name = 'member'";
     Query query = store.getSession(context).createQuery(hql);
-    query.setText("name", store.getModelUtils().serializeRefLocal(doc.getDocumentReference()));
+    query.setText("name", serialize(doc));
     Iterator<?> dataIter = query.iterate();
     while (dataIter.hasNext()) {
       Object[] row = (Object[]) dataIter.next();
@@ -297,8 +298,8 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException,
-      HibernateException {
+  public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context)
+      throws XWikiException, HibernateException {
     validateWikis(doc, context);
     boolean bTransaction = false;
     boolean commit = false;
@@ -356,6 +357,11 @@ public class CelHibernateStoreDocumentPart {
     checkArgument(docWiki.equals(providedContextWiki) && docWiki.equals(executionContextWiki),
         "wikis not matching for doc [%s], providedContextWiki [%s], executionContextWiki [%s]",
         doc.getDocumentReference(), providedContextWiki, executionContextWiki);
+  }
+
+  private String serialize(XWikiDocument doc) {
+    return store.getModelUtils().serializeRef(doc.getDocumentReference(),
+        ReferenceSerializationMode.LOCAL);
   }
 
 }

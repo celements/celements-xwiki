@@ -1,5 +1,6 @@
 package com.celements.model.access;
 
+import static com.celements.common.test.CelementsTestUtils.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
@@ -8,7 +9,7 @@ import org.junit.Test;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 
-import com.celements.common.test.AbstractBridgedComponentTestCase;
+import com.celements.common.test.AbstractComponentTest;
 import com.celements.model.access.exception.DocumentLoadException;
 import com.celements.rights.access.EAccessLevel;
 import com.celements.rights.access.IRightsAccessFacadeRole;
@@ -17,7 +18,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.user.api.XWikiRightService;
 import com.xpn.xwiki.web.Utils;
 
-public class ModelAccessScriptServiceTest extends AbstractBridgedComponentTestCase {
+public class ModelAccessScriptServiceTest extends AbstractComponentTest {
 
   private ModelAccessScriptService modelAccess;
   private DocumentReference docRef;
@@ -25,7 +26,7 @@ public class ModelAccessScriptServiceTest extends AbstractBridgedComponentTestCa
   private IRightsAccessFacadeRole rightsAccessMock;
 
   @Before
-  public void setUp_DefaultModelAccessFacadeTest() {
+  public void prepareTest() {
     modelAccess = (ModelAccessScriptService) Utils.getComponent(ScriptService.class,
         ModelAccessScriptService.NAME);
     modelAccess.modelAccess = createMockAndAddToDefault(IModelAccessFacade.class);
@@ -42,7 +43,7 @@ public class ModelAccessScriptServiceTest extends AbstractBridgedComponentTestCa
   public void test_getDocument() throws Exception {
     expect(rightsAccessMock.hasAccessLevel(eq(docRef), eq(EAccessLevel.VIEW))).andReturn(
         true).once();
-    expect(modelAccess.modelAccess.getDocument(eq(docRef))).andReturn(doc).once();
+    expect(modelAccess.modelAccess.getDocument(docRef, "")).andReturn(doc);
     Document apiDoc = new Document(doc, getContext());
     expect(modelAccess.modelAccess.getApiDocument(same(doc))).andReturn(apiDoc).once();
     replayDefault();
@@ -55,8 +56,8 @@ public class ModelAccessScriptServiceTest extends AbstractBridgedComponentTestCa
   public void test_getDocument_loadException() throws Exception {
     expect(rightsAccessMock.hasAccessLevel(eq(docRef), eq(EAccessLevel.VIEW))).andReturn(
         true).once();
-    expect(modelAccess.modelAccess.getDocument(eq(docRef))).andThrow(new DocumentLoadException(
-        docRef)).once();
+    expect(modelAccess.modelAccess.getDocument(docRef, ""))
+        .andThrow(new DocumentLoadException(docRef));
     replayDefault();
     Document ret = modelAccess.getDocument(docRef);
     verifyDefault();

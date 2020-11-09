@@ -3,6 +3,7 @@ package com.celements.model.util;
 import static com.celements.model.util.EntityTypeUtil.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Strings.*;
 
 import java.util.stream.Stream;
 
@@ -24,6 +25,7 @@ import org.xwiki.query.QueryManager;
 import com.celements.model.context.ModelContext;
 import com.celements.model.reference.RefBuilder;
 import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.util.Util;
 import com.xpn.xwiki.web.Utils;
 
 @Component
@@ -215,6 +217,18 @@ public class DefaultModelUtils implements ModelUtils {
   @Override
   public String serializeRefLocal(EntityReference ref) {
     return serializeRef(ref, ReferenceSerializationMode.LOCAL);
+  }
+
+  @Override
+  public String normalizeLang(final String lang) {
+    String ret = nullToEmpty(lang).trim();
+    if (!"default".equals(ret)) {
+      ret = Util.normalizeLanguage(ret);
+      if ("default".equals(ret)) {
+        throw new IllegalArgumentException("Invalid language: " + lang);
+      }
+    }
+    return ret;
   }
 
   /**

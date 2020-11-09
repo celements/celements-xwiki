@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -45,7 +46,6 @@ import com.celements.rights.access.IRightsAccessFacadeRole;
 import com.celements.rights.access.exceptions.NoAccessRightsException;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -56,8 +56,6 @@ import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
-import com.xpn.xwiki.user.api.XWikiRightService;
-import com.xpn.xwiki.util.Util;
 
 @Component
 public class DefaultModelAccessFacade implements IModelAccessFacade {
@@ -111,47 +109,93 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   private XWikiDocument getDocumentReadOnly(DocumentReference docRef, String lang)
       throws DocumentNotExistsException {
     checkNotNull(docRef);
-    lang = normalizeLang(lang);
-    if (exists(docRef, lang)) {
-      return strategy.getDocument(docRef, lang);
+    XWikiDocument mainDoc = getDocumentInternal(docRef, DEFAULT_LANG);
+    lang = modelUtils.normalizeLang(lang);
+    if (lang.equals(DEFAULT_LANG)) {
+      return mainDoc; // return main doc if the default language is requested
+    } else if (lang.equals(mainDoc.getDefaultLanguage())) {
+      return mainDoc; // return main doc if the requested language is the actual default language
     } else {
-      throw new DocumentNotExistsException(docRef);
+      return getDocumentInternal(docRef, lang); // load translation
+    }
+  }
+
+  private XWikiDocument getDocumentInternal(DocumentReference docRef, String lang)
+      throws DocumentNotExistsException {
+    XWikiDocument doc = strategy.getDocument(docRef, lang);
+    if (doc.isNew()) { // faster than exists check when doc exists
+      throw new DocumentNotExistsException(docRef, lang);
+    }
+    return doc;
+  }
+
+  @Override
+  public Optional<XWikiDocument> getDocumentOpt(DocumentReference docRef) {
+    try {
+      return Optional.of(getDocument(docRef));
+    } catch (DocumentNotExistsException exc) {
+      return Optional.empty();
+    }
+  }
+
+  @Override
+  public Optional<XWikiDocument> getDocumentOpt(DocumentReference docRef, String lang) {
+    try {
+      return Optional.of(getDocument(docRef, lang));
+    } catch (DocumentNotExistsException exc) {
+      return Optional.empty();
     }
   }
 
   @Override
   public XWikiDocument createDocument(DocumentReference docRef)
       throws DocumentAlreadyExistsException {
+    return createDocument(docRef, DEFAULT_LANG);
+  }
+
+  @Override
+  public XWikiDocument createDocument(DocumentReference docRef, String lang)
+      throws DocumentAlreadyExistsException {
     checkNotNull(docRef);
-    if (!exists(docRef, DEFAULT_LANG)) {
-      return strategy.createDocument(docRef, DEFAULT_LANG);
+    lang = modelUtils.normalizeLang(lang);
+    if (!existsLang(docRef, lang)) {
+      return strategy.createDocument(docRef, lang);
     } else {
-      throw new DocumentAlreadyExistsException(docRef);
+      throw new DocumentAlreadyExistsException(docRef, lang);
     }
   }
 
   @Override
   public XWikiDocument getOrCreateDocument(DocumentReference docRef) {
+    return getOrCreateDocument(docRef, DEFAULT_LANG);
+  }
+
+  @Override
+  public XWikiDocument getOrCreateDocument(DocumentReference docRef, String lang) {
     try {
-      return getDocument(docRef, DEFAULT_LANG);
+      return getDocument(docRef, lang);
     } catch (DocumentNotExistsException exc) {
-      return strategy.createDocument(docRef, DEFAULT_LANG);
+      lang = modelUtils.normalizeLang(lang);
+      return strategy.createDocument(docRef, lang);
     }
   }
 
   @Override
   public boolean exists(DocumentReference docRef) {
-    return exists(docRef, DEFAULT_LANG);
+    return Optional.ofNullable(docRef)
+        .map(ref -> strategy.exists(ref, DEFAULT_LANG))
+        .orElse(false);
   }
 
   @Override
-  public boolean exists(DocumentReference docRef, String lang) {
-    boolean exists = false;
-    if (docRef != null) {
-      lang = normalizeLang(lang);
-      exists = strategy.exists(docRef, lang);
+  public boolean existsLang(DocumentReference docRef, String lang) {
+    boolean existsLang = exists(docRef);
+    lang = modelUtils.normalizeLang(lang);
+    if (existsLang && !DEFAULT_LANG.equals(lang)) {
+      // FIXME workaround until [CELDEV-924] Store add lang support for exists check and cache
+      existsLang = !strategy.getDocument(docRef, lang).isNew();
     }
-    return exists;
+    return existsLang;
   }
 
   @Override
@@ -202,6 +246,10 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       throw new DocumentSaveException(doc.getDocumentReference(), doc.getLanguage(),
           "translation doc without set language");
     }
+    if ((doc.getTranslation() != 0) && !exists(doc.getDocumentReference())) {
+      throw new DocumentSaveException(doc.getDocumentReference(), doc.getLanguage(),
+          "cannot save translation for inexistent doc");
+    }
   }
 
   @Override
@@ -220,16 +268,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   public void deleteDocument(XWikiDocument doc, boolean totrash) throws DocumentDeleteException {
     checkNotNull(doc);
     List<XWikiDocument> toDelDocs = new ArrayList<>();
-    try {
-      for (String lang : doc.getTranslationList(context.getXWikiContext())) {
-        XWikiDocument tdoc = doc.getTranslatedDocument(lang, context.getXWikiContext());
-        if ((tdoc != null) && (tdoc != doc)) {
-          toDelDocs.add(tdoc);
-        }
-      }
-    } catch (XWikiException xwe) {
-      throw new DocumentDeleteException(doc.getDocumentReference(), xwe);
-    }
+    toDelDocs.addAll(getTranslations(doc.getDocumentReference()).values());
     toDelDocs.add(doc);
     for (XWikiDocument toDel : toDelDocs) {
       deleteDocumentWithoutTranslations(toDel, totrash);
@@ -247,14 +286,18 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
           serialize(context.getWikiRef()), new Throwable());
     }
     strategy.deleteDocument(doc, totrash);
+  }
 
+  @Override
+  public List<String> getExistingLangs(DocumentReference docRef) {
+    return strategy.getTranslations(docRef);
   }
 
   @Override
   public Map<String, XWikiDocument> getTranslations(DocumentReference docRef) {
     Map<String, XWikiDocument> transMap = new HashMap<>();
-    for (String lang : strategy.getTranslations(docRef)) {
-      lang = normalizeLang(lang);
+    for (String lang : getExistingLangs(docRef)) {
+      lang = modelUtils.normalizeLang(lang);
       try {
         transMap.put(lang, getDocument(docRef, lang));
       } catch (DocumentNotExistsException exc) {
@@ -284,15 +327,6 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       doc.setFromCache(false);
     }
     return doc;
-  }
-
-  private String normalizeLang(String lang) {
-    lang = Util.normalizeLanguage(lang);
-    lang = Strings.nullToEmpty(lang);
-    if ("default".equals(lang)) {
-      lang = "";
-    }
-    return lang;
   }
 
   @Override
@@ -326,15 +360,15 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
 
   @Override
   @Deprecated
-  public Optional<BaseObject> getXObject(DocumentReference docRef, DocumentReference classRef,
-      int objectNumber) throws DocumentNotExistsException {
+  public com.google.common.base.Optional<BaseObject> getXObject(DocumentReference docRef,
+      DocumentReference classRef, int objectNumber) throws DocumentNotExistsException {
     return getXObject(getDocumentReadOnly(docRef, DEFAULT_LANG), classRef, objectNumber);
   }
 
   @Override
   @Deprecated
-  public Optional<BaseObject> getXObject(XWikiDocument doc, DocumentReference classRef,
-      int objectNumber) {
+  public com.google.common.base.Optional<BaseObject> getXObject(XWikiDocument doc,
+      DocumentReference classRef, int objectNumber) {
     return XWikiObjectEditor.on(doc).filter(new ClassReference(classRef)).filter(
         objectNumber).fetch().first();
   }
@@ -580,45 +614,48 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(BaseObject obj, ClassField<T> field) {
+  public <T> com.google.common.base.Optional<T> getFieldValue(BaseObject obj, ClassField<T> field) {
     checkClassRef(obj, field);
-    return Optional.fromNullable(resolvePropertyValue(field, getProperty(obj, field.getName())));
+    return com.google.common.base.Optional.fromNullable(resolvePropertyValue(field,
+        getProperty(obj, field.getName())));
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(XWikiDocument doc, ClassField<T> field) {
+  public <T> com.google.common.base.Optional<T> getFieldValue(XWikiDocument doc,
+      ClassField<T> field) {
     checkNotNull(doc);
     checkNotNull(field);
-    return Optional.fromNullable(resolvePropertyValue(field, getProperty(doc,
-        field.getClassDef().getClassRef(), field.getName())));
+    return com.google.common.base.Optional.fromNullable(resolvePropertyValue(field,
+        getProperty(doc, field.getClassDef().getClassRef(), field.getName())));
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(DocumentReference docRef, ClassField<T> field)
-      throws DocumentNotExistsException {
+  public <T> com.google.common.base.Optional<T> getFieldValue(DocumentReference docRef,
+      ClassField<T> field) throws DocumentNotExistsException {
     checkNotNull(docRef);
     checkNotNull(field);
-    return Optional.fromNullable(resolvePropertyValue(field, getProperty(docRef,
-        field.getClassDef().getClassRef(), field.getName())));
+    return com.google.common.base.Optional.fromNullable(resolvePropertyValue(field,
+        getProperty(docRef, field.getClassDef().getClassRef(), field.getName())));
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(XWikiDocument doc, ClassField<T> field, T ignoreValue) {
+  public <T> com.google.common.base.Optional<T> getFieldValue(XWikiDocument doc,
+      ClassField<T> field, T ignoreValue) {
     checkNotNull(ignoreValue);
-    Optional<T> property = getFieldValue(doc, field);
+    com.google.common.base.Optional<T> property = getFieldValue(doc, field);
     if (property.isPresent() && Objects.equal(property.get(), ignoreValue)) {
-      property = Optional.absent();
+      property = com.google.common.base.Optional.absent();
     }
     return property;
   }
 
   @Override
-  public <T> Optional<T> getFieldValue(DocumentReference docRef, ClassField<T> field, T ignoreValue)
-      throws DocumentNotExistsException {
+  public <T> com.google.common.base.Optional<T> getFieldValue(DocumentReference docRef,
+      ClassField<T> field, T ignoreValue) throws DocumentNotExistsException {
     checkNotNull(ignoreValue);
-    Optional<T> property = getFieldValue(docRef, field);
+    com.google.common.base.Optional<T> property = getFieldValue(docRef, field);
     if (property.isPresent() && Objects.equal(property.get(), ignoreValue)) {
-      property = Optional.absent();
+      property = com.google.common.base.Optional.absent();
     }
     return property;
   }
