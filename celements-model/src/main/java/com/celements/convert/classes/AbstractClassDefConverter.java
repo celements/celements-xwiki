@@ -1,5 +1,6 @@
 package com.celements.convert.classes;
 
+import static com.celements.common.MoreObjectsCel.*;
 import static com.google.common.base.Preconditions.*;
 
 import javax.validation.constraints.NotNull;
@@ -59,7 +60,8 @@ public abstract class AbstractClassDefConverter<A, B> implements ClassDefinition
 
   private static <V, A, B> void convertField(ClassField<V> field, FieldAccessor<A> toAccessor, A to,
       FieldAccessor<B> fromAccessor, B from) throws FieldAccessException {
-    toAccessor.set(to, field, fromAccessor.get(from, field).orElse(null));
+    toAccessor.set(to, field, fromAccessor.get(from, field)
+        .orElseGet(() -> defaultValueNonNullable(field.getType())));
   }
 
   protected void handle(FieldAccessException exc) throws ConversionException {

@@ -1,5 +1,6 @@
 package com.celements.model.access;
 
+import static com.celements.common.MoreObjectsCel.*;
 import static com.celements.logging.LogUtils.*;
 import static com.google.common.base.Preconditions.*;
 
@@ -644,13 +645,15 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   @Deprecated
   public <T> T getProperty(DocumentReference docRef, ClassField<T> field)
       throws DocumentNotExistsException {
-    return getFieldValue(docRef, field).orNull();
+    return getFieldValue(docRef, field).toJavaUtil()
+        .orElseGet(() -> defaultValueNonNullable(field.getType()));
   }
 
   @Override
   @Deprecated
   public <T> T getProperty(XWikiDocument doc, ClassField<T> field) {
-    return getFieldValue(doc, field).orNull();
+    return getFieldValue(doc, field).toJavaUtil()
+        .orElseGet(() -> defaultValueNonNullable(field.getType()));
   }
 
   @Override
