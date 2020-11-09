@@ -1,12 +1,13 @@
 package com.celements.model.field;
 
+import java.util.Optional;
+
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
 
 import com.celements.model.classes.fields.ClassField;
-import com.google.common.base.Optional;
 
 /**
  * implementations allow to access values of any generic instance with {@link ClassField} objects
@@ -14,12 +15,30 @@ import com.google.common.base.Optional;
 @ComponentRole
 public interface FieldAccessor<T> {
 
-  public @NotNull String getName();
+  @NotNull
+  String getName();
 
-  public @NotNull <V> Optional<V> getValue(@NotNull T instance, @NotNull ClassField<V> field)
+  /**
+   * TODO javadoc
+   *
+   * @param <V>
+   * @param instance
+   * @param field
+   * @return
+   * @throws FieldAccessException
+   */
+  @NotNull
+  <V> Optional<V> get(@NotNull T instance, @NotNull ClassField<V> field);
+
+  <V> boolean set(@NotNull T instance, @NotNull ClassField<V> field, @Nullable V newValue);
+
+  @NotNull
+  @Deprecated
+  <V> com.google.common.base.Optional<V> getValue(@NotNull T instance, @NotNull ClassField<V> field)
       throws FieldAccessException;
 
-  public <V> boolean setValue(@NotNull T instance, @NotNull ClassField<V> field, @Nullable V value)
+  @Deprecated
+  <V> boolean setValue(@NotNull T instance, @NotNull ClassField<V> field, @Nullable V value)
       throws FieldAccessException;
 
 }
