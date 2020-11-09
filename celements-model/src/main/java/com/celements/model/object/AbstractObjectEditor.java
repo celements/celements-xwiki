@@ -85,7 +85,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
 
   private <T> void setObjectField(O obj, FieldRestriction<O, T> restriction) {
     T value = restriction.getValues().stream().findFirst().orElseThrow();
-    getBridge().getObjectFieldAccessor().setValue(obj, restriction.getField(), value);
+    getBridge().getObjectFieldAccessor().set(obj, restriction.getField(), value);
     LOGGER.debug("{} set field {} on created object to value [{}]",
         this, restriction.getField(), value);
   }
@@ -138,12 +138,12 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
           boolean stop = false;
           while (!stop && iter.hasNext()) {
             changed |= getBridge().getObjectFieldAccessor()
-                .setValue(iter.next(), field, supplier.get());
+                .set(iter.next(), field, supplier.get());
             stop = onlyFirst;
           }
         } else {
           changed = getBridge().getDocumentFieldAccessor()
-              .setValue(getTranslationDoc().orElse(getDocument()), field, supplier.get());
+              .set(getTranslationDoc().orElse(getDocument()), field, supplier.get());
         }
         return changed;
       }

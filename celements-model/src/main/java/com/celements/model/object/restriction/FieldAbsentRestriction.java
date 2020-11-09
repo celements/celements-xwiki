@@ -26,8 +26,8 @@ public class FieldAbsentRestriction<O, T> extends ClassRestriction<O> {
 
   @Override
   public boolean apply(@NotNull O obj) {
-    return super.apply(obj) && !getBridge().getObjectFieldAccessor().getValue(obj,
-        getField()).isPresent();
+    return super.apply(obj) && !getBridge().getObjectFieldAccessor().get(obj, getField())
+        .isPresent();
   }
 
   @Override

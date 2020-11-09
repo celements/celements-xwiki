@@ -59,7 +59,7 @@ public abstract class AbstractClassDefConverter<A, B> implements ClassDefinition
 
   private static <V, A, B> void convertField(ClassField<V> field, FieldAccessor<A> toAccessor, A to,
       FieldAccessor<B> fromAccessor, B from) throws FieldAccessException {
-    toAccessor.setValue(to, field, fromAccessor.getValue(from, field).orNull());
+    toAccessor.set(to, field, fromAccessor.get(from, field).orElse(null));
   }
 
   protected void handle(FieldAccessException exc) throws ConversionException {
