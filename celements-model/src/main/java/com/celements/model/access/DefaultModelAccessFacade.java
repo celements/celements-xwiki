@@ -2,7 +2,6 @@ package com.celements.model.access;
 
 import static com.celements.logging.LogUtils.*;
 import static com.google.common.base.Preconditions.*;
-import static com.google.common.base.Strings.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +56,6 @@ import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
-import com.xpn.xwiki.util.Util;
 
 @Component
 public class DefaultModelAccessFacade implements IModelAccessFacade {
@@ -177,6 +175,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
     try {
       return getDocument(docRef, lang);
     } catch (DocumentNotExistsException exc) {
+      lang = modelUtils.normalizeLang(lang);
       return strategy.createDocument(docRef, lang);
     }
   }
@@ -328,11 +327,6 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
       doc.setFromCache(false);
     }
     return doc;
-  }
-
-  private String normalizeLang(String lang) {
-    lang = Util.normalizeLanguage(lang);
-    return "default".equals(lang) ? DEFAULT_LANG : nullToEmpty(lang);
   }
 
   @Override
