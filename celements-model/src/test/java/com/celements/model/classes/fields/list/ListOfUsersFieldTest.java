@@ -18,6 +18,7 @@ import com.celements.model.classes.TestClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.util.ClassFieldValue;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
@@ -29,14 +30,14 @@ public class ListOfUsersFieldTest extends AbstractComponentTest {
 
   // test static definition
   private static final ClassField<List<XWikiUser>> STATIC_DEFINITION = new ListOfUsersField.Builder(
-      TestClassDefinition.NAME, "name").build();
+      TestClassDefinition.CLASS_REF, "name").build();
 
   private ListOfUsersField.Builder fieldBuilder;
 
   @Before
   public void prepareTest() throws Exception {
     assertNotNull(STATIC_DEFINITION);
-    fieldBuilder = new ListOfUsersField.Builder(TestClassDefinition.NAME, "name");
+    fieldBuilder = new ListOfUsersField.Builder(TestClassDefinition.CLASS_REF, "name");
   }
 
   @Test
@@ -65,7 +66,7 @@ public class ListOfUsersFieldTest extends AbstractComponentTest {
 
     replayDefault();
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, userList));
-    List<XWikiUser> ret = modelAccess.getFieldValue(doc, field).orNull();
+    List<XWikiUser> ret = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertEquals(userList.size(), ret.size());
@@ -89,7 +90,7 @@ public class ListOfUsersFieldTest extends AbstractComponentTest {
 
     replayDefault();
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, userList));
-    List<XWikiUser> ret = modelAccess.getFieldValue(doc, field).orNull();
+    List<XWikiUser> ret = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertEquals(userList.size(), ret.size());
@@ -110,9 +111,9 @@ public class ListOfUsersFieldTest extends AbstractComponentTest {
     expectPropertyClass(bClass, field.getName(), (PropertyClass) field.getXField());
 
     replayDefault();
-    List<XWikiUser> ret1 = modelAccess.getFieldValue(doc, field).orNull();
+    List<XWikiUser> ret1 = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, null));
-    List<XWikiUser> ret2 = modelAccess.getFieldValue(doc, field).orNull();
+    List<XWikiUser> ret2 = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertNotNull(ret1);

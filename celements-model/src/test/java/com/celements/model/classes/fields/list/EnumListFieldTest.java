@@ -18,6 +18,7 @@ import com.celements.model.access.IModelAccessFacade;
 import com.celements.model.classes.TestClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.util.ClassFieldValue;
+import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
@@ -27,10 +28,7 @@ import com.xpn.xwiki.web.Utils;
 public class EnumListFieldTest extends AbstractComponentTest {
 
   private enum TestEnum {
-    A,
-    B,
-    C,
-    D;
+    A, B, C, D;
   }
 
   // test static definition
@@ -72,7 +70,7 @@ public class EnumListFieldTest extends AbstractComponentTest {
 
     replayDefault();
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, Arrays.asList(value)));
-    List<TestEnum> ret = modelAccess.getFieldValue(doc, field).orNull();
+    List<TestEnum> ret = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertEquals(Arrays.asList(value), ret);
@@ -93,7 +91,7 @@ public class EnumListFieldTest extends AbstractComponentTest {
 
     replayDefault();
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, value));
-    List<TestEnum> ret = modelAccess.getFieldValue(doc, field).orNull();
+    List<TestEnum> ret = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertEquals(value, ret);
@@ -112,9 +110,9 @@ public class EnumListFieldTest extends AbstractComponentTest {
     expectPropertyClass(bClass, field.getName(), (PropertyClass) field.getXField());
 
     replayDefault();
-    List<TestEnum> ret1 = modelAccess.getFieldValue(doc, field).orNull();
+    List<TestEnum> ret1 = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, null));
-    List<TestEnum> ret2 = modelAccess.getFieldValue(doc, field).orNull();
+    List<TestEnum> ret2 = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertNotNull(ret1);

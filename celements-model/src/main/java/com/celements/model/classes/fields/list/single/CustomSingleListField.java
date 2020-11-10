@@ -1,6 +1,9 @@
 package com.celements.model.classes.fields.list.single;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
@@ -8,9 +11,6 @@ import javax.validation.constraints.NotNull;
 import org.xwiki.model.reference.ClassReference;
 
 import com.celements.marshalling.Marshaller;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.objects.classes.ListClass;
 import com.xpn.xwiki.objects.classes.StaticListClass;
@@ -55,8 +55,9 @@ public class CustomSingleListField<T> extends SingleListField<T> {
 
   protected CustomSingleListField(@NotNull Builder<?, T> builder) {
     super(builder);
-    this.values = builder.values != null ? ImmutableList.copyOf(builder.values)
-        : ImmutableList.<T>of();
+    this.values = Optional.ofNullable(builder.values)
+        .map(ImmutableList::copyOf)
+        .orElseGet(ImmutableList::of);
   }
 
   @Override
@@ -68,8 +69,10 @@ public class CustomSingleListField<T> extends SingleListField<T> {
 
   protected String serializedValuesForPropertyClass() {
     // always use DEFAULT_SEPARATOR, XWiki expects it in the PropertyClass
-    return FluentIterable.from(getValues()).transform(getMarshaller().getSerializer()).filter(
-        Predicates.notNull()).join(Joiner.on(DEFAULT_SEPARATOR));
+    return getValues().stream()
+        .map(getMarshaller().getSerializer())
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(DEFAULT_SEPARATOR));
   }
 
   public List<T> getValues() {

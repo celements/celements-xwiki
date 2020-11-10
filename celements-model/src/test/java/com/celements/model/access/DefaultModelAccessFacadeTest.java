@@ -1,6 +1,7 @@
 package com.celements.model.access;
 
 import static com.celements.common.test.CelementsTestUtils.*;
+import static com.celements.model.classes.TestClassDefinition.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
@@ -33,6 +34,7 @@ import com.celements.model.classes.fields.DateField;
 import com.celements.model.classes.fields.StringField;
 import com.celements.model.classes.fields.list.ListField;
 import com.celements.model.context.ModelContext;
+import com.celements.model.field.FieldAccessException;
 import com.celements.model.util.ClassFieldValue;
 import com.celements.rights.access.exceptions.NoAccessRightsException;
 import com.google.common.base.Optional;
@@ -934,7 +936,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
 
   @Test
   public void test_getProperty_ClassField() throws Exception {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     String val = "val";
     addObj(field.getClassDef().getClassRef(), field.getName(), val);
 
@@ -947,16 +949,16 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
 
   @Test
   public void test_getProperty_ClassField_illegalField() throws Exception {
-    ClassField<Date> field = new DateField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<Date> field = new DateField.Builder(CLASS_REF, "name").build();
     addObj(field.getClassDef().getClassRef(), field.getName(), "val");
 
     replayDefault();
     try {
       modelAccess.getProperty(doc, field);
-      fail("expecting IllegalArgumentException");
-    } catch (IllegalArgumentException iae) {
-      assertTrue(iae.getMessage().contains(field.toString()));
-      assertTrue(iae.getCause().getClass().equals(ClassCastException.class));
+      fail("expecting FieldAccessException");
+    } catch (FieldAccessException exc) {
+      assertTrue(exc.getMessage().contains(field.toString()));
+      assertTrue(exc.getCause().getClass().equals(ClassCastException.class));
     } finally {
       verifyDefault();
     }
@@ -965,7 +967,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
 
   @Test
   public void test_getProperty_ClassField_docRef() throws Exception {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     String val = "val";
     addObj(field.getClassDef().getClassRef(), field.getName(), val);
 
@@ -979,7 +981,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_doc() {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     String val = "val";
     addObj(field.getClassDef().getClassRef(), field.getName(), val);
     replayDefault();
@@ -991,7 +993,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_doc_null() {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     addObj(field.getClassDef().getClassRef(), field.getName(), null);
     replayDefault();
     Optional<String> ret = modelAccess.getFieldValue(doc, field);
@@ -1001,7 +1003,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_docRef() throws Exception {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     String val = "val";
     addObj(field.getClassDef().getClassRef(), field.getName(), null);
     replayDefault();
@@ -1013,7 +1015,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_docRef_null() throws Exception {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     addObj(field.getClassDef().getClassRef(), field.getName(), null);
     replayDefault();
     Optional<String> ret = modelAccess.getFieldValue(doc.getDocumentReference(), field);
@@ -1023,7 +1025,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_doc_ignore_hasValue() {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     String val = "val";
     addObj(field.getClassDef().getClassRef(), field.getName(), val);
     replayDefault();
@@ -1035,7 +1037,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_doc_ignore_noValue() {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     addObj(field.getClassDef().getClassRef(), field.getName(), null);
     replayDefault();
     Optional<String> ret = modelAccess.getFieldValue(doc, field, "test");
@@ -1045,7 +1047,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_doc_ignore_hasIgnoreValue() {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     String val = "test";
     addObj(field.getClassDef().getClassRef(), field.getName(), val);
     replayDefault();
@@ -1056,7 +1058,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_docRef_ignore_hasValue() throws Exception {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     String val = "val";
     addObj(field.getClassDef().getClassRef(), field.getName(), val);
     replayDefault();
@@ -1068,7 +1070,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_docRef_ignore_noValue() throws Exception {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     addObj(field.getClassDef().getClassRef(), field.getName(), null);
     replayDefault();
     Optional<String> ret = modelAccess.getFieldValue(doc.getDocumentReference(), field, "test");
@@ -1078,7 +1080,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   }
 
   public void test_getFieldValue_docRef_ignore_hasIgnoreValue() throws Exception {
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     String val = "test";
     addObj(field.getClassDef().getClassRef(), field.getName(), val);
     replayDefault();
@@ -1092,7 +1094,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   public void test_getProperties() {
     ClassDefinition classDef = Utils.getComponent(ClassDefinition.class, TestClassDefinition.NAME);
     String val = "value";
-    addObj(classDef.getClassRef(), TestClassDefinition.FIELD_MY_STRING.getName(), val);
+    addObj(classDef.getClassRef(), FIELD_MY_STRING.getName(), val);
 
     replayDefault();
     List<ClassFieldValue<?>> ret = modelAccess.getProperties(doc, classDef);
@@ -1103,7 +1105,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
       ClassField<?> field = classDef.getFields().get(i);
       assertEquals(field, ret.get(i).getField());
       Object value = ret.get(i).getValue();
-      if (field.equals(TestClassDefinition.FIELD_MY_STRING)) {
+      if (field.equals(FIELD_MY_STRING)) {
         assertEquals(val, value);
       } else if (field instanceof ListField) {
         assertTrue(ret.get(i).toString(), ((List<?>) value).isEmpty());
@@ -1179,7 +1181,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   @Test
   public void test_setProperty_ClassField() throws Exception {
     String val = "val";
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     ClassFieldValue<String> fieldValue = new ClassFieldValue<>(field, val);
     BaseObject obj = addObj(field.getClassDef().getClassRef(), field.getName(), "");
 
@@ -1195,7 +1197,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
 
   @Test
   public void test_setProperty_ClassField_illegalField() throws Exception {
-    ClassField<Date> field = new DateField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<Date> field = new DateField.Builder(CLASS_REF, "name").build();
     ClassFieldValue<Date> fieldValue = new ClassFieldValue<>(field, new Date());
     BaseClass bClass = expectNewBaseObject(field.getClassDef().getClassRef());
 
@@ -1204,10 +1206,10 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
     replayDefault();
     try {
       modelAccess.setProperty(doc, fieldValue);
-      fail("expecting IllegalArgumentException");
-    } catch (IllegalArgumentException iae) {
-      assertTrue(iae.getMessage().contains(field.toString()));
-      assertTrue(iae.getCause().getClass().equals(ClassCastException.class));
+      fail("expecting FieldAccessException");
+    } catch (FieldAccessException exc) {
+      assertTrue(exc.getMessage().contains(field.toString()));
+      assertTrue(exc.getCause().getClass().equals(ClassCastException.class));
     } finally {
       verifyDefault();
     }
@@ -1216,7 +1218,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   @Test
   public void test_setProperty_ClassField_newObj() throws Exception {
     String val = "val";
-    ClassField<String> field = new StringField.Builder(TestClassDefinition.NAME, "name").build();
+    ClassField<String> field = new StringField.Builder(CLASS_REF, "name").build();
     ClassFieldValue<String> fieldValue = new ClassFieldValue<>(field, val);
     BaseClass bClass = expectNewBaseObject(field.getClassDef().getClassRef());
     expectPropertyClass(bClass, field.getName(), new StringClass());
@@ -1232,7 +1234,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
 
   @Test
   public void test_setProperty_getProperty_customField() throws Exception {
-    ClassField<DocumentReference> field = TestClassDefinition.FIELD_MY_DOCREF;
+    ClassField<DocumentReference> field = FIELD_MY_DOCREF;
     DocumentReference toStoreRef = new ImmutableDocumentReference("myDB", "mySpace", "myDoc");
 
     BaseClass bClass = expectNewBaseObject(field.getClassDef().getClassRef());

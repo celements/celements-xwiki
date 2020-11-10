@@ -48,7 +48,7 @@ public class XObjectFieldAccessor extends AbstractFieldAccessor<BaseObject> {
     } else {
       checkClassRef(obj, field);
       return internalFieldAccessor.get(obj, field.getName())
-          .map(val -> resolvePropertyValue(field, val));
+          .flatMap(val -> resolvePropertyValue(field, val));
     }
     LOGGER.info("getValue: '{}' for '{}' from '{} - {} - {}'", value, field,
         obj.getDocumentReference(), obj.getXClassReference(), obj.getNumber());
@@ -72,12 +72,12 @@ public class XObjectFieldAccessor extends AbstractFieldAccessor<BaseObject> {
     return value;
   }
 
-  private <T> T resolvePropertyValue(ClassField<T> field, Object value) {
+  private <T> Optional<T> resolvePropertyValue(ClassField<T> field, Object value) {
     try {
       if (field instanceof CustomClassField) {
         return ((CustomClassField<T>) field).resolve(value);
       } else {
-        return field.getType().cast(value);
+        return Optional.of(field.getType().cast(value));
       }
     } catch (ClassCastException | IllegalArgumentException ex) {
       throw new FieldAccessException("Field '" + field + "' ill defined, expecting type '"
@@ -89,7 +89,7 @@ public class XObjectFieldAccessor extends AbstractFieldAccessor<BaseObject> {
   public <V> boolean set(BaseObject obj, ClassField<V> field, V newValue) {
     checkClassRef(obj, field);
     boolean dirty = internalFieldAccessor.set(obj, field.getName(),
-        serializePropertyValue(field, newValue));
+        serializePropertyValue(field, newValue).orElse(null));
     if (dirty) {
       LOGGER.info("setValue: '{}' for '{}' from '{} - {} - {}'", newValue, field,
           obj.getDocumentReference(), obj.getXClassReference(), obj.getNumber());
@@ -97,12 +97,12 @@ public class XObjectFieldAccessor extends AbstractFieldAccessor<BaseObject> {
     return dirty;
   }
 
-  private <T> Object serializePropertyValue(ClassField<T> field, T value) {
+  private <T> Optional<?> serializePropertyValue(ClassField<T> field, T value) {
     try {
       if (field instanceof CustomClassField) {
         return ((CustomClassField<T>) field).serialize(value);
       } else {
-        return value;
+        return Optional.ofNullable(value);
       }
     } catch (ClassCastException | IllegalArgumentException ex) {
       throw new FieldAccessException("Field '" + field + "' ill defined", ex);

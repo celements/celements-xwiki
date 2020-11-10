@@ -2,9 +2,13 @@ package com.celements.model.classes.fields.list;
 
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Predicates.*;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -17,12 +21,6 @@ import com.celements.marshalling.Marshaller;
 import com.celements.model.classes.fields.AbstractClassField;
 import com.celements.model.classes.fields.CustomClassField;
 import com.google.common.base.Enums;
-import com.google.common.base.Functions;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.objects.classes.ListClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 
@@ -94,27 +92,28 @@ public abstract class AbstractListField<T, E> extends AbstractClassField<T> impl
     this.picker = builder.picker;
   }
 
-  protected String serializeInternal(@NotNull List<E> values) {
-    values = firstNonNull(values, ImmutableList.<E>of());
-    return FluentIterable.from(values).transform(marshaller.getSerializer()).filter(
-        Predicates.notNull()).join(Joiner.on(getSeparator().substring(0, 1)));
+  protected Optional<String> serializeInternal(@Nullable List<E> values) {
+    return Optional.ofNullable(values)
+        .map(vals -> vals.stream()
+            .map(marshaller.getSerializer())
+            .filter(Objects::nonNull)
+            .collect(Collectors.joining(getSeparator().substring(0, 1))))
+        .filter(not(String::isEmpty));
   }
 
-  protected FluentIterable<E> resolveInternal(@Nullable Object obj) {
-    FluentIterable<String> iter;
+  protected Stream<E> resolveInternal(@Nullable Object obj) {
+    Stream<String> stream;
     if (obj instanceof String) {
-      iter = FluentIterable.from(Splitter.onPattern("[" + getSeparator() + "]").split(
-          (String) obj));
+      stream = Stream.of(obj.toString().split("[" + getSeparator() + "]"));
     } else if (obj instanceof List) {
-      iter = FluentIterable.from((List<?>) obj).filter(Predicates.notNull()).transform(
-          Functions.toStringFunction());
+      stream = ((List<?>) obj).stream().filter(Objects::nonNull).map(Object::toString);
     } else {
-      iter = FluentIterable.from(Collections.<String>emptyList());
+      stream = Stream.empty();
       if (obj != null) {
         LOGGER.warn("unable to resolve value '{}' for '{}'", obj, this);
       }
     }
-    return iter.transform(marshaller.getResolver()).filter(Predicates.notNull());
+    return stream.map(marshaller.getResolver()).filter(Objects::nonNull);
   }
 
   public Marshaller<E> getMarshaller() {
