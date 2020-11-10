@@ -1,7 +1,7 @@
 package com.celements.convert.bean;
 
 import static com.google.common.base.Preconditions.*;
-import static java.text.MessageFormat.format;
+import static java.text.MessageFormat.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,14 +13,12 @@ import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.convert.ConversionException;
 import com.celements.model.access.IModelAccessFacade;
-import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.object.restriction.ObjectRestriction;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.model.util.ModelUtils;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
-import com.xpn.xwiki.web.Utils;
 
 @Component
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
@@ -43,7 +41,7 @@ public class XDocBeanConversionLoader<T> implements XDocBeanLoader<T> {
   public void initialize(Class<T> token, ClassIdentity classId) {
     this.token = checkNotNull(token);
     converter.initialize(this.token);
-    converter.initialize(getClassDefinition(classId));
+    converter.initialize(classId.getClassDefinition().orElseThrow());
   }
 
   @Override
@@ -85,16 +83,6 @@ public class XDocBeanConversionLoader<T> implements XDocBeanLoader<T> {
     } catch (IllegalArgumentException | ConversionException exc) {
       String msg = format("given doc [{0}] invalid for loading [{1}]", doc, getClassId());
       throw new BeanLoadException(msg, exc);
-    }
-  }
-
-  private ClassDefinition getClassDefinition(ClassIdentity classId) {
-    checkNotNull(classId);
-    if (classId instanceof ClassDefinition) {
-      return (ClassDefinition) classId;
-    } else {
-      return Utils.getComponent(ClassDefinition.class, modelUtils.serializeRefLocal(
-          classId.getDocRef()));
     }
   }
 

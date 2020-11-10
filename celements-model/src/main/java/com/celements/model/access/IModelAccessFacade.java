@@ -3,6 +3,7 @@ package com.celements.model.access;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -15,14 +16,12 @@ import com.celements.model.access.exception.DocumentAlreadyExistsException;
 import com.celements.model.access.exception.DocumentDeleteException;
 import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.model.access.exception.DocumentSaveException;
-import com.celements.model.access.exception.TranslationCreateException;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.model.util.ClassFieldValue;
 import com.celements.rights.access.exceptions.NoAccessRightsException;
-import com.google.common.base.Optional;
 import com.xpn.xwiki.api.Document;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -42,15 +41,35 @@ public interface IModelAccessFacade {
       throws DocumentNotExistsException;
 
   @NotNull
+  Optional<XWikiDocument> getDocumentOpt(@NotNull DocumentReference docRef);
+
+  @NotNull
+  Optional<XWikiDocument> getDocumentOpt(@NotNull DocumentReference docRef, @Nullable String lang);
+
+  @NotNull
   XWikiDocument createDocument(@NotNull DocumentReference docRef)
+      throws DocumentAlreadyExistsException;
+
+  @NotNull
+  XWikiDocument createDocument(@NotNull DocumentReference docRef, @Nullable String lang)
       throws DocumentAlreadyExistsException;
 
   @NotNull
   XWikiDocument getOrCreateDocument(@NotNull DocumentReference docRef);
 
+  @NotNull
+  XWikiDocument getOrCreateDocument(@NotNull DocumentReference docRef, @Nullable String lang);
+
+  /**
+   * @return true if the default document denoted by {@code docRef} exists.
+   */
   boolean exists(@NotNull DocumentReference docRef);
 
-  boolean exists(@NotNull DocumentReference docRef, @Nullable String lang);
+  /**
+   * @return true if the document denoted by {@code docRef} exists for the given {@code lang}.
+   *         This may be a translation or the default document with the inquired {@code lang}.
+   */
+  boolean existsLang(@NotNull DocumentReference docRef, @Nullable String lang);
 
   void saveDocument(@NotNull XWikiDocument doc) throws DocumentSaveException;
 
@@ -70,8 +89,7 @@ public interface IModelAccessFacade {
       throws DocumentDeleteException;
 
   @NotNull
-  XWikiDocument createTranslation(@NotNull DocumentReference docRef, @Nullable String lang)
-      throws TranslationCreateException;
+  List<String> getExistingLangs(@NotNull DocumentReference docRef);
 
   @NotNull
   Map<String, XWikiDocument> getTranslations(@NotNull DocumentReference docRef);
@@ -148,8 +166,8 @@ public interface IModelAccessFacade {
    * @return the xobject in a Optional
    */
   @Deprecated
-  Optional<BaseObject> getXObject(DocumentReference docRef, DocumentReference classRef,
-      int objectNumber) throws DocumentNotExistsException;
+  com.google.common.base.Optional<BaseObject> getXObject(DocumentReference docRef,
+      DocumentReference classRef, int objectNumber) throws DocumentNotExistsException;
 
   /**
    * @deprecated instead use {@link XWikiObjectFetcher}
@@ -162,8 +180,8 @@ public interface IModelAccessFacade {
    * @return the xobject in a Optional
    */
   @Deprecated
-  Optional<BaseObject> getXObject(XWikiDocument doc, DocumentReference classRef,
-      int objectNumber);
+  com.google.common.base.Optional<BaseObject> getXObject(XWikiDocument doc,
+      DocumentReference classRef, int objectNumber);
 
   /**
    * @deprecated instead use {@link XWikiObjectFetcher}
@@ -401,21 +419,23 @@ public interface IModelAccessFacade {
   <T> T getProperty(@NotNull XWikiDocument doc, @NotNull ClassField<T> field);
 
   @NotNull
-  <T> Optional<T> getFieldValue(@NotNull BaseObject obj, @NotNull ClassField<T> field);
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull BaseObject obj,
+      @NotNull ClassField<T> field);
 
   @NotNull
-  <T> Optional<T> getFieldValue(@NotNull XWikiDocument doc, @NotNull ClassField<T> field);
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull XWikiDocument doc,
+      @NotNull ClassField<T> field);
 
   @NotNull
-  <T> Optional<T> getFieldValue(@NotNull DocumentReference docRef,
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull DocumentReference docRef,
       @NotNull ClassField<T> field) throws DocumentNotExistsException;
 
   @NotNull
-  <T> Optional<T> getFieldValue(@NotNull XWikiDocument doc, @NotNull ClassField<T> field,
-      T ignoreValue);
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull XWikiDocument doc,
+      @NotNull ClassField<T> field, T ignoreValue);
 
   @NotNull
-  <T> Optional<T> getFieldValue(@NotNull DocumentReference docRef,
+  <T> com.google.common.base.Optional<T> getFieldValue(@NotNull DocumentReference docRef,
       @NotNull ClassField<T> field, T ignoreValue) throws DocumentNotExistsException;
 
   @NotNull

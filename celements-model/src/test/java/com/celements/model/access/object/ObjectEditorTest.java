@@ -80,24 +80,24 @@ public class ObjectEditorTest extends AbstractComponentTest {
     builder.filter(classRef);
     XWikiObjectFetcher fetcher = builder.fetch();
     builder.filter(classRef2);
-    assertEquals(1, fetcher.getQuery().getRestrictions().size());
+    assertEquals(1, fetcher.getQuery().streamRestrictions().count());
   }
 
   @Test
   public void test_isTranslation() throws Exception {
+    doc.setLanguage("en");
+    doc.setTranslation(1);
     IllegalArgumentException iae = new ExceptionAsserter<IllegalArgumentException>(
         IllegalArgumentException.class) {
 
       @Override
       protected void execute() throws IllegalArgumentException {
-        doc.setLanguage("en");
-        doc.setTranslation(1);
-        newEditor();
+        newEditor().fetch().stream();
       }
     }.evaluate();
-    assertTrue("format not replacing placeholder 0", iae.getMessage().contains("'en'"));
-    assertTrue("format not replacing placeholder 1", iae.getMessage().contains("'"
-        + doc.getDocumentReference() + "'"));
+    assertTrue("wrong message: " + iae.getMessage(), iae.getMessage().contains("[en]"));
+    assertTrue("wrong message: " + iae.getMessage(), iae.getMessage().contains("["
+        + doc.getDocumentReference() + "]"));
   }
 
   @Test

@@ -26,6 +26,7 @@ public class DefaultXWikiDocumentCreatorTest extends AbstractComponentTest {
 
   @Before
   public void prepareTest() throws Exception {
+    registerComponentMock(ModelAccessStrategy.class);
     registerComponentMock(ConfigurationSource.class, "all", getConfigurationSource());
     registerComponentMock(ConfigurationSource.class, CelementsFromWikiConfigurationSource.NAME,
         getConfigurationSource());
@@ -35,36 +36,69 @@ public class DefaultXWikiDocumentCreatorTest extends AbstractComponentTest {
 
   @Test
   public void test_create() throws Exception {
-    String lang = "de";
-    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, lang);
+    String defaultLang = "de";
+    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
     Date beforeCreationDate = new Date(System.currentTimeMillis() - 1000); // doc drops ms
     expectSpacePreferences(docRef.getLastSpaceReference());
-    replayDefault();
     String userName = "XWiki.TestUser";
     getContext().setUser(userName);
+
+    replayDefault();
     XWikiDocument ret = docCreator.create(docRef);
     verifyDefault();
+
     assertEquals(docRef, ret.getDocumentReference());
     assertTrue(ret.isNew());
     assertFalse(ret.isFromCache());
-    assertEquals(lang, ret.getDefaultLanguage());
+    assertEquals(defaultLang, ret.getDefaultLanguage());
     assertEquals("", ret.getLanguage());
+    assertEquals(0, ret.getTranslation());
     assertTrue(beforeCreationDate.before(ret.getCreationDate()));
     assertTrue(beforeCreationDate.before(ret.getContentUpdateDate()));
     assertTrue(beforeCreationDate.before(ret.getDate()));
     assertEquals(userName, ret.getCreator());
     assertEquals(userName, ret.getAuthor());
-    assertEquals(0, ret.getTranslation());
     assertEquals("", ret.getContent());
     assertTrue(ret.isMetaDataDirty());
   }
 
+  @Test
+  public void test_create_withLang() throws Exception {
+    String defaultLang = "de";
+    String lang = "en";
+    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
+    expectSpacePreferences(docRef.getLastSpaceReference());
+
+    replayDefault();
+    XWikiDocument ret = docCreator.create(docRef, lang);
+    verifyDefault();
+
+    assertEquals(defaultLang, ret.getDefaultLanguage());
+    assertEquals(lang, ret.getLanguage());
+    assertEquals(1, ret.getTranslation());
+  }
+
+  @Test
+  public void test_create_withLang_isDefaultLang() throws Exception {
+    String defaultLang = "de";
+    String lang = defaultLang;
+    getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, defaultLang);
+    expectSpacePreferences(docRef.getLastSpaceReference());
+
+    replayDefault();
+    XWikiDocument ret = docCreator.create(docRef, lang);
+    verifyDefault();
+
+    assertEquals(defaultLang, ret.getDefaultLanguage());
+    assertEquals("", ret.getLanguage());
+    assertEquals(0, ret.getTranslation());
+  }
+
   private void expectSpacePreferences(SpaceReference spaceRef) throws XWikiException {
-    DocumentReference webPrefDocRef = new DocumentReference(ModelContext.WEB_PREF_DOC_NAME,
-        spaceRef);
-    expect(getWikiMock().exists(eq(webPrefDocRef), same(getContext()))).andReturn(true).once();
-    expect(getWikiMock().getDocument(eq(webPrefDocRef), same(getContext()))).andReturn(
-        new XWikiDocument(webPrefDocRef)).once();
+    XWikiDocument webPrefDoc = new XWikiDocument(new DocumentReference(
+        ModelContext.WEB_PREF_DOC_NAME, spaceRef));
+    expect(getMock(ModelAccessStrategy.class).getDocument(webPrefDoc.getDocumentReference(), ""))
+        .andReturn(webPrefDoc).once();
   }
 
   @Test

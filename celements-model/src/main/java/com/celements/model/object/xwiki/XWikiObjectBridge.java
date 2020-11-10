@@ -1,5 +1,7 @@
 package com.celements.model.object.xwiki;
 
+import static com.celements.logging.LogUtils.*;
+import static com.celements.model.access.IModelAccessFacade.*;
 import static com.celements.model.util.References.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
@@ -23,6 +25,7 @@ import com.celements.model.field.XDocumentFieldAccessor;
 import com.celements.model.field.XObjectFieldAccessor;
 import com.celements.model.object.ObjectBridge;
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.XWikiException;
@@ -55,10 +58,15 @@ public class XWikiObjectBridge implements ObjectBridge<XWikiDocument, BaseObject
   }
 
   @Override
-  public void checkDoc(XWikiDocument doc) throws IllegalArgumentException {
-    checkArgument(doc.getTranslation() == 0, MessageFormat.format("XWikiObjectBridge "
-        + "cannot be used  on translation ''{0}'' of doc ''{1}''", doc.getLanguage(),
-        doc.getDocumentReference()));
+  @Deprecated
+  public void checkDoc(XWikiDocument doc) {
+    // nothing to check on a document in general
+  }
+
+  private void checkIsMainDoc(XWikiDocument doc) {
+    checkArgument(doc.getTranslation() == 0, defer(() -> MessageFormat.format(
+        "object operations not allowed on translation [{0}] of doc [{1}]",
+        doc.getLanguage(), doc.getDocumentReference())));
   }
 
   @Override
@@ -67,12 +75,28 @@ public class XWikiObjectBridge implements ObjectBridge<XWikiDocument, BaseObject
   }
 
   @Override
+  public String getLanguage(XWikiDocument doc) {
+    return normalizeLang(doc.getLanguage());
+  }
+
+  @Override
+  public String getDefaultLanguage(XWikiDocument doc) {
+    return normalizeLang(doc.getDefaultLanguage());
+  }
+
+  private String normalizeLang(String lang) {
+    return "default".equals(lang) ? DEFAULT_LANG : Strings.nullToEmpty(lang);
+  }
+
+  @Override
   public FluentIterable<? extends ClassIdentity> getDocClasses(XWikiDocument doc) {
+    checkIsMainDoc(doc);
     return FluentIterable.from(doc.getXObjects().keySet()).transform(ClassReference::new);
   }
 
   @Override
   public FluentIterable<BaseObject> getObjects(XWikiDocument doc, ClassIdentity classId) {
+    checkIsMainDoc(doc);
     WikiReference docWiki = doc.getDocumentReference().getWikiReference();
     List<BaseObject> objects = firstNonNull(doc.getXObjects(classId.getDocRef(docWiki)),
         ImmutableList.<BaseObject>of());
@@ -99,6 +123,7 @@ public class XWikiObjectBridge implements ObjectBridge<XWikiDocument, BaseObject
 
   @Override
   public BaseObject createObject(XWikiDocument doc, ClassIdentity classId) {
+    checkIsMainDoc(doc);
     WikiReference docWiki = doc.getDocumentReference().getWikiReference();
     try {
       return doc.newXObject(classId.getDocRef(docWiki), context.getXWikiContext());
@@ -109,6 +134,7 @@ public class XWikiObjectBridge implements ObjectBridge<XWikiDocument, BaseObject
 
   @Override
   public boolean deleteObject(XWikiDocument doc, BaseObject obj) {
+    checkIsMainDoc(doc);
     return doc.removeXObject(obj);
   }
 

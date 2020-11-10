@@ -20,7 +20,6 @@ import com.celements.model.access.exception.DocumentLoadException;
 import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.rights.access.EAccessLevel;
 import com.celements.rights.access.IRightsAccessFacadeRole;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.api.Document;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -63,23 +62,13 @@ public class ModelAccessScriptService implements ScriptService {
   public Document getOrCreateDocument(DocumentReference docRef, String lang) {
     Document ret = null;
     try {
-      XWikiDocument xdoc = null;
-      if (modelAccess.exists(docRef, lang) && rightsAccess.hasAccessLevel(docRef, VIEW)) {
-        xdoc = modelAccess.getDocument(docRef);
-      } else if (rightsAccess.hasAccessLevel(docRef, EAccessLevel.EDIT)) {
-        // TODO rights check working on not existing doc?
-        if (Strings.isNullOrEmpty(lang)) {
-          xdoc = modelAccess.createDocument(docRef);
-        } else {
-          xdoc = modelAccess.createTranslation(docRef, lang);
-        }
+      boolean exists = modelAccess.existsLang(docRef, lang);
+      if ((exists && rightsAccess.hasAccessLevel(docRef, VIEW))
+          || (!exists && rightsAccess.hasAccessLevel(docRef, EAccessLevel.EDIT))) {
+        XWikiDocument doc = modelAccess.getOrCreateDocument(docRef);
+        ret = modelAccess.getApiDocument(doc);
       }
-      if (xdoc != null) {
-        ret = modelAccess.getApiDocument(xdoc);
-      }
-    } catch (
-
-    Exception exc) {
+    } catch (Exception exc) {
       LOGGER.info("failed to get or create doc [{}]", docRef, exc);
     }
     return ret;
@@ -89,8 +78,8 @@ public class ModelAccessScriptService implements ScriptService {
     return modelAccess.exists(docRef);
   }
 
-  public boolean exists(DocumentReference docRef, String lang) {
-    return modelAccess.exists(docRef, lang);
+  public boolean existsLang(DocumentReference docRef, String lang) {
+    return modelAccess.existsLang(docRef, lang);
   }
 
   public com.xpn.xwiki.api.Object getObject(DocumentReference docRef, DocumentReference classRef) {

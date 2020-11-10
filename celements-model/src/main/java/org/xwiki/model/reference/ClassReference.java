@@ -5,9 +5,11 @@ import static com.google.common.base.Preconditions.*;
 import static java.text.MessageFormat.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.concurrent.Immutable;
 
+import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.EntityType;
 
 import com.celements.model.classes.ClassDefinition;
@@ -92,6 +94,20 @@ public class ClassReference extends EntityReference implements ImmutableReferenc
   @Override
   public EntityReference getMutable() {
     return new EntityReference(getName(), getType(), getParent());
+  }
+
+  @Override
+  public ClassReference getClassReference() {
+    return this;
+  }
+
+  @Override
+  public Optional<ClassDefinition> getClassDefinition() {
+    try {
+      return Optional.of(Utils.getComponentManager().lookup(ClassDefinition.class, serialize()));
+    } catch (ComponentLookupException exc) {
+      return Optional.empty();
+    }
   }
 
   @Override

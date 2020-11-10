@@ -1,62 +1,61 @@
 package com.celements.model.object.restriction;
 
+import static com.celements.common.MoreObjectsCel.*;
+import static com.google.common.collect.ImmutableSet.*;
+
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.celements.model.classes.ClassIdentity;
-import com.google.common.collect.FluentIterable;
 
 @NotThreadSafe
 public class ObjectQuery<O> {
 
   private Set<Predicate<O>> restrictions = new LinkedHashSet<>();
 
-  public ObjectQuery() {
+  public ObjectQuery() {}
+
+  public ObjectQuery(Stream<? extends Predicate<O>> stream) {
+    stream.forEach(this::add);
   }
 
-  public ObjectQuery(Iterable<? extends Predicate<O>> iter) {
-    this.addAll(iter);
-  }
-
-  public void add(Predicate<O> restr) {
-    restrictions.add(restr);
-  }
-
-  public void addAll(Iterable<? extends Predicate<O>> iter) {
-    for (Predicate<O> restr : iter) {
-      this.add(restr);
+  public ObjectQuery<O> add(Predicate<O> restr) {
+    if (restr != null) {
+      restrictions.add(restr);
     }
+    return this;
   }
 
-  public FluentIterable<Predicate<O>> getRestrictions() {
-    return FluentIterable.from(restrictions);
+  public Stream<Predicate<O>> streamRestrictions() {
+    return restrictions.stream();
   }
 
   public Predicate<O> predicate(ClassIdentity classId) {
-    return restrictions.stream()
-        .filter(new ClassPredicate(classId))
+    return streamRestrictions()
+        .filter(restr -> tryCast(restr, ClassRestriction.class)
+            .map(classRestr -> classRestr.getClassIdentity().equals(classId))
+            .orElse(true))
         .reduce((p1, p2) -> p1.and(p2))
         .orElse(o -> true);
   }
 
   public Set<ClassIdentity> getObjectClasses() {
-    return getRestrictions()
-        .filter(getClassRestrictionClass())
-        .transform(ClassRestriction::getClassIdentity)
-        .toSet();
+    return streamRestrictions()
+        .flatMap(tryCast(ClassRestriction.class))
+        .map(ClassRestriction::getClassIdentity)
+        .collect(toImmutableSet());
   }
 
-  @SuppressWarnings("unchecked")
-  private Class<ClassRestriction<O>> getClassRestrictionClass() {
-    return (Class<ClassRestriction<O>>) (Class<?>) ClassRestriction.class;
-  }
-
-  public FluentIterable<FieldRestriction<O, ?>> getFieldRestrictions(ClassIdentity classId) {
-    return getRestrictions().filter(getFieldRestrictionClass()).filter(new ClassPredicate(classId));
+  public Set<FieldRestriction<O, ?>> getFieldRestrictions(ClassIdentity classId) {
+    return streamRestrictions()
+        .flatMap(tryCast(getFieldRestrictionClass()))
+        .filter(fieldRestr -> fieldRestr.getClassIdentity().equals(classId))
+        .collect(toImmutableSet());
   }
 
   @SuppressWarnings("unchecked")
@@ -81,24 +80,6 @@ public class ObjectQuery<O> {
   @Override
   public String toString() {
     return "ObjectQuery " + restrictions;
-  }
-
-  private class ClassPredicate implements com.google.common.base.Predicate<Predicate<?>> {
-
-    private final ClassIdentity classId;
-
-    ClassPredicate(ClassIdentity classId) {
-      this.classId = classId;
-    }
-
-    @Override
-    public boolean apply(Predicate<?> restr) {
-      if (restr instanceof ClassRestriction) {
-        return ((ClassRestriction<?>) restr).getClassIdentity().equals(classId);
-      }
-      return true;
-    }
-
   }
 
 }

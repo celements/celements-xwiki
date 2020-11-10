@@ -33,6 +33,8 @@ public class TestClassDefinition extends AbstractClassDefinition implements
   public static final ClassField<List<String>> FIELD_MY_LIST_MS = getFieldMyList(true);
   public static final ClassField<List<String>> FIELD_MY_LIST_SS = getFieldMyList(false);
   public static final ClassField<String> FIELD_MY_SINGLE_LIST = getFieldMySingleList();
+  public static final ClassField<String> FIELD_LANG = new StringField.Builder(CLASS_REF, "lang")
+      .build();
 
   public TestClassDefinition() {
     super(CLASS_REF);
