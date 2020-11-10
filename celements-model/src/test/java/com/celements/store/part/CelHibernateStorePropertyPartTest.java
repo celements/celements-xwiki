@@ -51,10 +51,10 @@ public class CelHibernateStorePropertyPartTest extends AbstractComponentTest {
     BaseProperty property = new BaseProperty();
 
     storeMock.checkHibernate(same(getContext()));
-    expect(storeMock.beginTransaction(same(getContext()))).andReturn(true);
+    expect(storeMock.beginTransaction(eq(false), same(getContext()))).andReturn(true);
     expect(storeMock.getSession(same(getContext()))).andReturn(sessionMock);
     sessionMock.load(same(property), same(property));
-    storeMock.endTransaction(same(getContext()), eq(false));
+    storeMock.endTransaction(same(getContext()), eq(false), eq(false));
 
     replayDefault();
     storePart.loadXWikiProperty(property, getContext(), true);
