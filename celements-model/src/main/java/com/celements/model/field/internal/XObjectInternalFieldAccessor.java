@@ -1,7 +1,6 @@
 package com.celements.model.field.internal;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.Optional;
 
 import org.xwiki.component.annotation.Component;
@@ -60,9 +59,6 @@ public class XObjectInternalFieldAccessor implements InternalFieldAccessor<BaseO
     if (value instanceof String) {
       // avoid comparing empty string to null
       value = Strings.emptyToNull(value.toString().trim());
-    } else if (value instanceof Date) {
-      // avoid returning Timestamp since Timestamp.equals(Date) always returns false
-      value = new Date(((Date) value).getTime());
     }
     return Optional.ofNullable(value);
   }
