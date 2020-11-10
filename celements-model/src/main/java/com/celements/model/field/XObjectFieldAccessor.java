@@ -2,6 +2,7 @@ package com.celements.model.field;
 
 import static com.celements.web.classes.oldcore.XWikiObjectClass.*;
 import static com.google.common.base.Preconditions.*;
+import static java.text.MessageFormat.*;
 
 import java.text.MessageFormat;
 import java.util.Optional;
@@ -79,9 +80,9 @@ public class XObjectFieldAccessor extends AbstractFieldAccessor<BaseObject> {
       } else {
         return Optional.of(field.getType().cast(value));
       }
-    } catch (ClassCastException | IllegalArgumentException ex) {
-      throw new FieldAccessException("Field '" + field + "' ill defined, expecting type '"
-          + field.getType() + "' but got '" + value.getClass() + "'", ex);
+    } catch (ClassCastException | IllegalArgumentException exc) {
+      throw new FieldAccessException(format("field [{0}] ill defined, expecting type [{1}], "
+          + "but got [{2}]", field, field.getType(), value.getClass()), exc);
     }
   }
 
@@ -104,8 +105,9 @@ public class XObjectFieldAccessor extends AbstractFieldAccessor<BaseObject> {
       } else {
         return Optional.ofNullable(value);
       }
-    } catch (ClassCastException | IllegalArgumentException ex) {
-      throw new FieldAccessException("Field '" + field + "' ill defined", ex);
+    } catch (ClassCastException | IllegalArgumentException exc) {
+      throw new FieldAccessException(format("field [{0}] ill defined, expecting type [{1}], "
+          + "but got [{2}]", field, field.getType(), value.getClass()), exc);
     }
   }
 

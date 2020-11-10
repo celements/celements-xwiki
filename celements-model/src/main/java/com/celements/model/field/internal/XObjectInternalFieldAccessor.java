@@ -1,5 +1,7 @@
 package com.celements.model.field.internal;
 
+import static com.google.common.base.Strings.*;
+
 import java.util.Collection;
 import java.util.Optional;
 
@@ -12,8 +14,6 @@ import com.celements.model.field.FieldAccessException;
 import com.celements.model.field.FieldAccessor;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.base.Strings;
-import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
 
@@ -37,30 +37,18 @@ public class XObjectInternalFieldAccessor implements InternalFieldAccessor<BaseO
   public Optional<Object> get(BaseObject obj, String fieldName) {
     try {
       return Optional.ofNullable(obj)
-          .flatMap(o -> getBaseProperty(o, fieldName))
-          .flatMap(this::getAndNormalizeValue);
-    } catch (ClassCastException exc) {
-      throw createException("failed to cast value", obj, fieldName, exc);
+          .flatMap(o -> getAndNormalizeValue(o, fieldName));
+    } catch (ClassCastException | IllegalArgumentException exc) {
+      throw createException("failed to get value", obj, fieldName, exc);
     }
   }
 
-  private Optional<BaseProperty> getBaseProperty(BaseObject obj, String fieldName) {
-    try {
-      return Optional.ofNullable((BaseProperty) obj.get(fieldName));
-    } catch (XWikiException | ClassCastException exc) {
-      // shouldn't happen since XWE is never thrown in BaseObject.get()
-      // and BaseObjects should only ever contain BaseProperties
-      throw createException("should not happen", obj, fieldName, exc);
-    }
-  }
-
-  private Optional<Object> getAndNormalizeValue(BaseProperty prop) {
-    Object value = prop.getValue();
-    if (value instanceof String) {
-      // avoid comparing empty string to null
-      value = Strings.emptyToNull(value.toString().trim());
-    }
-    return Optional.ofNullable(value);
+  private Optional<Object> getAndNormalizeValue(BaseObject obj, String fieldName) {
+    return Optional.ofNullable((BaseProperty) obj.safeget(fieldName))
+        .map(BaseProperty::getValue)
+        .map(value -> (value instanceof String)
+            ? emptyToNull(value.toString().trim()) // avoid comparing empty string to null
+            : value);
   }
 
   @Override
@@ -68,20 +56,20 @@ public class XObjectInternalFieldAccessor implements InternalFieldAccessor<BaseO
     Object currentValue = get(obj, fieldName).orElse(null);
     if (!Objects.equal(newValue, currentValue)) {
       try {
-        obj.set(fieldName, normalizeValue(newValue), context.getXWikiContext());
+        normalizeAndSetValue(obj, fieldName, newValue);
         return true;
-      } catch (ClassCastException exc) {
+      } catch (ClassCastException | IllegalArgumentException exc) {
         throw createException("failed to set value '" + newValue + "'", obj, fieldName, exc);
       }
     }
     return false;
   }
 
-  private Object normalizeValue(Object value) {
+  private void normalizeAndSetValue(BaseObject obj, String fieldName, Object value) {
     if (value instanceof Collection) {
       value = Joiner.on('|').join((Collection<?>) value);
     }
-    return value;
+    obj.set(fieldName, value, context.getXWikiContext());
   }
 
   private FieldAccessException createException(String message, BaseObject obj, String fieldName,
