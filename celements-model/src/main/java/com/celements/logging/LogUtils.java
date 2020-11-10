@@ -127,14 +127,14 @@ public final class LogUtils {
   /**
    * Simplifies logging with lambda expressions. Logs object filtering.
    */
-  public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger,
-      LogLevel levelMatched, LogLevel levelSkipped, String msg) {
+  public static <T> Predicate<T> log(Predicate<T> predicate, Supplier<?> msg,
+      LogLevel levelMatched, LogLevel levelSkipped, Logger logger) {
     return t -> {
       boolean ret = predicate.test(t);
       if (ret && isLevelEnabled(logger, levelMatched)) {
-        log(logger, levelMatched, "{}: [{}]", msg, t);
+        log(logger, levelMatched, "{}: [{}]", defer(msg::get), t);
       } else if (!ret && isLevelEnabled(logger, levelSkipped)) {
-        log(logger, levelMatched, "{}: skipped [{}]", msg, t);
+        log(logger, levelMatched, "{}: skipped [{}]", defer(msg::get), t);
       }
       return ret;
     };
@@ -144,31 +144,55 @@ public final class LogUtils {
    * Simplifies logging with lambda expressions. Logs object filtering. Skipped objects are logged
    * one level below given level.
    */
-  public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger,
-      LogLevel level, String msg) {
+  public static <T> Predicate<T> log(Predicate<T> predicate, Supplier<?> msg, LogLevel level,
+      Logger logger) {
     LogLevel lower = (level.ordinal() > 0) ? LogLevel.values()[level.ordinal() - 1] : null;
-    return log(predicate, logger, level, lower, msg);
+    return log(predicate, msg, level, lower, logger);
+  }
+
+  /**
+   * @see #log(Predicate, Supplier, LogLevel, Logger)
+   */
+  public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger, LogLevel level,
+      String msg) {
+    return log(predicate, () -> msg, level, logger);
   }
 
   /**
    * Simplifies logging with lambda expressions. Logs present {@link Optional}.
    */
+  public static <T> Predicate<Optional<T>> logIfPresent(Logger logger, Supplier<?> msg,
+      LogLevel level) {
+    return log(Optional<T>::isPresent, msg, level, null, logger);
+  }
+
+  /**
+   * @see #logIfPresent(Logger, LogLevel, Supplier)
+   */
   public static <T> Predicate<Optional<T>> logIfPresent(Logger logger, LogLevel level, String msg) {
-    return log(Optional<T>::isPresent, logger, level, null, msg);
+    return logIfPresent(logger, () -> msg, level);
   }
 
   /**
    * Simplifies logging with lambda expressions. Logs object mapping.
    */
-  public static <T, R> Function<T, R> log(Function<T, R> function, Logger logger,
-      LogLevel level, String msg) {
+  public static <T, R> Function<T, R> log(Function<T, R> function, Logger logger, LogLevel level,
+      Supplier<?> msg) {
     return t -> {
       R ret = function.apply(t);
       if (isLevelEnabled(logger, level)) {
-        log(logger, level, "{}: [{}] -> [{}]", msg, t, ret);
+        log(logger, level, "{}: [{}] -> [{}]", defer(msg::get), t, ret);
       }
       return ret;
     };
+  }
+
+  /**
+   * @see #log(Function, Logger, LogLevel, Supplier)
+   */
+  public static <T, R> Function<T, R> log(Function<T, R> function, Logger logger, LogLevel level,
+      String msg) {
+    return log(function, logger, level, () -> msg);
   }
 
 }
