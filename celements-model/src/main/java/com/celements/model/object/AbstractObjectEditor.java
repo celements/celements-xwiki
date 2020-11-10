@@ -84,7 +84,7 @@ public abstract class AbstractObjectEditor<R extends AbstractObjectEditor<R, D, 
   }
 
   private <T> void setObjectField(O obj, FieldRestriction<O, T> restriction) {
-    T value = restriction.getValues().stream().findFirst().orElseThrow();
+    T value = restriction.getValues().stream().findFirst().orElse(null);
     getBridge().getObjectFieldAccessor().set(obj, restriction.getField(), value);
     LOGGER.debug("{} set field {} on created object to value [{}]",
         this, restriction.getField(), value);
