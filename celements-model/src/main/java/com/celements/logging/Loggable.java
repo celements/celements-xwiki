@@ -56,7 +56,7 @@ public abstract class Loggable<T, L extends Loggable<T, L>> {
 
   protected Logger getLogger() {
     return Optional.ofNullable(logger)
-        .orElseGet(() -> Stream.of(Thread.currentThread().getStackTrace())
+        .orElseGet(() -> Stream.of(new Throwable().getStackTrace())
             .skip(2)
             .map(StackTraceElement::getClassName)
             .filter(not(this.getClass().getName()::equals))
