@@ -259,13 +259,11 @@ public class CelHibernateStore extends XWikiHibernateStore {
   }
 
   public void log(LogLevel level, String msg, Object obj) {
-    if (LogUtils.isLevelEnabled(LOGGER, level)) {
-      LogUtils.log(LOGGER, level, buildLogMessage(msg, obj));
-    }
+    LogUtils.log(LOGGER, level, () -> buildLogMessage(msg, obj));
   }
 
   public void logError(String msg, Object obj, Throwable cause) {
-    LOGGER.error(buildLogMessage(msg, obj), cause);
+    LogUtils.log(LOGGER, LogLevel.ERROR, () -> buildLogMessage(msg, obj), cause);
   }
 
   public XWikiException newXWikiException(String msg, Object obj, Throwable cause, int code) {
