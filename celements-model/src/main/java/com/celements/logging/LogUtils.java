@@ -2,6 +2,7 @@ package com.celements.logging;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -164,7 +165,7 @@ public final class LogUtils {
   }
 
   /**
-   * Simplifies logging with lambda expressions in {@code filter} methods. Usage sample:
+   * Simplifies logging with lambda expressions in e.g. {@code filter} methods. Usage sample:
    *
    * <pre>
    * stream.filter(log(predicate).on(LOGGER).lvl(INFO).msg(() -> expensiveMsgCalc()))
@@ -198,6 +199,32 @@ public final class LogUtils {
    */
   public static <T, R> LogFunction<T, R> log(Function<T, R> function) {
     return new LogFunction<>(function);
+  }
+
+  /**
+   * Simplifies logging with lambda expressions in e.g. {@code forEach} methods. Usage sample:
+   *
+   * <pre>
+   * stream.forEach(log(consumer).on(LOGGER).lvl(INFO).msg(() -> expensiveMsgCalc()))
+   * </pre>
+   *
+   * @see LogConsumer
+   */
+  public static <T> LogConsumer<T> log(Consumer<T> consumer) {
+    return new LogConsumer<>(consumer);
+  }
+
+  /**
+   * Simplifies logging with lambda expressions in e.g. {@code orElseGet} methods. Usage sample:
+   *
+   * <pre>
+   * optional.orElseGet(log(supplier).on(LOGGER).lvl(INFO).msg(() -> expensiveMsgCalc()))
+   * </pre>
+   *
+   * @see LogSupplier
+   */
+  public static <T> LogSupplier<T> log(Supplier<T> supplier) {
+    return new LogSupplier<>(supplier);
   }
 
 }
