@@ -13,44 +13,52 @@ public final class LogUtils {
   private LogUtils() {}
 
   public static void log(Logger logger, LogLevel level, String msg) {
+    log(logger, level, () -> msg);
+  }
+
+  public static void log(Logger logger, LogLevel level, Supplier<?> msg) {
     if ((logger != null) && (level != null)) {
       switch (level) {
         case TRACE:
-          logger.trace(msg);
+          logger.trace("{}", defer(msg));
           break;
         case DEBUG:
-          logger.debug(msg);
+          logger.debug("{}", defer(msg));
           break;
         case INFO:
-          logger.info(msg);
+          logger.info("{}", defer(msg));
           break;
         case WARN:
-          logger.warn(msg);
+          logger.warn("{}", defer(msg));
           break;
         case ERROR:
-          logger.error(msg);
+          logger.error("{}", defer(msg));
           break;
       }
     }
   }
 
   public static void log(Logger logger, LogLevel level, String msg, Throwable throwable) {
+    log(logger, level, () -> msg, throwable);
+  }
+
+  public static void log(Logger logger, LogLevel level, Supplier<?> msg, Throwable throwable) {
     if ((logger != null) && (level != null)) {
       switch (level) {
         case TRACE:
-          logger.trace(msg, throwable);
+          logger.trace("{}", defer(msg), throwable);
           break;
         case DEBUG:
-          logger.debug(msg, throwable);
+          logger.debug("{}", defer(msg), throwable);
           break;
         case INFO:
-          logger.info(msg, throwable);
+          logger.info("{}", defer(msg), throwable);
           break;
         case WARN:
-          logger.warn(msg, throwable);
+          logger.warn("{}", defer(msg), throwable);
           break;
         case ERROR:
-          logger.error(msg, throwable);
+          logger.error("{}", defer(msg), throwable);
           break;
       }
     }
@@ -126,49 +134,70 @@ public final class LogUtils {
 
   /**
    * Simplifies logging with lambda expressions. Logs object filtering.
+   *
+   * @deprecated use {@link #log(Predicate)} with {@link LogPredicate} setters
    */
-  public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger,
+  @Deprecated
+  public static <T> LogPredicate<T> log(Predicate<T> predicate, Logger logger,
       LogLevel levelMatched, LogLevel levelSkipped, String msg) {
-    return t -> {
-      boolean ret = predicate.test(t);
-      if (ret && isLevelEnabled(logger, levelMatched)) {
-        log(logger, levelMatched, "{}: [{}]", msg, t);
-      } else if (!ret && isLevelEnabled(logger, levelSkipped)) {
-        log(logger, levelMatched, "{}: skipped [{}]", msg, t);
-      }
-      return ret;
-    };
+    return log(predicate).on(logger).lvlMatched(levelMatched).lvlSkipped(levelSkipped).msg(msg);
   }
 
   /**
    * Simplifies logging with lambda expressions. Logs object filtering. Skipped objects are logged
    * one level below given level.
+   *
+   * @deprecated use {@link #log(Predicate)} with {@link LogPredicate} setters
    */
-  public static <T> Predicate<T> log(Predicate<T> predicate, Logger logger,
+  @Deprecated
+  public static <T> LogPredicate<T> log(Predicate<T> predicate, Logger logger,
       LogLevel level, String msg) {
-    LogLevel lower = (level.ordinal() > 0) ? LogLevel.values()[level.ordinal() - 1] : null;
-    return log(predicate, logger, level, lower, msg);
+    return log(predicate).on(logger).lvl(level).msg(msg);
   }
 
   /**
-   * Simplifies logging with lambda expressions. Logs present {@link Optional}.
+   * Simplifies logging with lambda expressions. Logs present {@link Optional} in a stream.
    */
-  public static <T> Predicate<Optional<T>> logIfPresent(Logger logger, LogLevel level, String msg) {
-    return log(Optional<T>::isPresent, logger, level, null, msg);
+  public static <T> LogPredicate<Optional<T>> logIfPresent(Logger logger,
+      LogLevel level, String msg) {
+    return log(Optional<T>::isPresent).on(logger).lvlMatched(level).lvlSkipped(null).msg(msg);
+  }
+
+  /**
+   * Simplifies logging with lambda expressions in {@code filter} methods. Usage sample:
+   *
+   * <pre>
+   * stream.filter(log(predicate).on(LOGGER).lvl(INFO).msg(() -> expensiveMsgCalc()))
+   * </pre>
+   *
+   * @see LogPredicate
+   */
+  public static <T> LogPredicate<T> log(Predicate<T> predicate) {
+    return new LogPredicate<>(predicate);
   }
 
   /**
    * Simplifies logging with lambda expressions. Logs object mapping.
+   *
+   * @deprecated use {@link #log(Function)} with {@link LogFunction} setters
    */
-  public static <T, R> Function<T, R> log(Function<T, R> function, Logger logger,
+  @Deprecated
+  public static <T, R> LogFunction<T, R> log(Function<T, R> function, Logger logger,
       LogLevel level, String msg) {
-    return t -> {
-      R ret = function.apply(t);
-      if (isLevelEnabled(logger, level)) {
-        log(logger, level, "{}: [{}] -> [{}]", msg, t, ret);
-      }
-      return ret;
-    };
+    return log(function).on(logger).lvl(level).msg(msg);
+  }
+
+  /**
+   * Simplifies logging with lambda expressions in {@code map} methods. Usage sample:
+   *
+   * <pre>
+   * stream.map(log(function).on(LOGGER).lvl(INFO).msg(() -> expensiveMsgCalc()))
+   * </pre>
+   *
+   * @see LogFunction
+   */
+  public static <T, R> LogFunction<T, R> log(Function<T, R> function) {
+    return new LogFunction<>(function);
   }
 
 }
