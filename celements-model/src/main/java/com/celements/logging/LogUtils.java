@@ -168,7 +168,7 @@ public final class LogUtils {
    * Simplifies logging with lambda expressions in e.g. {@code filter} methods. Usage sample:
    *
    * <pre>
-   * stream.filter(log(predicate).on(LOGGER).lvl(INFO).msg(() -> expensiveMsgCalc()))
+   * stream.filter(log(predicate).info(LOGGER).msg(() -> expensiveMsgCalc()))
    * </pre>
    *
    * @see LogPredicate
@@ -192,7 +192,7 @@ public final class LogUtils {
    * Simplifies logging with lambda expressions in {@code map} methods. Usage sample:
    *
    * <pre>
-   * stream.map(log(function).on(LOGGER).lvl(INFO).msg(() -> expensiveMsgCalc()))
+   * stream.map(log(function).info(LOGGER).msg(() -> expensiveMsgCalc()))
    * </pre>
    *
    * @see LogFunction
@@ -205,7 +205,7 @@ public final class LogUtils {
    * Simplifies logging with lambda expressions in e.g. {@code forEach} methods. Usage sample:
    *
    * <pre>
-   * stream.forEach(log(consumer).on(LOGGER).lvl(INFO).msg(() -> expensiveMsgCalc()))
+   * stream.forEach(log(consumer).info(LOGGER).msg(() -> expensiveMsgCalc()))
    * </pre>
    *
    * @see LogConsumer
@@ -218,7 +218,7 @@ public final class LogUtils {
    * Simplifies logging with lambda expressions in e.g. {@code orElseGet} methods. Usage sample:
    *
    * <pre>
-   * optional.orElseGet(log(supplier).on(LOGGER).lvl(INFO).msg(() -> expensiveMsgCalc()))
+   * optional.orElseGet(log(supplier).info(LOGGER).msg(() -> expensiveMsgCalc()))
    * </pre>
    *
    * @see LogSupplier
