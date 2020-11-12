@@ -9,12 +9,14 @@ import javax.validation.constraints.NotNull;
 import org.xwiki.component.annotation.ComponentRole;
 
 import com.celements.model.field.FieldAccessException;
+import com.celements.model.field.FieldAccessor;
 
 /**
- * implementations allow to access values denoted by Strings of any generic instance
+ * implementations allow to access values denoted by Strings of any generic instance. Use
+ * {@link FieldAccessor} instead if possible.
  */
 @ComponentRole
-public interface InternalFieldAccessor<T> {
+public interface StringFieldAccessor<T> {
 
   @NotNull
   String getName();

@@ -16,8 +16,8 @@ import org.xwiki.model.reference.ClassReference;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.classes.fields.CustomClassField;
-import com.celements.model.field.internal.InternalFieldAccessor;
-import com.celements.model.field.internal.XObjectInternalFieldAccessor;
+import com.celements.model.field.internal.StringFieldAccessor;
+import com.celements.model.field.internal.XObjectStringFieldAccessor;
 import com.xpn.xwiki.objects.BaseObject;
 
 /**
@@ -33,8 +33,8 @@ public class XObjectFieldAccessor extends AbstractFieldAccessor<BaseObject> {
   @Requirement(CLASS_DEF_HINT)
   private ClassDefinition xObjClassDef;
 
-  @Requirement(XObjectInternalFieldAccessor.NAME)
-  protected InternalFieldAccessor<BaseObject> internalFieldAccessor;
+  @Requirement(XObjectStringFieldAccessor.NAME)
+  protected StringFieldAccessor<BaseObject> strFieldAccessor;
 
   @Override
   public String getName() {
@@ -48,7 +48,7 @@ public class XObjectFieldAccessor extends AbstractFieldAccessor<BaseObject> {
       value = Optional.of(getXObjFieldValue(obj, field));
     } else {
       checkClassRef(obj, field);
-      return internalFieldAccessor.get(obj, field.getName())
+      return strFieldAccessor.get(obj, field.getName())
           .flatMap(val -> resolvePropertyValue(field, val));
     }
     LOGGER.info("getValue: '{}' for '{}' from '{} - {} - {}'", value, field,
@@ -89,7 +89,7 @@ public class XObjectFieldAccessor extends AbstractFieldAccessor<BaseObject> {
   @Override
   public <V> boolean set(BaseObject obj, ClassField<V> field, V newValue) {
     checkClassRef(obj, field);
-    boolean dirty = internalFieldAccessor.set(obj, field.getName(),
+    boolean dirty = strFieldAccessor.set(obj, field.getName(),
         serializePropertyValue(field, newValue).orElse(null));
     if (dirty) {
       LOGGER.info("setValue: '{}' for '{}' from '{} - {} - {}'", newValue, field,

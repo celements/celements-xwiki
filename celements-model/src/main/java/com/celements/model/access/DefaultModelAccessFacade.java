@@ -37,8 +37,8 @@ import com.celements.model.classes.fields.ClassField;
 import com.celements.model.context.ModelContext;
 import com.celements.model.field.FieldAccessor;
 import com.celements.model.field.XObjectFieldAccessor;
-import com.celements.model.field.internal.InternalFieldAccessor;
-import com.celements.model.field.internal.XObjectInternalFieldAccessor;
+import com.celements.model.field.internal.StringFieldAccessor;
+import com.celements.model.field.internal.XObjectStringFieldAccessor;
 import com.celements.model.object.ObjectFetcher;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
@@ -78,8 +78,8 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   @Requirement(XObjectFieldAccessor.NAME)
   protected FieldAccessor<BaseObject> xObjFieldAccessor;
 
-  @Requirement(XObjectInternalFieldAccessor.NAME)
-  protected InternalFieldAccessor<BaseObject> xObjInternalFieldAccessor;
+  @Requirement(XObjectStringFieldAccessor.NAME)
+  protected StringFieldAccessor<BaseObject> xObjStrFieldAccessor;
 
   @Override
   public XWikiDocument getDocument(DocumentReference docRef) throws DocumentNotExistsException {
@@ -593,7 +593,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   @Override
   @Deprecated
   public Object getProperty(BaseObject obj, String name) {
-    return xObjInternalFieldAccessor.get(obj, name).orElse(null);
+    return xObjStrFieldAccessor.get(obj, name).orElse(null);
   }
 
   @Override
@@ -675,7 +675,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   @Override
   @Deprecated
   public boolean setProperty(BaseObject obj, String name, Object value) {
-    return xObjInternalFieldAccessor.set(obj, name, value);
+    return xObjStrFieldAccessor.set(obj, name, value);
   }
 
   @Override

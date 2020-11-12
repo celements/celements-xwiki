@@ -11,17 +11,18 @@ import org.xwiki.model.reference.ClassReference;
 
 import com.celements.model.context.ModelContext;
 import com.celements.model.field.FieldAccessException;
-import com.celements.model.field.FieldAccessor;
+import com.celements.model.field.XObjectFieldAccessor;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
 
 /**
- * {@link FieldAccessor} for accessing {@link BaseObject} properties
+ * {@link StringFieldAccessor} for accessing {@link BaseObject} properties. Use
+ * {@link XObjectFieldAccessor} instead if possible.
  */
-@Component(XObjectInternalFieldAccessor.NAME)
-public class XObjectInternalFieldAccessor implements InternalFieldAccessor<BaseObject> {
+@Component(XObjectStringFieldAccessor.NAME)
+public class XObjectStringFieldAccessor implements StringFieldAccessor<BaseObject> {
 
   public static final String NAME = "xobject";
 
