@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 public abstract class Loggable<T, L extends Loggable<T, L>> {
 
   protected Logger logger;
-  protected LogLevel levelMatched = LogLevel.DEBUG;
-  protected LogLevel levelSkipped = LogLevel.TRACE;
+  protected LogLevel level = LogLevel.DEBUG;
+  protected LogLevel levelReduced = LogLevel.TRACE;
   protected Supplier<?> msg = () -> "";
 
   Loggable() {}
@@ -22,19 +22,19 @@ public abstract class Loggable<T, L extends Loggable<T, L>> {
     return getThis();
   }
 
-  public L lvlMatched(@Nullable LogLevel level) {
-    this.levelMatched = level;
+  public L lvlDefault(@Nullable LogLevel level) {
+    this.level = level;
     return getThis();
   }
 
-  public L lvlSkipped(@Nullable LogLevel level) {
-    this.levelSkipped = level;
+  public L lvlReduced(@Nullable LogLevel level) {
+    this.levelReduced = level;
     return getThis();
   }
 
   public L lvl(@Nullable LogLevel level) {
-    lvlMatched(level);
-    lvlSkipped(((level != null) && (level.ordinal() > 0))
+    lvlDefault(level);
+    lvlReduced(((level != null) && (level.ordinal() > 0))
         ? LogLevel.values()[level.ordinal() - 1]
         : null);
     return getThis();

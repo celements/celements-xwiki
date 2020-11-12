@@ -24,10 +24,8 @@ public class LogFunction<T, R> extends Loggable<T, LogFunction<T, R>> implements
   @Override
   public R apply(T t) {
     R ret = delegate.apply(t);
-    LogLevel level = ((ret != null) ? levelMatched : levelSkipped);
-    if (isLevelEnabled(logger, level)) {
-      log(logger, level, "{}: [{}] -> [{}]", defer(msg::get), t, ret);
-    }
+    log(logger, ((ret != null) ? level : levelReduced),
+        "{}: [{}] -> [{}]", defer(msg::get), t, ret);
     return ret;
   }
 

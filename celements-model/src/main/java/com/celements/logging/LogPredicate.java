@@ -24,10 +24,10 @@ public class LogPredicate<T> extends Loggable<T, LogPredicate<T>> implements Pre
   @Override
   public boolean test(T t) {
     boolean ret = delegate.test(t);
-    if (ret && isLevelEnabled(logger, levelMatched)) {
-      log(logger, levelMatched, "{}: [{}]", defer(msg::get), t);
-    } else if (!ret && isLevelEnabled(logger, levelSkipped)) {
-      log(logger, levelSkipped, "{}: filtered [{}]", defer(msg::get), t);
+    if (ret) {
+      log(logger, level, "{}: {}", defer(msg::get), t);
+    } else {
+      log(logger, levelReduced, "{}: filtered {}", defer(msg::get), t);
     }
     return ret;
   }

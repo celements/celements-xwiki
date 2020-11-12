@@ -140,7 +140,7 @@ public final class LogUtils {
   @Deprecated
   public static <T> LogPredicate<T> log(Predicate<T> predicate, Logger logger,
       LogLevel levelMatched, LogLevel levelSkipped, String msg) {
-    return log(predicate).on(logger).lvlMatched(levelMatched).lvlSkipped(levelSkipped).msg(msg);
+    return log(predicate).on(logger).lvl(levelMatched).lvlReduced(levelSkipped).msg(msg);
   }
 
   /**
@@ -160,7 +160,7 @@ public final class LogUtils {
    */
   public static <T> LogPredicate<Optional<T>> logIfPresent(Logger logger,
       LogLevel level, String msg) {
-    return log(Optional<T>::isPresent).on(logger).lvlMatched(level).lvlSkipped(null).msg(msg);
+    return log(Optional<T>::isPresent).on(logger).lvl(level).msg(msg);
   }
 
   /**
