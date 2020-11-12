@@ -10,7 +10,7 @@ import org.xwiki.component.annotation.ComponentRole;
 import com.celements.model.classes.fields.ClassField;
 
 /**
- * implementations allow to access values of any generic instance with {@link ClassField} objects
+ * implementations allow to access values denoted by {@link ClassField} of any generic instance
  */
 @ComponentRole
 public interface FieldAccessor<T> {
@@ -19,17 +19,21 @@ public interface FieldAccessor<T> {
   String getName();
 
   /**
-   * TODO javadoc
+   * gets the value denoted by the field on an instance
    *
-   * @param <V>
-   * @param instance
-   * @param field
-   * @return
    * @throws FieldAccessException
+   *           if an exception occurred while trying to access the field
    */
   @NotNull
   <V> Optional<V> get(@NotNull T instance, @NotNull ClassField<V> field);
 
+  /**
+   * sets the value denoted by the field on an instance
+   *
+   * @return true if the field value has changed on the instance
+   * @throws FieldAccessException
+   *           if an exception occurred while trying to access the field
+   */
   <V> boolean set(@NotNull T instance, @NotNull ClassField<V> field, @Nullable V newValue);
 
   @NotNull
