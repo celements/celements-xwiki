@@ -1,19 +1,14 @@
 package com.celements.logging;
 
-import static com.google.common.base.Predicates.*;
-
-import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class Loggable<T, L extends Loggable<T, L>> {
 
-  private Logger logger;
+  protected Logger logger;
   protected LogLevel levelMatched = LogLevel.DEBUG;
   protected LogLevel levelSkipped = LogLevel.TRACE;
   protected Supplier<?> msg = () -> "";
@@ -52,25 +47,6 @@ public abstract class Loggable<T, L extends Loggable<T, L>> {
 
   public L msg(@Nullable Object msg) {
     return msg(() -> msg);
-  }
-
-  protected Logger getLogger() {
-    return Optional.ofNullable(logger)
-        .orElseGet(() -> Stream.of(new Throwable().getStackTrace())
-            .skip(2)
-            .map(StackTraceElement::getClassName)
-            .filter(not(this.getClass().getName()::equals))
-            .map(this::getClassForName)
-            .map(LoggerFactory::getLogger)
-            .findFirst().orElseThrow(IllegalArgumentException::new));
-  }
-
-  private Class<?> getClassForName(String className) {
-    try {
-      return Class.forName(className);
-    } catch (ClassNotFoundException exc) {
-      throw new IllegalArgumentException(exc);
-    }
   }
 
 }

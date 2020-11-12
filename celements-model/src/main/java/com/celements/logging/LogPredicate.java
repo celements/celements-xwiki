@@ -5,8 +5,6 @@ import static com.google.common.base.Preconditions.*;
 
 import java.util.function.Predicate;
 
-import org.slf4j.Logger;
-
 /**
  * a {@link Predicate} wrapper which logs the result of the {@link #delegate} execution.
  */
@@ -26,11 +24,10 @@ public class LogPredicate<T> extends Loggable<T, LogPredicate<T>> implements Pre
   @Override
   public boolean test(T t) {
     boolean ret = delegate.test(t);
-    Logger log = getLogger();
-    if (ret && isLevelEnabled(log, levelMatched)) {
-      log(log, levelMatched, "{}: [{}]", defer(msg::get), t);
-    } else if (!ret && isLevelEnabled(log, levelSkipped)) {
-      log(log, levelSkipped, "{}: skipped [{}]", defer(msg::get), t);
+    if (ret && isLevelEnabled(logger, levelMatched)) {
+      log(logger, levelMatched, "{}: [{}]", defer(msg::get), t);
+    } else if (!ret && isLevelEnabled(logger, levelSkipped)) {
+      log(logger, levelSkipped, "{}: filtered [{}]", defer(msg::get), t);
     }
     return ret;
   }
