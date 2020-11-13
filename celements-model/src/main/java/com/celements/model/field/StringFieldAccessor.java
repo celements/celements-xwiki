@@ -1,4 +1,4 @@
-package com.celements.model.field.internal;
+package com.celements.model.field;
 
 import java.util.Optional;
 
@@ -7,9 +7,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.component.annotation.ComponentRole;
-
-import com.celements.model.field.FieldAccessException;
-import com.celements.model.field.FieldAccessor;
 
 /**
  * implementations allow to access values denoted by Strings of any generic instance. Use

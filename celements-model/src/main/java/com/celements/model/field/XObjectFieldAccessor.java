@@ -16,8 +16,6 @@ import org.xwiki.model.reference.ClassReference;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.classes.fields.CustomClassField;
-import com.celements.model.field.internal.StringFieldAccessor;
-import com.celements.model.field.internal.XObjectStringFieldAccessor;
 import com.xpn.xwiki.objects.BaseObject;
 
 /**

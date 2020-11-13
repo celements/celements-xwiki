@@ -1,4 +1,4 @@
-package com.celements.model.field.internal;
+package com.celements.model.field;
 
 import static com.google.common.base.Strings.*;
 
@@ -10,8 +10,6 @@ import org.xwiki.component.annotation.Requirement;
 import org.xwiki.model.reference.ClassReference;
 
 import com.celements.model.context.ModelContext;
-import com.celements.model.field.FieldAccessException;
-import com.celements.model.field.XObjectFieldAccessor;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.xpn.xwiki.objects.BaseObject;
