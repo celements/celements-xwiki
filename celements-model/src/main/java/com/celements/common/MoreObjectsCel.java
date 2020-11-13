@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
+import com.celements.logging.LogSupplier;
 import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -43,11 +44,33 @@ public final class MoreObjectsCel {
         : Stream.empty();
   }
 
+  /**
+   * Allows fore more concise guava to java util optional conversion in lambas. Usage sample:
+   *
+   * <pre>
+   * stream.map(optToJavaUtil(GuavaStuff::returningOptional))
+   * </pre>
+   *
+   * @see LogSupplier
+   */
+  public static <F, T> Function<F, Optional<T>> optToJavaUtil(
+      Function<F, com.google.common.base.Optional<T>> func) {
+    return x -> func.apply(x).toJavaUtil();
+  }
+
+  /**
+   * Similar to {@link Defaults#defaultValue(Class)} but also supports {@link String} and commonly
+   * non-nullable types, see {@link #defaultValueNonNullable(Class)}
+   */
   @Nullable
   public static <T> T defaultValue(@NotNull Class<T> type) {
     return defaultValue(type, false);
   }
 
+  /**
+   * Similar to {@link Defaults#defaultValue(Class)} but also supports {@link String} and commonly
+   * non-nullable types, see {@link #defaultMutableValueNonNullable(Class)}
+   */
   @Nullable
   public static <T> T defaultMutableValue(@NotNull Class<T> type) {
     return defaultValue(type, true);
@@ -60,7 +83,32 @@ public final class MoreObjectsCel {
       return value;
     } else if (String.class.equals(type)) {
       return (T) "";
-    } else if (List.class.isAssignableFrom(type)) {
+    } else {
+      return defaultValueNonNullable(type, mutable);
+    }
+  }
+
+  /**
+   * @return the default immutable value for the following commonly non-nullable types:
+   *         List, Set, Queue, Iterable, Map, Stream, Optional
+   */
+  @Nullable
+  public static <T> T defaultValueNonNullable(@NotNull Class<T> type) {
+    return defaultValueNonNullable(type, false);
+  }
+
+  /**
+   * @return the default mutable (if available) value for the following commonly non-nullable types:
+   *         List, Set, Queue, Iterable, Map, Stream, Optional
+   */
+  @Nullable
+  public static <T> T defaultMutableValueNonNullable(@NotNull Class<T> type) {
+    return defaultValueNonNullable(type, true);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> T defaultValueNonNullable(Class<T> type, boolean mutable) {
+    if (List.class.isAssignableFrom(type)) {
       return (T) (mutable ? new ArrayList<>() : ImmutableList.of());
     } else if (Set.class.isAssignableFrom(type)) {
       return (T) (mutable ? new LinkedHashSet<>() : ImmutableSet.of());
