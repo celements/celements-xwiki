@@ -11,7 +11,7 @@ import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.auth.user.User;
 import com.celements.common.test.AbstractComponentTest;
-import com.celements.model.access.ModelAccessStrategy;
+import com.celements.model.access.IModelAccessFacade;
 import com.celements.model.util.ModelUtils;
 import com.celements.rights.access.IRightsAccessFacadeRole;
 import com.celements.rights.classes.FunctionRightsClass;
@@ -29,7 +29,7 @@ public class DefaultFunctionRightsAccessTest extends AbstractComponentTest {
   public void prepare() throws Exception {
     registerComponentMocks(
         IRightsAccessFacadeRole.class,
-        ModelAccessStrategy.class);
+        IModelAccessFacade.class);
     functionRightsAccess = (DefaultFunctionRightsAccess) Utils
         .getComponent(FunctionRightsAccess.class);
     getContext().setDatabase(currentDb = "current");
@@ -119,8 +119,7 @@ public class DefaultFunctionRightsAccessTest extends AbstractComponentTest {
       obj.setStringValue(FunctionRightsClass.FIELD_GROUP.getName(), group);
       doc.addXObject(obj);
     }
-    expect(getMock(ModelAccessStrategy.class).exists(docRef, "")).andReturn(true);
-    expect(getMock(ModelAccessStrategy.class).getDocument(docRef, "")).andReturn(doc);
+    expect(getMock(IModelAccessFacade.class).getOrCreateDocument(docRef)).andReturn(doc);
     return doc;
   }
 
