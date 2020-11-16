@@ -18,6 +18,7 @@ import com.celements.model.access.exception.DocumentNotExistsException;
 import com.celements.model.access.exception.DocumentSaveException;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
+import com.celements.model.field.XObjectFieldAccessor;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.model.util.ClassFieldValue;
@@ -389,22 +390,31 @@ public interface IModelAccessFacade {
   boolean removeXObjects(XWikiDocument doc, DocumentReference classRef, String key,
       Collection<?> values);
 
+  /**
+   * @deprecated instead use {@link #getDocument(DocumentReference)} with
+   *             {@link XWikiObjectFetcher#fetchField(ClassField)}
+   */
+  @Deprecated
   Object getProperty(DocumentReference docRef, DocumentReference classRef, String name)
       throws DocumentNotExistsException;
 
+  /**
+   * @deprecated instead use {@link XWikiObjectFetcher#fetchField(ClassField)}
+   */
+  @Deprecated
   Object getProperty(XWikiDocument doc, DocumentReference classRef, String name);
 
   /**
    * Reads out the property value for the given BaseObject and name
    *
-   * @param obj
-   * @param name
-   * @return
+   * @deprecated instead use {@link XObjectFieldAccessor#get(BaseObject, ClassField)}
    */
+  @Deprecated
   Object getProperty(BaseObject obj, String name);
 
   /**
-   * @deprecated instead use {@link #getFieldValue(DocumentReference, ClassField)
+   * @deprecated instead use {@link #getDocument(DocumentReference)} with
+   *             {@link XWikiObjectFetcher#fetchField(ClassField)}
    */
   @Nullable
   @Deprecated
@@ -412,46 +422,93 @@ public interface IModelAccessFacade {
       throws DocumentNotExistsException;
 
   /**
-   * @deprecated instead use {@link #getFieldValue(XWikiDocument, ClassField)
+   * @deprecated instead use {@link XWikiObjectFetcher#fetchField(ClassField)}
    */
   @Nullable
   @Deprecated
   <T> T getProperty(@NotNull XWikiDocument doc, @NotNull ClassField<T> field);
 
+  /**
+   * @deprecated instead use {@link XObjectFieldAccessor#get(BaseObject, ClassField)}
+   */
   @NotNull
+  @Deprecated
   <T> com.google.common.base.Optional<T> getFieldValue(@NotNull BaseObject obj,
       @NotNull ClassField<T> field);
 
+  /**
+   * @deprecated instead use {@link XWikiObjectFetcher#fetchField(ClassField)}
+   */
   @NotNull
+  @Deprecated
   <T> com.google.common.base.Optional<T> getFieldValue(@NotNull XWikiDocument doc,
       @NotNull ClassField<T> field);
 
+  /**
+   * @deprecated instead use {@link #getDocument(DocumentReference)} with
+   *             {@link XWikiObjectFetcher#fetchField(ClassField)}
+   */
   @NotNull
+  @Deprecated
   <T> com.google.common.base.Optional<T> getFieldValue(@NotNull DocumentReference docRef,
       @NotNull ClassField<T> field) throws DocumentNotExistsException;
 
+  /**
+   * @deprecated instead use {@link XWikiObjectFetcher#fetchField(ClassField)}
+   */
   @NotNull
+  @Deprecated
   <T> com.google.common.base.Optional<T> getFieldValue(@NotNull XWikiDocument doc,
       @NotNull ClassField<T> field, T ignoreValue);
 
+  /**
+   * @deprecated instead use {@link #getDocument(DocumentReference)} with
+   *             {@link XWikiObjectFetcher#fetchField(ClassField)}
+   */
   @NotNull
+  @Deprecated
   <T> com.google.common.base.Optional<T> getFieldValue(@NotNull DocumentReference docRef,
       @NotNull ClassField<T> field, T ignoreValue) throws DocumentNotExistsException;
 
+  /**
+   * @deprecated instead use {@link XWikiObjectFetcher#fetchField(ClassField)}
+   */
   @NotNull
+  @Deprecated
   List<ClassFieldValue<?>> getProperties(@NotNull XWikiDocument doc,
       @NotNull ClassDefinition classDef);
 
+  /**
+   * @deprecated instead use {@link XObjectFieldAccessor#set(BaseObject, ClassField, Object)}
+   */
+  @Deprecated
   boolean setProperty(BaseObject obj, String name, Object value);
 
+  /**
+   * @deprecated instead use {@link #getDocument(DocumentReference)} with
+   *             {@link XWikiObjectEditor#editField(ClassField)}
+   */
+  @Deprecated
   <T> XWikiDocument setProperty(@NotNull DocumentReference docRef,
       @NotNull ClassField<T> field, @Nullable T value) throws DocumentNotExistsException;
 
+  /**
+   * @deprecated instead use {@link XWikiObjectEditor#editField(ClassField)}
+   */
+  @Deprecated
   <T> boolean setProperty(@NotNull XWikiDocument doc, @NotNull ClassField<T> field,
       @Nullable T value);
 
+  /**
+   * @deprecated instead use {@link XWikiObjectEditor#editField(ClassField)}
+   */
+  @Deprecated
   <T> boolean setProperty(XWikiDocument doc, ClassFieldValue<T> fieldValue);
 
+  /**
+   * @deprecated instead use {@link XObjectFieldAccessor#set(BaseObject, ClassField, Object)}
+   */
+  @Deprecated
   <T> boolean setProperty(@NotNull BaseObject obj, @NotNull ClassField<T> field,
       @Nullable T value);
 

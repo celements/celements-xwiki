@@ -41,7 +41,8 @@ public class XDocBeanConversionLoader<T> implements XDocBeanLoader<T> {
   public void initialize(Class<T> token, ClassIdentity classId) {
     this.token = checkNotNull(token);
     converter.initialize(this.token);
-    converter.initialize(classId.getClassDefinition().orElseThrow());
+    converter.initialize(classId.getClassDefinition()
+        .orElseThrow(() -> new IllegalArgumentException("no class definition for " + classId)));
   }
 
   @Override

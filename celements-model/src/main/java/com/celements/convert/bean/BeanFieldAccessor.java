@@ -2,6 +2,7 @@ package com.celements.convert.bean;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
@@ -10,10 +11,10 @@ import org.xwiki.component.annotation.Component;
 
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.classes.fields.list.ListField;
+import com.celements.model.field.AbstractFieldAccessor;
 import com.celements.model.field.FieldAccessException;
 import com.celements.model.field.FieldAccessor;
 import com.celements.model.field.FieldMissingException;
-import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
@@ -22,9 +23,9 @@ import com.google.common.collect.Lists;
  * {{@link #getBeanMethodName(ClassField)} to check expected naming.
  */
 @Component(BeanFieldAccessor.NAME)
-public class BeanFieldAccessor<T> implements FieldAccessor<T> {
+public class BeanFieldAccessor<T> extends AbstractFieldAccessor<T> {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(BeanFieldAccessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(BeanFieldAccessor.class);
 
   public static final String NAME = "bean";
 
@@ -34,11 +35,11 @@ public class BeanFieldAccessor<T> implements FieldAccessor<T> {
   }
 
   @Override
-  public <V> Optional<V> getValue(T obj, ClassField<V> field) throws FieldAccessException {
+  public <V> Optional<V> get(T obj, ClassField<V> field) {
     try {
       V ret = field.getType().cast(PropertyUtils.getProperty(obj, getBeanMethodName(field)));
       LOGGER.info("getValue: '{}' for '{}' from '{}'", ret, field, obj);
-      return Optional.fromNullable(ret);
+      return Optional.ofNullable(ret);
     } catch (NoSuchMethodException exc) {
       throw new FieldMissingException(exc);
     } catch (ReflectiveOperationException | ClassCastException exc) {
@@ -47,7 +48,7 @@ public class BeanFieldAccessor<T> implements FieldAccessor<T> {
   }
 
   @Override
-  public <V> boolean setValue(T obj, ClassField<V> field, V value) throws FieldAccessException {
+  public <V> boolean set(T obj, ClassField<V> field, V value) {
     try {
       PropertyUtils.setProperty(obj, getBeanMethodName(field), resolveSetValue(field, value));
       LOGGER.info("setValue: '{}' for '{}' from '{}'", value, field, obj);

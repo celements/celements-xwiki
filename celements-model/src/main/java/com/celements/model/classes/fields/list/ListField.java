@@ -1,8 +1,11 @@
 package com.celements.model.classes.fields.list;
 
 import static com.google.common.base.MoreObjects.*;
+import static com.google.common.base.Predicates.*;
+import static com.google.common.collect.ImmutableList.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -87,13 +90,15 @@ public abstract class ListField<T> extends AbstractListField<List<T>, T> {
   }
 
   @Override
-  public Object serialize(List<T> values) {
+  public Optional<String> serialize(List<T> values) {
     return serializeInternal(values);
   }
 
   @Override
-  public List<T> resolve(Object obj) {
-    return resolveInternal(obj).toList();
+  public Optional<List<T>> resolve(Object obj) {
+    return Optional.<List<T>>of(resolveInternal(obj)
+        .collect(toImmutableList()))
+        .filter(not(List::isEmpty));
   }
 
   public boolean isMultiSelect() {

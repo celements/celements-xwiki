@@ -22,6 +22,7 @@ import com.celements.model.classes.TestClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.util.ClassFieldValue;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.objects.classes.ListClass;
@@ -33,7 +34,7 @@ public class ListFieldTest extends AbstractComponentTest {
 
   // test static definition
   private static final ClassField<List<String>> STATIC_DEFINITION = new StaticListField.Builder(
-      TestClassDefinition.NAME, "name").build();
+      TestClassDefinition.CLASS_REF, "name").build();
 
   private StaticListField.Builder fieldBuilder;
 
@@ -47,7 +48,7 @@ public class ListFieldTest extends AbstractComponentTest {
   @Before
   public void prepareTest() throws Exception {
     assertNotNull(STATIC_DEFINITION);
-    fieldBuilder = new StaticListField.Builder(TestClassDefinition.NAME, "name");
+    fieldBuilder = new StaticListField.Builder(TestClassDefinition.CLASS_REF, "name");
     fieldBuilder.multiSelect(multiSelect).size(size).displayType(displayType).picker(
         picker).separator(separator).values(values);
   }
@@ -101,7 +102,8 @@ public class ListFieldTest extends AbstractComponentTest {
 
   @Test
   public void test_defaults() throws Exception {
-    StaticListField field = new StaticListField.Builder(TestClassDefinition.NAME, "name").build();
+    StaticListField field = new StaticListField.Builder(TestClassDefinition.CLASS_REF, "name")
+        .build();
     assertNull(field.getMultiSelect());
     assertEquals(new Integer(1), field.getSize());
     assertNull(field.getDisplayType());
@@ -129,7 +131,8 @@ public class ListFieldTest extends AbstractComponentTest {
 
   @Test
   public void test_getXField_defaults() throws Exception {
-    StaticListField field = new StaticListField.Builder(TestClassDefinition.NAME, "name").build();
+    StaticListField field = new StaticListField.Builder(TestClassDefinition.CLASS_REF, "name")
+        .build();
     StaticListClass xField = (StaticListClass) field.getXField();
     assertEquals(false, xField.isMultiSelect());
     assertEquals(1, xField.getSize());
@@ -154,7 +157,7 @@ public class ListFieldTest extends AbstractComponentTest {
 
     replayDefault();
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, value));
-    List<String> ret = modelAccess.getFieldValue(doc, field).orNull();
+    List<String> ret = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertEquals(value, ret);
@@ -175,7 +178,7 @@ public class ListFieldTest extends AbstractComponentTest {
 
     replayDefault();
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, value));
-    List<String> ret = modelAccess.getFieldValue(doc, field).orNull();
+    List<String> ret = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertEquals(value, ret);
@@ -194,9 +197,9 @@ public class ListFieldTest extends AbstractComponentTest {
     expectPropertyClass(bClass, field.getName(), (PropertyClass) field.getXField());
 
     replayDefault();
-    List<String> ret1 = modelAccess.getFieldValue(doc, field).orNull();
+    List<String> ret1 = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, null));
-    List<String> ret2 = modelAccess.getFieldValue(doc, field).orNull();
+    List<String> ret2 = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertNotNull(ret1);
@@ -211,8 +214,8 @@ public class ListFieldTest extends AbstractComponentTest {
     String separator = "-|,";
     List<String> values = Arrays.asList("A", "B", "C", "D");
     StaticListField field = fieldBuilder.separator(separator).build();
-    assertEquals("A-B-C-D", field.serialize(values));
-    assertEquals(values, field.resolve("A,B-C|D"));
+    assertEquals("A-B-C-D", field.serialize(values).get());
+    assertEquals(values, field.resolve("A,B-C|D").get());
   }
 
 }

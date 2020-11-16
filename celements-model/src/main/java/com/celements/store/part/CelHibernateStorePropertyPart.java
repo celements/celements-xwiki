@@ -1,6 +1,9 @@
 package com.celements.store.part;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.io.Serializable;
+import java.util.Date;
 
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -10,10 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.celements.store.CelHibernateStore;
-import com.google.common.base.Preconditions;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.objects.BaseStringProperty;
+import com.xpn.xwiki.objects.DateProperty;
 import com.xpn.xwiki.objects.ListProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
 
@@ -24,7 +27,7 @@ public class CelHibernateStorePropertyPart {
   private final CelHibernateStore store;
 
   public CelHibernateStorePropertyPart(CelHibernateStore store) {
-    this.store = Preconditions.checkNotNull(store);
+    this.store = checkNotNull(store);
   }
 
   public void loadXWikiProperty(PropertyInterface property, XWikiContext context,
@@ -54,8 +57,14 @@ public class CelHibernateStorePropertyPart {
       if (stringProperty.getValue() == null) {
         stringProperty.setValue("");
       }
-    }
-    if (property instanceof ListProperty) {
+    } else if (property instanceof DateProperty) {
+      // avoid returning java.sql.Timestamp since Timestamp.equals(Date) always returns false
+      DateProperty dateProperty = ((DateProperty) property);
+      Date value = (Date) dateProperty.getValue();
+      if ((value != null) && (value.getClass() != Date.class)) {
+        dateProperty.setValue(new Date(value.getTime()));
+      }
+    } else if (property instanceof ListProperty) {
       // Force read list properties. This seems to be an issue since Hibernate 3.0. Without this
       // test ViewEditTest.testUpdateAdvanceObjectProp fails
       // TODO: understand why collections are lazy loaded.

@@ -97,7 +97,8 @@ public abstract class AbstractClassField<T> implements ClassField<T> {
 
   @Override
   public ClassDefinition getClassDef() {
-    return getClassReference().getClassDefinition().orElseThrow();
+    return getClassReference().getClassDefinition()
+        .orElseThrow(() -> new IllegalArgumentException("no class definition for " + classRef));
   }
 
   @Override
