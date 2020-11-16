@@ -1,5 +1,7 @@
 package com.celements.model.classes.fields.list.single;
 
+import java.util.Optional;
+
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.ClassReference;
@@ -36,13 +38,15 @@ public abstract class SingleListField<T> extends AbstractListField<T, T> {
   }
 
   @Override
-  public Object serialize(T value) {
-    return serializeInternal(value != null ? ImmutableList.of(value) : ImmutableList.<T>of());
+  public Optional<String> serialize(T value) {
+    return Optional.ofNullable(value)
+        .map(ImmutableList::of)
+        .flatMap(this::serializeInternal);
   }
 
   @Override
-  public T resolve(Object obj) {
-    return resolveInternal(obj).first().orNull();
+  public Optional<T> resolve(Object obj) {
+    return resolveInternal(obj).findFirst();
   }
 
 }

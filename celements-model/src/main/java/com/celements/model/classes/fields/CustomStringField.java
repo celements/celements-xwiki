@@ -1,6 +1,10 @@
 package com.celements.model.classes.fields;
 
+import static com.celements.common.MoreObjectsCel.*;
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Predicates.*;
+
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -77,21 +81,17 @@ public class CustomStringField<T> extends AbstractClassField<T> implements Custo
   }
 
   @Override
-  public Object serialize(T value) {
-    Object ret = null;
-    if (value != null) {
-      ret = marshaller.serialize(value);
-    }
-    return ret;
+  public Optional<String> serialize(T value) {
+    return Optional.ofNullable(value)
+        .map(marshaller::serialize)
+        .filter(not(String::isEmpty));
   }
 
   @Override
-  public T resolve(Object obj) {
-    T ret = null;
-    if (obj != null) {
-      ret = marshaller.resolve(obj.toString()).orNull();
-    }
-    return ret;
+  public Optional<T> resolve(Object obj) {
+    return Optional.ofNullable(obj)
+        .map(Object::toString)
+        .flatMap(optToJavaUtil(marshaller::resolve));
   }
 
 }

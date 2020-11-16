@@ -1,12 +1,14 @@
 package com.celements.model.classes.fields;
 
+import java.util.Optional;
+
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.validation.constraints.NotNull;
 
 import org.xwiki.model.reference.ClassReference;
 
-import com.google.common.base.Preconditions;
+import com.google.common.primitives.Ints;
 import com.xpn.xwiki.objects.classes.BooleanClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
 
@@ -99,20 +101,17 @@ public final class BooleanField extends AbstractClassField<Boolean> implements
   }
 
   @Override
-  public Object serialize(Boolean value) {
-    if (value == null) {
-      return null;
-    }
-    return value ? 1 : 0;
+  public Optional<Integer> serialize(Boolean value) {
+    return Optional.ofNullable(value)
+        .map(val -> Boolean.TRUE.equals(val) ? 1 : 0);
   }
 
   @Override
-  public Boolean resolve(Object obj) {
-    if (obj == null) {
-      return null;
-    }
-    Preconditions.checkArgument(obj.getClass().equals(Integer.class));
-    return !((Integer) obj).equals(0);
+  public Optional<Boolean> resolve(Object obj) {
+    return Optional.ofNullable(obj)
+        .map(Object::toString)
+        .map(Ints::tryParse)
+        .map(val -> !Integer.valueOf(0).equals(val));
   }
 
 }

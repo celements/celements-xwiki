@@ -17,14 +17,14 @@ public class EntityReferenceFieldTest extends AbstractComponentTest {
 
   // test static definition
   private static final ClassField<EntityReference> STATIC_DEFINITION = new EntityReferenceField.Builder(
-      TestClassDefinition.NAME, "name").build();
+      TestClassDefinition.CLASS_REF, "name").build();
 
   private ReferenceField<EntityReference> field;
 
   @Before
   public void prepareTest() throws Exception {
     assertNotNull(STATIC_DEFINITION);
-    field = new EntityReferenceField.Builder(TestClassDefinition.NAME, "name").build();
+    field = new EntityReferenceField.Builder(TestClassDefinition.CLASS_REF, "name").build();
   }
 
   @Test
@@ -34,7 +34,7 @@ public class EntityReferenceFieldTest extends AbstractComponentTest {
 
   @Test
   public void test_resolve() throws Exception {
-    assertEquals(field.getClassDef().getClassRef(), field.resolve(getClassDefFN()));
+    assertEquals(field.getClassReference().getDocRef(), field.resolve(getClassDefFN()).get());
   }
 
   private String getClassDefFN() {

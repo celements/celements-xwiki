@@ -1,12 +1,12 @@
 package com.celements.model.field;
 
 import static com.celements.web.classes.oldcore.XWikiDocumentClass.*;
-import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Strings.*;
 
 import java.text.MessageFormat;
 import java.util.Date;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,16 +17,15 @@ import org.xwiki.model.reference.EntityReference;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * {@link FieldAccessor} for accessing {@link XWikiDocument} properties
  */
 @Component(XDocumentFieldAccessor.NAME)
-public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
+public class XDocumentFieldAccessor extends AbstractFieldAccessor<XWikiDocument> {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(XDocumentFieldAccessor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(XDocumentFieldAccessor.class);
 
   public static final String NAME = "xdoc";
 
@@ -39,19 +38,16 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
   }
 
   @Override
-  public <V> Optional<V> getValue(XWikiDocument doc, ClassField<V> field)
-      throws FieldAccessException {
+  public <V> Optional<V> get(XWikiDocument doc, ClassField<V> field) {
     checkNotNull(doc);
     checkField(field);
     Optional<V> value = getDocFieldValue(doc, field);
-    LOGGER.info("getValue: '{}' for '{}' from '{}'", value.orNull(), field,
-        doc.getDocumentReference());
+    LOGGER.info("getValue: '{}' for '{}' from '{}'", value, field, doc.getDocumentReference());
     return value;
   }
 
   @SuppressWarnings("unchecked")
-  private <V> Optional<V> getDocFieldValue(XWikiDocument doc, ClassField<V> field)
-      throws FieldAccessException {
+  private <V> Optional<V> getDocFieldValue(XWikiDocument doc, ClassField<V> field) {
     V value;
     if (field == FIELD_DOC_REF) {
       value = (V) doc.getDocumentReference();
@@ -82,12 +78,11 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
     } else {
       throw new FieldAccessException("undefined field: " + field);
     }
-    return Optional.fromNullable(value);
+    return Optional.ofNullable(value);
   }
 
   @Override
-  public <V> boolean setValue(XWikiDocument doc, ClassField<V> field, V value)
-      throws FieldAccessException {
+  public <V> boolean set(XWikiDocument doc, ClassField<V> field, V value) {
     checkNotNull(doc);
     checkField(field);
     boolean dirty = setDocFieldValue(doc, field, value);
@@ -97,9 +92,8 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
     return dirty;
   }
 
-  private <V> boolean setDocFieldValue(XWikiDocument doc, ClassField<V> field, V value)
-      throws FieldAccessException {
-    boolean dirty = !Objects.equal(value, getDocFieldValue(doc, field).orNull());
+  private <V> boolean setDocFieldValue(XWikiDocument doc, ClassField<V> field, V value) {
+    boolean dirty = !Objects.equal(value, getDocFieldValue(doc, field).orElse(null));
     if (dirty) {
       if (field == FIELD_DOC_REF) {
         throw new FieldAccessException("docRef should never be set");
@@ -110,7 +104,7 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
       } else if (field == FIELD_DEFAULT_LANGUAGE) {
         doc.setDefaultLanguage((String) value);
       } else if (field == FIELD_TRANSLATION) {
-        doc.setTranslation(firstNonNull((Boolean) value, false) ? 1 : 0);
+        doc.setTranslation(Boolean.TRUE.equals(value) ? 1 : 0);
       } else if (field == FIELD_CREATOR) {
         doc.setCreator((String) value);
       } else if (field == FIELD_AUTHOR) {
@@ -134,12 +128,11 @@ public class XDocumentFieldAccessor implements FieldAccessor<XWikiDocument> {
     return dirty;
   }
 
-  private void checkField(ClassField<?> field) throws FieldAccessException {
+  private void checkField(ClassField<?> field) {
     checkNotNull(field);
     if (!xwikiDocPseudoClass.equals(field.getClassDef())) {
       throw new FieldAccessException(MessageFormat.format(
-          "uneligible for ''{0}'', it's of class ''{1}''", xwikiDocPseudoClass,
-          field.getClassDef()));
+          "uneligible for [{0}], it is of class [{1}]", xwikiDocPseudoClass, field.getClassDef()));
     }
   }
 

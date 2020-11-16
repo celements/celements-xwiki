@@ -14,7 +14,7 @@ public class BooleanFieldTest extends AbstractComponentTest {
 
   // test static definition
   private static final ClassField<Boolean> STATIC_DEFINITION = new BooleanField.Builder(
-      TestClassDefinition.NAME, "name").build();
+      TestClassDefinition.CLASS_REF, "name").build();
 
   private BooleanField field;
 
@@ -25,7 +25,7 @@ public class BooleanFieldTest extends AbstractComponentTest {
   @Before
   public void prepareTest() throws Exception {
     assertNotNull(STATIC_DEFINITION);
-    field = new BooleanField.Builder(TestClassDefinition.NAME, "name").displayType(
+    field = new BooleanField.Builder(TestClassDefinition.CLASS_REF, "name").displayType(
         displayType).defaultValue(defaultValue).displayFormType(displayFormType).build();
   }
 
@@ -53,16 +53,16 @@ public class BooleanFieldTest extends AbstractComponentTest {
 
   @Test
   public void test_serialize() throws Exception {
-    assertNull(field.serialize(null));
-    assertEquals(1, field.serialize(true));
-    assertEquals(0, field.serialize(false));
+    assertFalse(field.serialize(null).isPresent());
+    assertEquals(Integer.valueOf(1), field.serialize(true).get());
+    assertEquals(Integer.valueOf(0), field.serialize(false).get());
   }
 
   @Test
   public void test_resolve() throws Exception {
-    assertNull(field.resolve(null));
-    assertEquals(true, field.resolve(1));
-    assertEquals(true, field.resolve(5));
-    assertEquals(false, field.resolve(0));
+    assertFalse(field.resolve(null).isPresent());
+    assertEquals(true, field.resolve(1).get());
+    assertEquals(true, field.resolve(5).get());
+    assertEquals(false, field.resolve(0).get());
   }
 }

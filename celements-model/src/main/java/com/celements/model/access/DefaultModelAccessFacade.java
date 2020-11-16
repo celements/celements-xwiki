@@ -1,12 +1,12 @@
 package com.celements.model.access;
 
+import static com.celements.common.MoreObjectsCel.*;
 import static com.celements.logging.LogUtils.*;
 import static com.google.common.base.Preconditions.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,28 +34,29 @@ import com.celements.model.access.exception.ModelAccessRuntimeException;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
-import com.celements.model.classes.fields.CustomClassField;
 import com.celements.model.context.ModelContext;
+import com.celements.model.field.FieldAccessor;
+import com.celements.model.field.StringFieldAccessor;
+import com.celements.model.field.XObjectFieldAccessor;
+import com.celements.model.field.XObjectStringFieldAccessor;
 import com.celements.model.object.ObjectFetcher;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
+import com.celements.model.object.xwiki.XWikiObjectFetcher;
 import com.celements.model.util.ClassFieldValue;
 import com.celements.model.util.ModelUtils;
 import com.celements.model.util.ReferenceSerializationMode;
 import com.celements.rights.access.EAccessLevel;
 import com.celements.rights.access.IRightsAccessFacadeRole;
 import com.celements.rights.access.exceptions.NoAccessRightsException;
-import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.api.Document;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
-import com.xpn.xwiki.objects.BaseProperty;
 
 @Component
 public class DefaultModelAccessFacade implements IModelAccessFacade {
@@ -73,6 +74,12 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
 
   @Requirement
   protected ModelContext context;
+
+  @Requirement(XObjectFieldAccessor.NAME)
+  protected FieldAccessor<BaseObject> xObjFieldAccessor;
+
+  @Requirement(XObjectStringFieldAccessor.NAME)
+  protected StringFieldAccessor<BaseObject> xObjStrFieldAccessor;
 
   @Override
   public XWikiDocument getDocument(DocumentReference docRef) throws DocumentNotExistsException {
@@ -571,74 +578,47 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   }
 
   @Override
+  @Deprecated
   public Object getProperty(DocumentReference docRef, DocumentReference classRef, String name)
       throws DocumentNotExistsException {
     return getProperty(getDocumentReadOnly(docRef, DEFAULT_LANG), classRef, name);
   }
 
   @Override
+  @Deprecated
   public Object getProperty(XWikiDocument doc, DocumentReference classRef, String name) {
     return getProperty(getXObject(doc, classRef), name);
   }
 
   @Override
+  @Deprecated
   public Object getProperty(BaseObject obj, String name) {
-    Object value = null;
-    BaseProperty prop = getBaseProperty(obj, name);
-    if (prop != null) {
-      value = prop.getValue();
-      if (value instanceof String) {
-        // avoid comparing empty string to null
-        value = Strings.emptyToNull(value.toString().trim());
-      } else if (value instanceof Date) {
-        // avoid returning Timestamp since Timestamp.equals(Date) always returns false
-        value = new Date(((Date) value).getTime());
-      }
-    }
-    return value;
-  }
-
-  private BaseProperty getBaseProperty(BaseObject obj, String key) {
-    BaseProperty prop = null;
-    try {
-      if (obj != null) {
-        prop = (BaseProperty) obj.get(key);
-      }
-    } catch (XWikiException | ClassCastException exc) {
-      // does not happen since
-      // XWikiException is never thrown in BaseObject.get()
-      // BaseObject only contains BaseProperties
-      LOGGER.error("should not happen", exc);
-    }
-    return prop;
+    return xObjStrFieldAccessor.get(obj, name).orElse(null);
   }
 
   @Override
+  @Deprecated
   public <T> com.google.common.base.Optional<T> getFieldValue(BaseObject obj, ClassField<T> field) {
-    checkClassRef(obj, field);
-    return com.google.common.base.Optional.fromNullable(resolvePropertyValue(field,
-        getProperty(obj, field.getName())));
+    return xObjFieldAccessor.getValue(obj, field);
   }
 
   @Override
+  @Deprecated
   public <T> com.google.common.base.Optional<T> getFieldValue(XWikiDocument doc,
       ClassField<T> field) {
-    checkNotNull(doc);
-    checkNotNull(field);
-    return com.google.common.base.Optional.fromNullable(resolvePropertyValue(field,
-        getProperty(doc, field.getClassDef().getClassRef(), field.getName())));
+    return com.google.common.base.Optional.fromJavaUtil(XWikiObjectFetcher.on(doc)
+        .fetchField(field).stream().findFirst());
   }
 
   @Override
+  @Deprecated
   public <T> com.google.common.base.Optional<T> getFieldValue(DocumentReference docRef,
       ClassField<T> field) throws DocumentNotExistsException {
-    checkNotNull(docRef);
-    checkNotNull(field);
-    return com.google.common.base.Optional.fromNullable(resolvePropertyValue(field,
-        getProperty(docRef, field.getClassDef().getClassRef(), field.getName())));
+    return getFieldValue(getDocumentReadOnly(docRef, DEFAULT_LANG), field);
   }
 
   @Override
+  @Deprecated
   public <T> com.google.common.base.Optional<T> getFieldValue(XWikiDocument doc,
       ClassField<T> field, T ignoreValue) {
     checkNotNull(ignoreValue);
@@ -650,6 +630,7 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   }
 
   @Override
+  @Deprecated
   public <T> com.google.common.base.Optional<T> getFieldValue(DocumentReference docRef,
       ClassField<T> field, T ignoreValue) throws DocumentNotExistsException {
     checkNotNull(ignoreValue);
@@ -664,29 +645,19 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   @Deprecated
   public <T> T getProperty(DocumentReference docRef, ClassField<T> field)
       throws DocumentNotExistsException {
-    return getFieldValue(docRef, field).orNull();
+    return getFieldValue(docRef, field).toJavaUtil()
+        .orElseGet(() -> defaultValueNonNullable(field.getType()));
   }
 
   @Override
   @Deprecated
   public <T> T getProperty(XWikiDocument doc, ClassField<T> field) {
-    return getFieldValue(doc, field).orNull();
-  }
-
-  private <T> T resolvePropertyValue(ClassField<T> field, Object value) {
-    try {
-      if (field instanceof CustomClassField) {
-        return ((CustomClassField<T>) field).resolve(value);
-      } else {
-        return field.getType().cast(value);
-      }
-    } catch (ClassCastException | IllegalArgumentException ex) {
-      throw new IllegalArgumentException("Field '" + field + "' ill defined, expecting type '"
-          + field.getType() + "' but got '" + value.getClass() + "'", ex);
-    }
+    return getFieldValue(doc, field).toJavaUtil()
+        .orElseGet(() -> defaultValueNonNullable(field.getType()));
   }
 
   @Override
+  @Deprecated
   public List<ClassFieldValue<?>> getProperties(XWikiDocument doc, ClassDefinition classDef) {
     List<ClassFieldValue<?>> ret = new ArrayList<>();
     for (ClassField<?> field : classDef.getFields()) {
@@ -702,23 +673,13 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   }
 
   @Override
+  @Deprecated
   public boolean setProperty(BaseObject obj, String name, Object value) {
-    boolean hasChange = !Objects.equal(value, getProperty(obj, name));
-    if (hasChange) {
-      if (value instanceof Collection) {
-        value = Joiner.on('|').join((Collection<?>) value);
-      }
-      try {
-        obj.set(name, value, context.getXWikiContext());
-      } catch (ClassCastException ex) {
-        throw new IllegalArgumentException("Unable to set value '" + value + "' on field '"
-            + modelUtils.serializeRefLocal(obj.getXClassReference()) + "." + name + "'", ex);
-      }
-    }
-    return hasChange;
+    return xObjStrFieldAccessor.set(obj, name, value);
   }
 
   @Override
+  @Deprecated
   public <T> XWikiDocument setProperty(DocumentReference docRef, ClassField<T> field, T value)
       throws DocumentNotExistsException {
     XWikiDocument doc = getDocument(docRef);
@@ -727,37 +688,21 @@ public class DefaultModelAccessFacade implements IModelAccessFacade {
   }
 
   @Override
+  @Deprecated
   public <T> boolean setProperty(XWikiDocument doc, ClassField<T> field, T value) {
     return setProperty(getOrCreateXObject(doc, field.getClassDef().getClassRef()), field, value);
   }
 
   @Override
+  @Deprecated
   public <T> boolean setProperty(XWikiDocument doc, ClassFieldValue<T> fieldValue) {
     return setProperty(doc, fieldValue.getField(), fieldValue.getValue());
   }
 
   @Override
+  @Deprecated
   public <T> boolean setProperty(BaseObject obj, ClassField<T> field, T value) {
-    checkClassRef(obj, field);
-    return setProperty(obj, field.getName(), serializePropertyValue(field, value));
-  }
-
-  private <T> Object serializePropertyValue(ClassField<T> field, T value) {
-    try {
-      if (field instanceof CustomClassField) {
-        return ((CustomClassField<T>) field).serialize(value);
-      } else {
-        return value;
-      }
-    } catch (ClassCastException | IllegalArgumentException ex) {
-      throw new IllegalArgumentException("Field '" + field + "' ill defined", ex);
-    }
-  }
-
-  private void checkClassRef(BaseObject obj, ClassField<?> field) {
-    DocumentReference classRef = checkNotNull(obj).getXClassReference();
-    checkArgument(classRef.equals(checkNotNull(field).getClassDef().getClassRef(
-        classRef.getWikiReference())), "class refs from obj and field do not match");
+    return xObjFieldAccessor.set(obj, field, value);
   }
 
   @Override

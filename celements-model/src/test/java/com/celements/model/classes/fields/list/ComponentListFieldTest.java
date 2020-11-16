@@ -18,6 +18,7 @@ import com.celements.model.classes.TestClassDefinition;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.util.ClassFieldValue;
 import com.celements.web.classes.oldcore.XWikiRightsClass;
+import com.google.common.collect.ImmutableList;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.objects.classes.PropertyClass;
@@ -27,14 +28,14 @@ public class ComponentListFieldTest extends AbstractComponentTest {
 
   // test static definition
   private static final ClassField<List<ClassDefinition>> STATIC_DEFINITION = new ComponentListField.Builder<>(
-      TestClassDefinition.NAME, "name", ClassDefinition.class).build();
+      TestClassDefinition.CLASS_REF, "name", ClassDefinition.class).build();
 
   private ComponentListField.Builder<ClassDefinition> fieldBuilder;
 
   @Before
   public void prepareTest() throws Exception {
     assertNotNull(STATIC_DEFINITION);
-    fieldBuilder = new ComponentListField.Builder<>(TestClassDefinition.NAME, "name",
+    fieldBuilder = new ComponentListField.Builder<>(TestClassDefinition.CLASS_REF, "name",
         ClassDefinition.class);
   }
 
@@ -62,7 +63,7 @@ public class ComponentListFieldTest extends AbstractComponentTest {
 
     replayDefault();
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, Arrays.asList(value)));
-    List<ClassDefinition> ret = modelAccess.getFieldValue(doc, field).orNull();
+    List<ClassDefinition> ret = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertEquals(Arrays.asList(value), ret);
@@ -84,7 +85,7 @@ public class ComponentListFieldTest extends AbstractComponentTest {
 
     replayDefault();
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, value));
-    List<ClassDefinition> ret = modelAccess.getFieldValue(doc, field).orNull();
+    List<ClassDefinition> ret = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertEquals(value, ret);
@@ -105,9 +106,9 @@ public class ComponentListFieldTest extends AbstractComponentTest {
     expectPropertyClass(bClass, field.getName(), (PropertyClass) field.getXField());
 
     replayDefault();
-    List<ClassDefinition> ret1 = modelAccess.getFieldValue(doc, field).orNull();
+    List<ClassDefinition> ret1 = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     modelAccess.setProperty(doc, new ClassFieldValue<>(field, null));
-    List<ClassDefinition> ret2 = modelAccess.getFieldValue(doc, field).orNull();
+    List<ClassDefinition> ret2 = modelAccess.getFieldValue(doc, field).or(ImmutableList.of());
     verifyDefault();
 
     assertNotNull(ret1);

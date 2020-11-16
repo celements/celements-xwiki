@@ -23,7 +23,7 @@ public class ReferenceFieldTest extends AbstractComponentTest {
 
   // test static definition
   private static final ClassField<DocumentReference> STATIC_DEFINITION = new DocumentReferenceField.Builder(
-      TestClassDefinition.NAME, "name").build();
+      TestClassDefinition.CLASS_REF, "name").build();
 
   private ReferenceField<DocumentReference> field;
 
@@ -32,7 +32,8 @@ public class ReferenceFieldTest extends AbstractComponentTest {
   @Before
   public void prepareTest() throws Exception {
     assertNotNull(STATIC_DEFINITION);
-    field = new DocumentReferenceField.Builder(TestClassDefinition.NAME, "name").size(size).build();
+    field = new DocumentReferenceField.Builder(TestClassDefinition.CLASS_REF, "name").size(size)
+        .build();
   }
 
   @Test
@@ -59,12 +60,14 @@ public class ReferenceFieldTest extends AbstractComponentTest {
 
   @Test
   public void test_serialize() throws Exception {
-    assertEquals(getClassDefFN(), field.serialize(field.getClassDef().getClassRef()));
+    assertEquals(getClassDefFN(), field.serialize(field.getClassReference().getDocRef())
+        .orElse(null));
   }
 
   @Test
   public void test_resolve() throws Exception {
-    assertEquals(field.getClassDef().getClassRef(), field.resolve(getClassDefFN()));
+    assertEquals(field.getClassReference().getDocRef(), field.resolve(getClassDefFN())
+        .orElse(null));
   }
 
   private String getClassDefFN() {

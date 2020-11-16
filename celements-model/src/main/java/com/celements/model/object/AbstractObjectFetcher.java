@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import com.celements.model.classes.ClassIdentity;
 import com.celements.model.classes.fields.ClassField;
 import com.celements.model.field.FieldAccessor;
-import com.celements.model.field.FieldGetterFunction;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 
@@ -171,11 +170,11 @@ public abstract class AbstractObjectFetcher<R extends AbstractObjectFetcher<R, D
         Stream<T> stream;
         if (field.getClassDef().isValidObjectClass()) {
           FieldAccessor<O> accessor = getBridge().getObjectFieldAccessor();
-          stream = fetcher.stream().map(new FieldGetterFunction<>(accessor, field));
+          stream = fetcher.stream().map(obj -> accessor.get(obj, field).orElse(null));
         } else {
           FieldAccessor<D> accessor = getBridge().getDocumentFieldAccessor();
-          stream = accessor.getValue(getTranslationDoc().orElse(getDocument()), field)
-              .toJavaUtil().map(Stream::of).orElseGet(Stream::empty);
+          stream = accessor.get(getTranslationDoc().orElse(getDocument()), field)
+              .map(Stream::of).orElseGet(Stream::empty);
         }
         return stream;
       }
