@@ -232,15 +232,20 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
   @Test
   public void test_createDocument_translation() throws Exception {
     String lang = "de";
-    doc.setNew(true);
+    XWikiDocument transDoc = new XWikiDocument(doc.getDocumentReference());
+    transDoc.setTranslation(1);
+    transDoc.setLanguage(lang);
+    transDoc.setNew(true);
     getConfigurationSource().setProperty(ModelContext.CFG_KEY_DEFAULT_LANG, lang);
     expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(true);
-    expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(doc);
-    expect(strategyMock.createDocument(doc.getDocumentReference(), lang)).andReturn(doc);
+    expect(strategyMock.getDocument(doc.getDocumentReference(), "")).andReturn(doc);
+    expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(transDoc);
+    expect(strategyMock.createDocument(doc.getDocumentReference(), lang)).andReturn(transDoc);
     replayDefault();
     XWikiDocument ret = modelAccess.createDocument(doc.getDocumentReference(), lang);
     verifyDefault();
-    assertEquals(doc.getDocumentReference(), ret.getDocumentReference());
+    assertEquals(transDoc.getDocumentReference(), ret.getDocumentReference());
+    assertEquals(lang, ret.getLanguage());
     assertFalse(ret.isFromCache());
   }
 
@@ -348,11 +353,25 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
 
   @Test
   public void test_existsLang() throws Exception {
-    String lang = "en";
-    doc.setTranslation(1);
-    doc.setLanguage(lang);
+    String lang = "fr";
+    XWikiDocument transDoc = new XWikiDocument(doc.getDocumentReference());
+    transDoc.setTranslation(1);
+    transDoc.setLanguage(lang);
+    transDoc.setNew(false);
     expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(true);
-    expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(doc);
+    expect(strategyMock.getDocument(doc.getDocumentReference(), "")).andReturn(doc);
+    expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(transDoc);
+    replayDefault();
+    boolean ret = modelAccess.existsLang(doc.getDocumentReference(), lang);
+    verifyDefault();
+    assertTrue(ret);
+  }
+
+  @Test
+  public void test_existsLang_isMainDoc() throws Exception {
+    String lang = "en";
+    expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(true);
+    expect(strategyMock.getDocument(doc.getDocumentReference(), "")).andReturn(doc);
     replayDefault();
     boolean ret = modelAccess.existsLang(doc.getDocumentReference(), lang);
     verifyDefault();
@@ -361,12 +380,14 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
 
   @Test
   public void test_existsLang_false() throws Exception {
-    String lang = "en";
-    doc.setTranslation(1);
-    doc.setLanguage(lang);
-    doc.setNew(true);
+    String lang = "fr";
+    XWikiDocument transDoc = new XWikiDocument(doc.getDocumentReference());
+    transDoc.setTranslation(1);
+    transDoc.setLanguage(lang);
+    transDoc.setNew(true);
     expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(true);
-    expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(doc);
+    expect(strategyMock.getDocument(doc.getDocumentReference(), "")).andReturn(doc);
+    expect(strategyMock.getDocument(doc.getDocumentReference(), lang)).andReturn(transDoc);
     replayDefault();
     boolean ret = modelAccess.existsLang(doc.getDocumentReference(), lang);
     verifyDefault();
@@ -375,10 +396,7 @@ public class DefaultModelAccessFacadeTest extends AbstractComponentTest {
 
   @Test
   public void test_existsLang_false_noMainDoc() throws Exception {
-    String lang = "en";
-    doc.setTranslation(1);
-    doc.setLanguage(lang);
-    doc.setNew(true);
+    String lang = "fr";
     expect(strategyMock.exists(doc.getDocumentReference(), "")).andReturn(false);
     replayDefault();
     boolean ret = modelAccess.existsLang(doc.getDocumentReference(), lang);
