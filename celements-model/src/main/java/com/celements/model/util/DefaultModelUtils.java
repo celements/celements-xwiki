@@ -1,5 +1,6 @@
 package com.celements.model.util;
 
+import static com.celements.model.access.IModelAccessFacade.*;
 import static com.celements.model.util.EntityTypeUtil.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
@@ -222,7 +223,9 @@ public class DefaultModelUtils implements ModelUtils {
   @Override
   public String normalizeLang(final String lang) {
     String ret = nullToEmpty(lang).trim();
-    if (!"default".equals(ret)) {
+    if (ret.equals("default")) {
+      ret = DEFAULT_LANG;
+    } else {
       ret = Util.normalizeLanguage(ret);
       if ("default".equals(ret)) {
         throw new IllegalArgumentException("Invalid language: " + lang);

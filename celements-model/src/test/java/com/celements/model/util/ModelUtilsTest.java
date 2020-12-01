@@ -94,18 +94,15 @@ public class ModelUtilsTest extends AbstractComponentTest {
     try {
       modelUtils.resolveRef("doc", DocumentReference.class, wikiRef);
       fail("expecting failure, space reference missing");
-    } catch (IllegalArgumentException iae) {
-    }
+    } catch (IllegalArgumentException iae) {}
     try {
       modelUtils.resolveRef("doc", DocumentReference.class);
       fail("expecting failure, space reference missing");
-    } catch (IllegalArgumentException iae) {
-    }
+    } catch (IllegalArgumentException iae) {}
     try {
       modelUtils.resolveRef("", DocumentReference.class);
       fail("expecting failure for empty string");
-    } catch (IllegalArgumentException iae) {
-    }
+    } catch (IllegalArgumentException iae) {}
   }
 
   @Test
@@ -181,6 +178,23 @@ public class ModelUtilsTest extends AbstractComponentTest {
       @Override
       protected void execute() throws Exception {
         modelUtils.serializeRefLocal(null);
+      }
+    }.evaluate();
+  }
+
+  @Test
+  public void test_normalizeLang() {
+    assertEquals("", modelUtils.normalizeLang(null));
+    assertEquals("", modelUtils.normalizeLang(""));
+    assertEquals("", modelUtils.normalizeLang("  "));
+    assertEquals("", modelUtils.normalizeLang("default"));
+    assertEquals("de", modelUtils.normalizeLang("de"));
+    assertEquals("de_CH", modelUtils.normalizeLang("de_CH"));
+    new ExceptionAsserter<IllegalArgumentException>(IllegalArgumentException.class) {
+
+      @Override
+      protected void execute() throws IllegalArgumentException {
+        modelUtils.normalizeLang("invalid");
       }
     }.evaluate();
   }
