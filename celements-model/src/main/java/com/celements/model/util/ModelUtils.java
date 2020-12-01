@@ -158,7 +158,7 @@ public interface ModelUtils {
    * normalizeLanguage("  ")      = ""
    * normalizeLanguage("en")      = "en"
    * normalizeLanguage("DE_ch")   = "de_CH"
-   * normalizeLanguage("default") = "default"
+   * normalizeLanguage("default") = ""
    * normalizeLanguage("invalid") throws IAE
    * </pre>
    *
