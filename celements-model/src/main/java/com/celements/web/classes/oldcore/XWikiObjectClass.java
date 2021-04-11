@@ -20,26 +20,21 @@ public class XWikiObjectClass extends PseudoClassDefinition {
   public static final String CLASS_NAME = "XWikiObjectClass";
   public static final String CLASS_FN = CLASS_SPACE + "." + CLASS_NAME;
   public static final String CLASS_DEF_HINT = CLASS_FN;
+  public static final ClassReference CLASS_REF = new ClassReference(CLASS_SPACE, CLASS_NAME);
 
-  public static final ClassField<Long> FIELD_ID = new LongField.Builder(CLASS_FN, "id").build();
+  public static final ClassField<Long> FIELD_ID = new LongField.Builder(CLASS_REF, "id").build();
 
   public static final ClassField<DocumentReference> FIELD_DOC_REF = new DocumentReferenceField.Builder(
-      CLASS_FN, "documentReference").build();
+      CLASS_REF, "documentReference").build();
 
   public static final ClassField<ClassReference> FIELD_CLASS_REF = new ClassReferenceField.Builder(
-      CLASS_FN, "classReference").build();
+      CLASS_REF, "classReference").build();
 
-  public static final ClassField<Integer> FIELD_NUMBER = new IntField.Builder(CLASS_FN,
+  public static final ClassField<Integer> FIELD_NUMBER = new IntField.Builder(CLASS_REF,
       "number").build();
 
-  @Override
-  public String getName() {
-    return CLASS_FN;
-  }
-
-  @Override
-  protected String getClassDocName() {
-    return CLASS_NAME;
+  public XWikiObjectClass() {
+    super(CLASS_REF);
   }
 
 }
