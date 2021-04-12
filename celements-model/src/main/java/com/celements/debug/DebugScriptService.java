@@ -1,9 +1,7 @@
 package com.celements.debug;
 
-import static com.google.common.base.Predicates.*;
-
 import java.lang.reflect.Executable;
-import java.util.function.Function;
+import java.util.Iterator;
 import java.util.stream.Stream;
 
 import org.xwiki.component.annotation.Component;
@@ -65,18 +63,15 @@ public class DebugScriptService implements ScriptService {
 
   private <E extends Executable> Object tryExecuteAny(Stream<E> executables,
       ThrowingFunction<E, ?, ReflectiveOperationException> invoker) throws Exception {
-    Function<E, Object> evaluate = exec -> {
+    Exception fail = null;
+    for (Iterator<E> iter = executables.iterator(); iter.hasNext();) {
       try {
-        return invoker.apply(exec);
+        return invoker.apply(iter.next());
       } catch (Exception exc) {
-        return exc;
+        fail = (fail != null) ? fail : exc;
       }
-    };
-    return executables.map(evaluate)
-        .filter(not(Exception.class::isInstance))
-        .findFirst()
-        .orElseThrow(() -> (Exception) executables.map(evaluate)
-            .findAny().orElseGet(NoSuchMethodException::new));
+    }
+    throw (fail != null) ? fail : new NoSuchMethodException();
   }
 
   public boolean removeDocFromCache(DocumentReference docRef) {
