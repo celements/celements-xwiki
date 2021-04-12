@@ -8,12 +8,13 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
+import org.slf4j.helpers.MessageFormatter;
 
 public final class LogUtils {
 
   private LogUtils() {}
 
-  public static void log(Logger logger, LogLevel level, String msg) {
+  public static void log(Logger logger, LogLevel level, Object msg) {
     log(logger, level, () -> msg);
   }
 
@@ -39,7 +40,7 @@ public final class LogUtils {
     }
   }
 
-  public static void log(Logger logger, LogLevel level, String msg, Throwable throwable) {
+  public static void log(Logger logger, LogLevel level, Object msg, Throwable throwable) {
     log(logger, level, () -> msg, throwable);
   }
 
@@ -65,23 +66,24 @@ public final class LogUtils {
     }
   }
 
-  public static void log(Logger logger, LogLevel level, String msg, Object... args) {
+  public static void log(Logger logger, LogLevel level, Object msg, Object... args) {
     if ((logger != null) && (level != null)) {
+      String msgStr = Objects.toString(msg);
       switch (level) {
         case TRACE:
-          logger.trace(msg, args);
+          logger.trace(msgStr, args);
           break;
         case DEBUG:
-          logger.debug(msg, args);
+          logger.debug(msgStr, args);
           break;
         case INFO:
-          logger.info(msg, args);
+          logger.info(msgStr, args);
           break;
         case WARN:
-          logger.warn(msg, args);
+          logger.warn(msgStr, args);
           break;
         case ERROR:
-          logger.error(msg, args);
+          logger.error(msgStr, args);
           break;
       }
     }
@@ -160,7 +162,7 @@ public final class LogUtils {
    * Simplifies logging with lambda expressions. Logs present {@link Optional} in a stream.
    */
   public static <T> LogPredicate<Optional<T>> logIfPresent(Logger logger,
-      LogLevel level, String msg) {
+      LogLevel level, Object msg) {
     return log(Optional<T>::isPresent).on(logger).lvl(level).msg(msg);
   }
 
@@ -184,7 +186,7 @@ public final class LogUtils {
    */
   @Deprecated
   public static <T, R> LogFunction<T, R> log(Function<T, R> function, Logger logger,
-      LogLevel level, String msg) {
+      LogLevel level, Object msg) {
     return log(function).on(logger).lvl(level).msg(msg);
   }
 
@@ -225,6 +227,14 @@ public final class LogUtils {
    */
   public static <T> LogSupplier<T> log(Supplier<T> supplier) {
     return new LogSupplier<>(supplier);
+  }
+
+  public static <T> Supplier<String> format(final Supplier<T> supplier, final Object... args) {
+    return format(supplier.get(), args);
+  }
+
+  public static <T> Supplier<String> format(final T msg, final Object... args) {
+    return defer(() -> MessageFormatter.arrayFormat(Objects.toString(msg), args));
   }
 
 }
