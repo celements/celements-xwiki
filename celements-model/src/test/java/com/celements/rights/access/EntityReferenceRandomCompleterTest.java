@@ -54,7 +54,7 @@ public class EntityReferenceRandomCompleterTest extends AbstractComponentTest {
   public void testRandomCompleteSpaceRef_entityType_Space() {
     WikiReference wikiRef = new WikiReference(context.getDatabase());
     SpaceReference entityRef = new SpaceReference("mySpace", wikiRef);
-    Capture<DocumentReference> randomDocRefCapture = new Capture<>();
+    Capture<DocumentReference> randomDocRefCapture = newCapture();
     expect(docAccessBridgeMock.exists(capture(randomDocRefCapture))).andReturn(false).once();
     replayDefault();
     DocumentReference randomDocRef = (DocumentReference) randomCompleter.randomCompleteSpaceRef(
@@ -68,9 +68,9 @@ public class EntityReferenceRandomCompleterTest extends AbstractComponentTest {
   public void testRandomCompleteSpaceRef_entityType_Space_twoLookups() {
     WikiReference wikiRef = new WikiReference(context.getDatabase());
     SpaceReference entityRef = new SpaceReference("mySpace", wikiRef);
-    Capture<DocumentReference> randomDocRefCapture = new Capture<>();
+    Capture<DocumentReference> randomDocRefCapture = newCapture();
     expect(docAccessBridgeMock.exists(capture(randomDocRefCapture))).andReturn(true).once();
-    Capture<DocumentReference> randomDocRefCapture2 = new Capture<>();
+    Capture<DocumentReference> randomDocRefCapture2 = newCapture();
     expect(docAccessBridgeMock.exists(capture(randomDocRefCapture2))).andReturn(false).once();
     replayDefault();
     EntityReference randomDocRef = randomCompleter.randomCompleteSpaceRef(entityRef);

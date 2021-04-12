@@ -40,7 +40,7 @@ public class QueryExecutionServiceTest extends AbstractBridgedComponentTestCase 
     Map<String, Object> binds = new HashMap<>();
     binds.put("key", "someVal");
     int ret = 5;
-    Capture<HibernateCallback<Integer>> hibCallbackCapture = new Capture<>();
+    Capture<HibernateCallback<Integer>> hibCallbackCapture = newCapture();
 
     expect(storeMock.executeWrite(same(getContext()), eq(true), capture(
         hibCallbackCapture))).andReturn(ret).once();
