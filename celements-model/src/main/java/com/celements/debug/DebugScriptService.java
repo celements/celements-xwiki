@@ -52,10 +52,6 @@ public class DebugScriptService implements ScriptService {
     return guard(() -> componentManager.lookup(role, hint));
   }
 
-  public Object getService(String className, String hint) {
-    return guard(() -> componentManager.lookup(Class.forName(className), hint));
-  }
-
   public Object newInstance(Class<?> type, Object... args) {
     return guard(() -> tryExecuteAny(Stream.of(type.getConstructors()),
         constructor -> constructor.newInstance(args)));
@@ -68,19 +64,18 @@ public class DebugScriptService implements ScriptService {
   }
 
   private <E extends Executable> Object tryExecuteAny(Stream<E> executables,
-      ThrowingFunction<E, ?, ReflectiveOperationException> invoker)
-      throws ReflectiveOperationException {
+      ThrowingFunction<E, ?, ReflectiveOperationException> invoker) throws Exception {
     Function<E, Object> evaluate = exec -> {
       try {
         return invoker.apply(exec);
-      } catch (ReflectiveOperationException exc) {
+      } catch (Exception exc) {
         return exc;
       }
     };
     return executables.map(evaluate)
-        .filter(not(ReflectiveOperationException.class::isInstance))
+        .filter(not(Exception.class::isInstance))
         .findFirst()
-        .orElseThrow(() -> (ReflectiveOperationException) executables.map(evaluate)
+        .orElseThrow(() -> (Exception) executables.map(evaluate)
             .findAny().orElseGet(NoSuchMethodException::new));
   }
 
