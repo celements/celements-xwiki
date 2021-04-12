@@ -1,5 +1,6 @@
 package com.celements.query;
 
+import static com.celements.common.test.CelementsTestUtils.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
@@ -7,21 +8,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.easymock.Capture;
+import org.easymock.LogicalOperator;
 import org.junit.Before;
 import org.junit.Test;
 import org.xwiki.model.reference.WikiReference;
 
-import com.celements.common.test.AbstractBridgedComponentTestCase;
-import com.celements.query.ExecuteWriteCallback;
-import com.celements.query.IQueryExecutionServiceRole;
-import com.celements.query.QueryExecutionService;
-import com.xpn.xwiki.XWikiContext;
+import com.celements.common.test.AbstractComponentTest;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
 import com.xpn.xwiki.store.XWikiHibernateStore;
 import com.xpn.xwiki.web.Utils;
 
-public class QueryExecutionServiceTest extends AbstractBridgedComponentTestCase {
+public class QueryExecutionServiceTest extends AbstractComponentTest {
 
   private QueryExecutionService queryExecService;
 
@@ -64,20 +62,16 @@ public class QueryExecutionServiceTest extends AbstractBridgedComponentTestCase 
     binds.put("key", "someVal");
     WikiReference wikiRef = new WikiReference("otherdb");
     int ret = 5;
-    Capture<XWikiContext> contextCapture = new ClonedContextCapture();
 
-    expect(storeMock.executeWrite(capture(contextCapture), eq(true), anyObject(
-        HibernateCallback.class))).andReturn(ret).once();
+    expect(storeMock.executeWrite(cmp(null, (ctx, exp) -> wikiRef.getName()
+        .compareTo((String) ctx.get("wiki")), LogicalOperator.EQUAL),
+        eq(true), anyObject(HibernateCallback.class))).andReturn(ret).once();
 
     assertEquals("xwikidb", getContext().getDatabase());
     replayDefault();
     assertEquals(ret, queryExecService.executeWriteHQL(hql, binds, wikiRef));
     verifyDefault();
     assertEquals("xwikidb", getContext().getDatabase());
-    XWikiContext clonedContext = contextCapture.getValue();
-    assertEquals(wikiRef.getName(), clonedContext.get("wiki"));
-    clonedContext.setDatabase("xwikidb");
-    assertEquals(getContext(), contextCapture.getValue());
   }
 
   @Test
@@ -100,17 +94,6 @@ public class QueryExecutionServiceTest extends AbstractBridgedComponentTestCase 
     }
     verifyDefault();
     assertEquals("xwikidb", getContext().getDatabase());
-  }
-
-  private class ClonedContextCapture extends Capture<XWikiContext> {
-
-    private static final long serialVersionUID = 1L;
-
-    @Override
-    public void setValue(XWikiContext context) {
-      super.setValue((XWikiContext) context.clone());
-    }
-
   }
 
 }
