@@ -98,6 +98,10 @@ public class ImmutableDocumentReference extends DocumentReference implements Imm
     return ret;
   }
 
+  public String serialize() {
+    return serialize(ReferenceSerializationMode.COMPACT_WIKI);
+  }
+
   public String serialize(ReferenceSerializationMode mode) {
     return getModelUtils().serializeRef(this, mode);
   }

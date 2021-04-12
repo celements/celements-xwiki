@@ -1,5 +1,7 @@
 package com.celements.logging;
 
+import static com.celements.logging.LogUtils.*;
+
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -65,6 +67,10 @@ public abstract class Loggable<T, L extends Loggable<T, L>> {
 
   public L msg(Object msg) {
     return msg(() -> msg);
+  }
+
+  public L msg(Object msg, Object... args) {
+    return msg(format(msg, args));
   }
 
 }

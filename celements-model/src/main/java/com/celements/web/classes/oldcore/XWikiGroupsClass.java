@@ -5,6 +5,7 @@ import static com.celements.model.util.ReferenceSerializationMode.*;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.model.classes.AbstractClassDefinition;
@@ -18,28 +19,18 @@ public class XWikiGroupsClass extends AbstractClassDefinition implements IOldCor
   public static final String CLASS_NAME = "XWikiGroups";
   public static final String CLASS_FN = CLASS_SPACE + "." + CLASS_NAME;
   public static final String CLASS_DEF_HINT = CLASS_FN;
+  public static final ClassReference CLASS_REF = new ClassReference(CLASS_SPACE, CLASS_NAME);
 
   public static final ClassField<DocumentReference> FIELD_MEMBER = new DocumentReferenceField.Builder(
-      CLASS_FN, "member").prettyName("Member").refSerializationMode(COMPACT_WIKI).size(30).build();
+      CLASS_REF, "member").prettyName("Member").refSerializationMode(COMPACT_WIKI).size(30).build();
 
-  @Override
-  public String getName() {
-    return CLASS_FN;
+  public XWikiGroupsClass() {
+    super(CLASS_REF);
   }
 
   @Override
   public boolean isInternalMapping() {
     return false;
-  }
-
-  @Override
-  protected String getClassSpaceName() {
-    return CLASS_SPACE;
-  }
-
-  @Override
-  protected String getClassDocName() {
-    return CLASS_NAME;
   }
 
 }

@@ -6,9 +6,11 @@ import java.util.List;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.ClassReference;
 
 import com.celements.model.classes.AbstractClassDefinition;
 import com.celements.model.classes.fields.ClassField;
+import com.celements.model.classes.fields.list.DisplayType;
 import com.celements.model.classes.fields.list.StaticListField;
 
 @Singleton
@@ -18,29 +20,19 @@ public class XWikiTagClass extends AbstractClassDefinition implements IOldCoreCl
   public static final String CLASS_NAME = "TagClass";
   public static final String CLASS_FN = CLASS_SPACE + "." + CLASS_NAME;
   public static final String CLASS_DEF_HINT = CLASS_FN;
+  public static final ClassReference CLASS_REF = new ClassReference(CLASS_SPACE, CLASS_NAME);
 
-  public static final ClassField<List<String>> FIELD_TAGS = new StaticListField.Builder(CLASS_FN,
-      "tags").size(30).multiSelect(true).displayType("input").separator("|,").values(
-          Collections.<String>emptyList())/* .relationalStorage(true) */.build();
+  public static final ClassField<List<String>> FIELD_TAGS = new StaticListField.Builder(CLASS_REF,
+      "tags").size(30).multiSelect(true).displayType(DisplayType.input).separator("|,")
+          .values(Collections.<String>emptyList())/* .relationalStorage(true) */.build();
 
-  @Override
-  public String getName() {
-    return CLASS_FN;
+  public XWikiTagClass() {
+    super(CLASS_REF);
   }
 
   @Override
   public boolean isInternalMapping() {
     return false;
-  }
-
-  @Override
-  protected String getClassSpaceName() {
-    return CLASS_SPACE;
-  }
-
-  @Override
-  protected String getClassDocName() {
-    return CLASS_NAME;
   }
 
 }
