@@ -62,13 +62,16 @@ public class DebugScriptService implements ScriptService {
   }
 
   private <E extends Executable> Object tryExecuteAny(Stream<E> executables,
-      ThrowingFunction<E, ?, ReflectiveOperationException> invoker) throws Exception {
-    Exception fail = null;
+      ThrowingFunction<E, ?, ReflectiveOperationException> invoker)
+      throws ReflectiveOperationException {
+    ReflectiveOperationException fail = null;
     for (Iterator<E> iter = executables.iterator(); iter.hasNext();) {
       try {
         return invoker.apply(iter.next());
+      } catch (ReflectiveOperationException exc) {
+        fail = exc;
       } catch (Exception exc) {
-        fail = (fail != null) ? fail : exc;
+        fail = new ReflectiveOperationException(exc);
       }
     }
     throw (fail != null) ? fail : new NoSuchMethodException();
