@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -56,6 +57,17 @@ public final class MoreObjectsCel {
   public static <F, T> Function<F, Optional<T>> optToJavaUtil(
       Function<F, com.google.common.base.Optional<T>> func) {
     return x -> func.apply(x).toJavaUtil();
+  }
+
+  public static Optional<String> asOptNonBlank(String str) {
+    return ((str == null) || str.trim().isEmpty()) ? Optional.empty() : Optional.of(str);
+  }
+
+  @SafeVarargs
+  public static <T> Optional<T> findFirstPresent(Supplier<Optional<T>>... suppliers) {
+    return Stream.of(suppliers).map(Supplier::get)
+        .filter(Optional::isPresent).map(Optional::get)
+        .findFirst();
   }
 
   /**
