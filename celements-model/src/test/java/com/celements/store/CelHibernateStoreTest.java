@@ -59,7 +59,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     Session sessionMock = createSessionMock(doc);
     expectLoadAttachments(sessionMock, Collections.<XWikiAttachment>emptyList());
     expectLoadObjects(sessionMock, Collections.<BaseObject>emptyList());
-    sessionMock.load(same(doc), eq(new Long(doc.getId())));
+    sessionMock.load(same(doc), eq(doc.getId()));
 
     replayDefault();
     XWikiDocument ret = getStore(sessionMock).loadXWikiDoc(doc, getContext());
@@ -76,11 +76,11 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
   public void test_loadXWikiDoc_immutability() throws Exception {
     DocumentReference docRef = new ImmutableDocumentReference("xwikidb", "space", "doc");
     XWikiDocument doc = new XWikiDocument(docRef);
-    DocRefCapture docCapture = new DocRefCapture();
+    Capture<XWikiDocument> docCapture = newCapture();
     Session sessionMock = createSessionMock(doc);
     expectLoadAttachments(sessionMock, Collections.<XWikiAttachment>emptyList());
     expectLoadObjects(sessionMock, Collections.<BaseObject>emptyList());
-    sessionMock.load(capture(docCapture), eq(new Long(doc.getId())));
+    sessionMock.load(capture(docCapture), eq(doc.getId()));
     expectLastCall().once();
 
     replayDefault();
@@ -89,9 +89,9 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
 
     assertSame(doc, ret);
     assertSame(doc, docCapture.getValue());
-    assertEquals(docRef, docCapture.docRef);
-    assertTrue("provided docRef has to be immutable",
-        docCapture.docRef instanceof ImmutableReference);
+    DocumentReference cptDocRef = docCapture.getValue().getDocumentReference();
+    assertEquals(docRef, cptDocRef);
+    assertTrue("provided docRef has to be immutable", cptDocRef instanceof ImmutableReference);
     assertTrue("after execution docRef has to be immutable",
         doc.getDocumentReference() instanceof ImmutableReference);
   }
@@ -100,7 +100,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
   public void test_saveXWikiDoc_immutability() throws Exception {
     DocumentReference docRef = new ImmutableDocumentReference("xwikidb", "space", "doc");
     XWikiDocument doc = new XWikiDocument(docRef);
-    DocRefCapture docCapture = new DocRefCapture();
+    Capture<XWikiDocument> docCapture = newCapture();
     Session sessionMock = createSessionMock(doc);
     expectSaveDocExists(sessionMock, null);
     expect(sessionMock.save(capture(docCapture))).andReturn(null).once();
@@ -111,9 +111,9 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     verifyDefault();
 
     assertSame(doc, docCapture.getValue());
-    assertEquals(docRef, docCapture.docRef);
-    assertTrue("provided docRef has to be immutable",
-        docCapture.docRef instanceof ImmutableReference);
+    DocumentReference cptDocRef = docCapture.getValue().getDocumentReference();
+    assertEquals(docRef, cptDocRef);
+    assertTrue("provided docRef has to be immutable", cptDocRef instanceof ImmutableReference);
     assertTrue("after execution docRef has to be immutable",
         doc.getDocumentReference() instanceof ImmutableReference);
   }
@@ -207,20 +207,6 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
     sessionMock.clear();
     expectLastCall().anyTimes();
     return sessionMock;
-  }
-
-  private class DocRefCapture extends Capture<XWikiDocument> {
-
-    private static final long serialVersionUID = 1L;
-
-    DocumentReference docRef;
-
-    @Override
-    public void setValue(XWikiDocument doc) {
-      super.setValue(doc);
-      docRef = doc.getDocumentReference();
-    }
-
   }
 
 }
