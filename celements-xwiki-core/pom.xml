@@ -24,7 +24,7 @@
   <parent>
     <groupId>com.celements</groupId>
     <artifactId>base-pom</artifactId>
-    <version>5.0.1</version>
+    <version>5.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>celements-xwiki-core</artifactId>
@@ -32,6 +32,12 @@
   <description>Celements XWiki</description>
   <dependencies>
     <!-- Add here all your dependencies -->
+    <dependency>
+      <groupId>com.celements</groupId>
+      <artifactId>celements-component</artifactId>
+      <version>5.0-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
@@ -183,21 +189,17 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-cache-jbosscache</artifactId>
       <version>2.7.2</version>
-      <!-- Only needed at runtime since it's a component implementation -->
       <scope>runtime</scope>
       <exclusions>
         <exclusion>
           <groupId>jgroups</groupId>
           <artifactId>jgroups</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.xwiki.platform</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-core-cache-oscache</artifactId>
-      <version>2.7.2</version>
-      <!-- Only needed at runtime since it's a component implementation -->
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -207,17 +209,6 @@
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-rendering-macro-wikibridge</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-core-component-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-core-component-multi</artifactId>
-      <!-- Only required at runtime (ie in the distribution) -->
       <scope>provided</scope>
     </dependency>
     <dependency>
