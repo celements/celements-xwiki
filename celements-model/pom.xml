@@ -33,9 +33,10 @@
   <dependencies>
     <!-- Add here all your dependencies -->
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <scope>provided</scope>
+      <groupId>com.celements</groupId>
+      <artifactId>celements-shared-tests-deprecated</artifactId>
+      <version>5.0-SNAPSHOT</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.celements</groupId>
