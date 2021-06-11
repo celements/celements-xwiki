@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
-import com.celements.logging.LogSupplier;
 import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -46,28 +45,26 @@ public final class MoreObjectsCel {
   }
 
   /**
-   * Allows fore more concise guava to java util optional conversion in lambas. Usage sample:
-   *
-   * <pre>
-   * stream.map(optToJavaUtil(GuavaStuff::returningOptional))
-   * </pre>
-   *
-   * @see LogSupplier
+   * @see MoreOptional#toJavaUtil(Function)
    */
   public static <F, T> Function<F, Optional<T>> optToJavaUtil(
       Function<F, com.google.common.base.Optional<T>> func) {
-    return x -> func.apply(x).toJavaUtil();
+    return MoreOptional.toJavaUtil(func);
   }
 
+  /**
+   * @see MoreOptional#asNonBlank(String)
+   */
   public static Optional<String> asOptNonBlank(String str) {
-    return ((str == null) || str.trim().isEmpty()) ? Optional.empty() : Optional.of(str);
+    return MoreOptional.asNonBlank(str);
   }
 
+  /**
+   * @see MoreOptional#findFirstPresent(Supplier...)
+   */
   @SafeVarargs
   public static <T> Optional<T> findFirstPresent(Supplier<Optional<T>>... suppliers) {
-    return Stream.of(suppliers).map(Supplier::get)
-        .filter(Optional::isPresent).map(Optional::get)
-        .findFirst();
+    return MoreOptional.findFirstPresent(suppliers);
   }
 
   /**
