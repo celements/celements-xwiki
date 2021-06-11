@@ -72,7 +72,7 @@ import com.xpn.xwiki.web.XWikiResponse;
 @Component
 public class AttachmentService implements IAttachmentServiceRole {
 
-  private static Logger _LOGGER = LoggerFactory.getLogger(AttachmentService.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(AttachmentService.class);
 
   /** The prefix of the corresponding filename input field name. */
   private static final String FILENAME_FIELD_NAME = "filename";
@@ -115,7 +115,7 @@ public class AttachmentService implements IAttachmentServiceRole {
     try {
       attachment = getAttachmentNameEqual(theDoc, filename);
     } catch (AttachmentNotExistsException e) {
-      _LOGGER.debug("adding new attachment with name [{}]", filename);
+      LOGGER.debug("adding new attachment with name [{}]", filename);
     }
 
     if (attachment == null) {
@@ -153,7 +153,7 @@ public class AttachmentService implements IAttachmentServiceRole {
 
     // Save the document.
     try {
-      _LOGGER.debug("uploadAttachment: save document [" + theDoc.getDocumentReference()
+      LOGGER.debug("uploadAttachment: save document [" + theDoc.getDocumentReference()
           + "] after adding filename [" + filename + "] in revision [" + nextRev + "].");
       modelAccess.saveDocument(theDoc, comment);
     } catch (DocumentSaveException exp) {
@@ -189,7 +189,7 @@ public class AttachmentService implements IAttachmentServiceRole {
       XWikiDocument doc) throws XWikiException {
     XWikiResponse response = getContext().getResponse();
     String username = getContext().getUser();
-    _LOGGER.debug("uploadAttachment: fieldName [" + fieldName + "], filename [" + filename
+    LOGGER.debug("uploadAttachment: fieldName [" + fieldName + "], filename [" + filename
         + "], context username [" + username + "], doc [" + doc.getDocumentReference() + "].");
 
     if (doc.isNew()) {
@@ -241,8 +241,8 @@ public class AttachmentService implements IAttachmentServiceRole {
       }
     }
 
-    if (_LOGGER.isTraceEnabled()) {
-      _LOGGER.trace("uploadMultipleAttachments: found fileNames [ key: " + Arrays.deepToString(
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("uploadMultipleAttachments: found fileNames [ key: " + Arrays.deepToString(
           fileNames.keySet().toArray()) + " values : " + Arrays.deepToString(
               fileNames.values().toArray()) + "].");
     }
@@ -250,13 +250,13 @@ public class AttachmentService implements IAttachmentServiceRole {
       try {
         uploadAttachment(file.getValue(), file.getKey(), fileupload, doc);
       } catch (Exception ex) {
-        _LOGGER.warn("Saving uploaded file failed", ex);
+        LOGGER.warn("Saving uploaded file failed", ex);
         failedFiles.add(file.getKey());
       }
     }
 
     int numSavedFiles = fileNames.size() - failedFiles.size();
-    _LOGGER.debug("Found files to upload: " + fileNames + ", Failed attachments: " + failedFiles
+    LOGGER.debug("Found files to upload: " + fileNames + ", Failed attachments: " + failedFiles
         + ", Wrong attachment names: " + wrongFileNames + ", saved files: " + numSavedFiles);
     return numSavedFiles;
   }
@@ -439,7 +439,7 @@ public class AttachmentService implements IAttachmentServiceRole {
             doc.deleteAttachment(attachment, getContext());
             nrDeletedOnDoc++;
           } catch (AttachmentNotExistsException anee) {
-            _LOGGER.warn("Tried to delete not existing attachment [{}] on doc [{}]", filename, doc,
+            LOGGER.warn("Tried to delete not existing attachment [{}] on doc [{}]", filename, doc,
                 anee);
           }
         }
@@ -457,7 +457,7 @@ public class AttachmentService implements IAttachmentServiceRole {
         nrDeleted += nrDeletedOnDoc;
       } catch (XWikiException | DocumentLoadException | DocumentNotExistsException
           | DocumentSaveException xwe) {
-        _LOGGER.error("Exception deleting Attachments on doc '{}'", docRef, xwe);
+        LOGGER.error("Exception deleting Attachments on doc '{}'", docRef, xwe);
       }
     }
     return nrDeleted;
@@ -469,7 +469,7 @@ public class AttachmentService implements IAttachmentServiceRole {
       getAttachmentNameEqual(document, filename);
       return true;
     } catch (AttachmentNotExistsException attNotExistExp) {
-      _LOGGER.trace("existsAttachmentNameEqual not exist", attNotExistExp);
+      LOGGER.trace("existsAttachmentNameEqual not exist", attNotExistExp);
       return false;
     }
   }
@@ -481,7 +481,7 @@ public class AttachmentService implements IAttachmentServiceRole {
       getAttachmentNameEqual(attachmentRef);
       return true;
     } catch (AttachmentNotExistsException | DocumentNotExistsException attNotExistExp) {
-      _LOGGER.trace("existsAttachmentNameEqual not exist", attNotExistExp);
+      LOGGER.trace("existsAttachmentNameEqual not exist", attNotExistExp);
       return false;
     }
   }

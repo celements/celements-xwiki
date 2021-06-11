@@ -21,8 +21,8 @@ package com.celements.web.utils;
 
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -32,7 +32,7 @@ import com.xpn.xwiki.util.AbstractXWikiRunnable;
 
 public class DocumentCreationWorker extends AbstractXWikiRunnable {
 
-  private static Log mLogger = LogFactory.getFactory().getInstance(DocumentCreationWorker.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DocumentCreationWorker.class);
 
   private String space;
   private int docsCreated;
@@ -114,12 +114,12 @@ public class DocumentCreationWorker extends AbstractXWikiRunnable {
         context.getWiki().saveDocument(doc, context);
         docsCreated++;
       } catch (XWikiException e) {
-        mLogger.error(context.getWiki() + " - " + docFullName, e);
+        LOGGER.error(context.getWiki() + " - " + docFullName, e);
       } catch (NullPointerException npe) {
-        mLogger.error(context.getWiki() + " - " + docFullName, npe);
+        LOGGER.error(context.getWiki() + " - " + docFullName, npe);
       }
     }
-    mLogger.error("thread " + getCelId() + " stopped! isRunning=" + isRunning);
+    LOGGER.error("thread " + getCelId() + " stopped! isRunning=" + isRunning);
   }
 
   public synchronized boolean isRunning() {
