@@ -17,6 +17,11 @@
       <artifactId>xwiki-core-bridge</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>5.3.6</version>
+    </dependency>
 
     <!-- Testing -->
     <dependency>
