@@ -87,7 +87,7 @@ public class ForkFunction<F, T> implements Function<F, Optional<T>> {
   }
 
   @NotNull
-  public Function<F, Stream<T>> asStream() {
+  public Function<F, Stream<T>> stream() {
     return f -> MoreOptional.stream(apply(f));
   }
 
