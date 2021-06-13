@@ -1,5 +1,6 @@
 package com.celements.store.part;
 
+import static com.celements.logging.LogUtils.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 import static com.xpn.xwiki.XWikiException.*;
@@ -27,7 +28,9 @@ import org.xwiki.model.reference.WikiReference;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.util.ReferenceSerializationMode;
+import com.celements.model.util.References;
 import com.celements.store.CelHibernateStore;
+import com.celements.store.id.CelementsIdComputer.IdComputationException;
 import com.celements.web.classes.oldcore.XWikiGroupsClass;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -43,11 +46,9 @@ public class CelHibernateStoreDocumentPart {
   private static final Logger LOGGER = LoggerFactory.getLogger(CelHibernateStore.class);
 
   private final CelHibernateStore store;
-  private final DocumentSavePreparationCommand savePrepCmd;
 
   public CelHibernateStoreDocumentPart(CelHibernateStore store) {
     this.store = checkNotNull(store);
-    this.savePrepCmd = new DocumentSavePreparationCommand(store);
   }
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
@@ -55,7 +56,9 @@ public class CelHibernateStoreDocumentPart {
     validateWikis(doc, context);
     boolean commit = false;
     try {
-      Session session = savePrepCmd.execute(doc, bTransaction, context);
+      DocumentSavePreparationCommand savePrepCmd = new DocumentSavePreparationCommand(
+          doc, store, context);
+      Session session = savePrepCmd.execute(bTransaction);
 
       if (doc.hasElement(XWikiDocument.HAS_ATTACHMENTS)) {
         store.saveAttachmentList(doc, context, false);
@@ -73,7 +76,6 @@ public class CelHibernateStoreDocumentPart {
         if (context.getWiki().hasVersioning(context)) {
           context.getWiki().getVersioningStore().updateXWikiDocArchive(doc, false, context);
         }
-
         doc.setContentDirty(false);
         doc.setMetaDataDirty(false);
       } else {
@@ -92,34 +94,23 @@ public class CelHibernateStoreDocumentPart {
               doc.getDocumentArchive(context);
             }
           } catch (XWikiException xwe) {
-            LOGGER.debug("saveXWikiDoc - this is a non critical error: {} {}", doc.getId(),
-                store.getModelUtils().serializeRef(doc.getDocumentReference()), xwe);
+            LOGGER.debug("saveXWikiDoc - this is a non critical error: {} {}",
+                doc.getId(), defer(() -> serialize(doc)), xwe);
           }
         }
       }
 
-      DocumentReference existingDocRef = checkExistingDoc(doc, session);
-      if (existingDocRef == null) {
+      if (!savePrepCmd.hasExistingDoc()) {
         session.save(doc);
-      } else if (existingDocRef.equals(doc.getDocumentReference())) {
-        session.update(doc);
-        // TODO: this is slower!! How can it be improved?
-        // session.saveOrUpdate(doc);
       } else {
-        LOGGER.error("saveXWikiDoc - collision detected: existing doc '{}' and new doc '{}'",
-            existingDocRef, doc.getDocumentReference());
-        throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
-            "saveXWikiDoc - collision detected");
+        session.update(doc);
       }
-
       if (doc.getTranslation() == 0) {
         deleteAndSaveXObjects(doc, context);
       }
-
       if (context.getWiki().hasBacklinks(context)) {
         store.saveLinks(doc, context, true);
       }
-
       commit = true;
       doc.setNew(false);
       // We need to ensure that the saved document becomes the original document
@@ -129,19 +120,6 @@ public class CelHibernateStoreDocumentPart {
         store.endTransaction(context, commit);
       }
     }
-
-  }
-
-  private DocumentReference checkExistingDoc(XWikiDocument doc, Session session) {
-    DocumentReference existingDocRef = null;
-    Query query = session.createQuery("select fullName from XWikiDocument where id = :id");
-    query.setLong("id", doc.getId());
-    String existingDocFN = (String) query.uniqueResult();
-    if (existingDocFN != null) {
-      existingDocRef = store.getModelUtils().resolveRef(existingDocFN, DocumentReference.class,
-          doc.getDocumentReference());
-    }
-    return existingDocRef;
   }
 
   private void deleteAndSaveXObjects(XWikiDocument doc, XWikiContext context)
@@ -164,9 +142,6 @@ public class CelHibernateStoreDocumentPart {
     validateWikis(doc, context);
     boolean bTransaction = true;
     try {
-      ImmutableDocumentReference immutableDocRef = new ImmutableDocumentReference(
-          doc.getDocumentReference());
-
       doc.setStore(store);
       store.checkHibernate(context);
       SessionFactory sfactory = store.injectCustomMappingsInSessionFactory(doc, context);
@@ -174,10 +149,13 @@ public class CelHibernateStoreDocumentPart {
       Session session = store.getSession(context);
       session.setFlushMode(FlushMode.MANUAL);
 
-      session.load(doc, new Long(doc.getId()));
-      validateLoadedDoc(doc, immutableDocRef);
-      doc.setNew(false);
-      doc.setMostRecent(true);
+      DocumentReference docRefToLoad = References.cloneRef(doc.getDocumentReference(),
+          DocumentReference.class);
+      byte collisionCount = 0;
+      do {
+        session.load(doc, computeDocId(doc, collisionCount++));
+      } while (!docRefToLoad.equals(doc.getDocumentReference()));
+      prepareLoadedDoc(doc);
 
       // Loading the attachment list
       if (doc.hasElement(XWikiDocument.HAS_ATTACHMENTS)) {
@@ -189,7 +167,7 @@ public class CelHibernateStoreDocumentPart {
       String cxml = doc.getXClassXML();
       if (cxml != null) {
         bclass.fromXML(cxml);
-        bclass.setDocumentReference(immutableDocRef);
+        bclass.setDocumentReference(doc.getDocumentReference());
         doc.setXClass(bclass);
       }
       // Store this XWikiClass in the context so that we can use it in case of recursive usage
@@ -201,9 +179,9 @@ public class CelHibernateStoreDocumentPart {
         Map<Integer, BaseObject> groupObjs = new HashMap<>();
         while (objIter.hasNext()) {
           BaseObject loadedObject = objIter.next();
-          if (!loadedObject.getDocumentReference().equals(immutableDocRef)) {
-            LOGGER.warn("loadXWikiDoc - skipping obj [{}], doc [{}] not matching", loadedObject,
-                store.getModelUtils().serializeRef(immutableDocRef));
+          if (!loadedObject.getDocumentReference().equals(doc.getDocumentReference())) {
+            LOGGER.warn("loadXWikiDoc - skipping obj [{}], doc [{}] not matching",
+                loadedObject, defer(() -> serialize(doc)));
             continue;
           }
           BaseObject object = copyToNewXObject(doc, loadedObject, context);
@@ -235,27 +213,34 @@ public class CelHibernateStoreDocumentPart {
     return doc;
   }
 
-  private void validateLoadedDoc(XWikiDocument doc, ImmutableDocumentReference immutableDocRef)
-      throws XWikiException {
-    if (!doc.getDocumentReference().equals(immutableDocRef)) {
-      LOGGER.error("loadXWikiDoc - collision detected: loading doc '{}' returned doc '{}'",
-          immutableDocRef, doc.getDocumentReference());
+  private Long computeDocId(XWikiDocument doc, byte collisionCount) throws XWikiException {
+    try {
+      return store.getIdComputer().computeDocumentId(
+          doc.getDocumentReference(), doc.getLanguage(), collisionCount);
+    } catch (IdComputationException exc) {
+      String msg = format("unable to compute id for doc [{}] with id [{}] and collisionCount [{}]",
+          serialize(doc), doc.getId(), collisionCount).get();
       throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_READING_DOC,
-          "loadXWikiDoc - collision detected");
+          msg, exc);
     }
+  }
+
+  private void prepareLoadedDoc(XWikiDocument doc) {
     // ensure document reference immutability
-    doc.setDocumentReference(immutableDocRef);
+    doc.setDocumentReference(new ImmutableDocumentReference(doc.getDocumentReference()));
     // convert java.sql.Timestamp to java.util.Date
     doc.setDate(new Date(doc.getDate().getTime()));
     doc.setCreationDate(new Date(doc.getCreationDate().getTime()));
     doc.setContentUpdateDate(new Date(doc.getContentUpdateDate().getTime()));
+    doc.setNew(false);
+    doc.setMostRecent(true);
   }
 
   @SuppressWarnings("unchecked")
   private Iterator<BaseObject> loadXObjects(XWikiDocument doc, XWikiContext context) {
     String hql = "from BaseObject as obj where obj.name = :name order by obj.className, obj.number";
     Query query = store.getSession(context).createQuery(hql);
-    query.setText("name", serialize(doc));
+    query.setText("name", serialize(doc, ReferenceSerializationMode.LOCAL));
     return query.iterate();
   }
 
@@ -290,7 +275,7 @@ public class CelHibernateStoreDocumentPart {
         + "where obj.name = :name and obj.className = 'XWiki.XWikiGroups' and obj.id = prop.id.id "
         + "and prop.id.name = 'member'";
     Query query = store.getSession(context).createQuery(hql);
-    query.setText("name", serialize(doc));
+    query.setText("name", serialize(doc, ReferenceSerializationMode.LOCAL));
     Iterator<?> dataIter = query.iterate();
     while (dataIter.hasNext()) {
       Object[] row = (Object[]) dataIter.next();
@@ -360,8 +345,11 @@ public class CelHibernateStoreDocumentPart {
   }
 
   private String serialize(XWikiDocument doc) {
-    return store.getModelUtils().serializeRef(doc.getDocumentReference(),
-        ReferenceSerializationMode.LOCAL);
+    return serialize(doc, ReferenceSerializationMode.GLOBAL);
+  }
+
+  private String serialize(XWikiDocument doc, ReferenceSerializationMode mode) {
+    return store.getModelUtils().serializeRef(doc.getDocumentReference(), mode);
   }
 
 }

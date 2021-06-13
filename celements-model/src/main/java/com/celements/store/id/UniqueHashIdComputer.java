@@ -1,14 +1,12 @@
 package com.celements.store.id;
 
-import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Verify.*;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.xwiki.component.annotation.Component;
@@ -23,6 +21,8 @@ import com.google.common.base.VerifyException;
 import com.google.common.primitives.Longs;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
+
+import one.util.streamex.StreamEx;
 
 @Component(UniqueHashIdComputer.NAME)
 public class UniqueHashIdComputer implements CelementsIdComputer {
@@ -81,14 +81,12 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   }
 
   private Set<Long> collectVersionedObjectIds(XWikiDocument doc) {
-    Set<Long> ids = new HashSet<>();
-    for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter().append(firstNonNull(
-        doc.getXObjectsToRemove(), Collections.<BaseObject>emptyList()))) {
-      if ((obj != null) && obj.hasValidId() && (obj.getIdVersion() == getIdVersion())) {
-        ids.add(obj.getId());
-      }
-    }
-    return ids;
+    return StreamEx.of(XWikiObjectEditor.on(doc).fetch().stream())
+        .append(doc.getXObjectsToRemove())
+        .filter(Objects::nonNull)
+        .filter(obj -> obj.hasValidId() && (obj.getIdVersion() == getIdVersion()))
+        .map(BaseObject::getId)
+        .toImmutableSet();
   }
 
   private long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {

@@ -1,8 +1,12 @@
 package com.celements.store.part;
 
+import static com.celements.common.MoreFunctions.*;
+import static com.celements.logging.LogUtils.*;
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Predicates.*;
 import static com.xpn.xwiki.XWikiException.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.concurrent.Immutable;
@@ -20,10 +24,9 @@ import org.xwiki.model.reference.WikiReference;
 import com.celements.model.access.XWikiDocumentCreator;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.object.xwiki.XWikiObjectFetcher;
-import com.celements.model.util.References;
+import com.celements.model.reference.RefBuilder;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -38,20 +41,29 @@ class DocumentSavePreparationCommand {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CelHibernateStore.class);
 
+  private final XWikiDocument doc;
   private final CelHibernateStore store;
+  private final XWikiContext context;
 
-  DocumentSavePreparationCommand(CelHibernateStore store) {
+  private Boolean hasExistingDoc;
+
+  DocumentSavePreparationCommand(XWikiDocument doc, CelHibernateStore store, XWikiContext context) {
+    this.doc = checkNotNull(doc);
     this.store = checkNotNull(store);
+    this.context = checkNotNull(context);
   }
 
-  Session execute(XWikiDocument doc, boolean bTransaction, XWikiContext context)
-      throws HibernateException, XWikiException {
+  Session execute(boolean bTransaction) throws HibernateException, XWikiException {
     doc.setStore(store);
     ensureDatabaseConsistency(doc, context);
+    Session session = prepareSession(doc, bTransaction, context);
+    if (!doc.hasValidId()) {
+      computeAndSetId(doc, session);
+    }
     if (doc.getTranslation() == 0) {
       updateBaseClassXml(doc, context);
       doc.setElement(XWikiDocument.HAS_OBJECTS, XWikiObjectFetcher.on(doc).exists());
-      doc.setElement(XWikiDocument.HAS_ATTACHMENTS, (doc.getAttachmentList().size() != 0));
+      doc.setElement(XWikiDocument.HAS_ATTACHMENTS, !doc.getAttachmentList().isEmpty());
       try {
         new XObjectPreparer(doc, context).execute();
       } catch (IdComputationException exc) {
@@ -62,6 +74,11 @@ class DocumentSavePreparationCommand {
       doc.setElement(XWikiDocument.HAS_OBJECTS, false);
       doc.setElement(XWikiDocument.HAS_ATTACHMENTS, false);
     }
+    return session;
+  }
+
+  private Session prepareSession(XWikiDocument doc, boolean bTransaction, XWikiContext context)
+      throws XWikiException {
     if (bTransaction) {
       store.checkHibernate(context);
       SessionFactory sfactory = store.injectCustomMappingsInSessionFactory(doc, context);
@@ -78,9 +95,50 @@ class DocumentSavePreparationCommand {
       LOGGER.warn("saveXWikiDoc - not matching wiki, adjusting to [{}] for doc [{}]", wikiRef,
           doc.getDocumentReference(), new Throwable());
       boolean isMetaDataDirty = doc.isMetaDataDirty();
-      doc.setDocumentReference(References.adjustRef(doc.getDocumentReference(),
-          DocumentReference.class, wikiRef));
+      doc.setDocumentReference(RefBuilder.from(doc.getDocumentReference()).with(wikiRef)
+          .build(DocumentReference.class));
       doc.setMetaDataDirty(isMetaDataDirty);
+    }
+  }
+
+  private void computeAndSetId(XWikiDocument doc, Session session) throws XWikiException {
+    try {
+      long docId;
+      byte collisionCount = -1;
+      do {
+        collisionCount++;
+        docId = store.getIdComputer().computeDocumentId(
+            doc.getDocumentReference(), doc.getLanguage(), collisionCount);
+      } while (existsDifferentDoc(doc, docId, collisionCount, session));
+      doc.setId(docId, store.getIdComputer().getIdVersion());
+      LOGGER.debug("saveXWikiDoc - computed doc id [{}] for [{}]", doc.getId(), doc);
+    } catch (IdComputationException exc) {
+      String msg = format("unable to compute id for doc [{}] with id [{}]", doc, doc.getId()).get();
+      throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
+          msg, exc);
+    }
+  }
+
+  boolean existsDifferentDoc(XWikiDocument doc, long docId, byte collisionCount, Session session) {
+    DocumentReference docRef = doc.getDocumentReference();
+    Optional<Object> existing = Optional.ofNullable(session
+        .createQuery("select fullName from XWikiDocument where id = :id")
+        .setLong("id", docId)
+        .uniqueResult());
+    hasExistingDoc = existing.isPresent();
+    return existing
+        .filter(not(store.getModelUtils().serializeRefLocal(docRef)::equals))
+        .map(asFunction(existingFN -> LOGGER.warn("saveXWikiDoc - collision detected: "
+            + "doc [{}] with existing doc [{}] for id [{}] and collisionCount [{}]",
+            store.getModelUtils().serializeRef(docRef), existingFN, docId, collisionCount)))
+        .isPresent();
+  }
+
+  boolean hasExistingDoc() {
+    if (hasExistingDoc != null) {
+      return hasExistingDoc;
+    } else {
+      throw new IllegalStateException("execute command first");
     }
   }
 
@@ -125,8 +183,10 @@ class DocumentSavePreparationCommand {
           obj.setGuid(UUID.randomUUID().toString());
         }
         if (!obj.hasValidId()) {
-          Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc).filter(
-              new ClassReference(obj.getXClassReference())).filter(obj.getNumber()).first();
+          Optional<BaseObject> existingObj = XWikiObjectFetcher.on(origDoc)
+              .filter(new ClassReference(obj.getXClassReference()))
+              .filter(obj.getNumber())
+              .stream().findFirst();
           if (existingObj.isPresent() && existingObj.get().hasValidId()) {
             obj.setId(existingObj.get().getId(), existingObj.get().getIdVersion());
             LOGGER.debug("saveXWikiDoc - obj [{}] already existed, keeping id", obj);
@@ -134,7 +194,7 @@ class DocumentSavePreparationCommand {
             long nextId = store.getIdComputer().computeNextObjectId(doc);
             obj.setId(nextId, store.getIdComputer().getIdVersion());
             LOGGER.debug("saveXWikiDoc - obj [{}] is new, computed new id", obj);
-            logExistingObject(existingObj.orNull());
+            logExistingObject(existingObj.orElse(null));
           }
         }
       }
