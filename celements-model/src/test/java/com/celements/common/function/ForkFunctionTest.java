@@ -1,46 +1,87 @@
 package com.celements.common.function;
 
+import static com.celements.common.lambda.LambdaExceptionUtil.*;
 import static org.junit.Assert.*;
 
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableList;
+
+import one.util.streamex.StreamEx;
+
 public class ForkFunctionTest {
+
+  private List<String> inputNumbers = ImmutableList.of("1", "2.0", "3", "4.0");
 
   @Before
   public void setUp() throws Exception {}
 
   @Test
-  public void test() {
-    Stream<String> input = Stream.of("1", "2.0", "3.0", "4");
-    DoubleStream numbers = input
+  public void test_when_then_else() {
+    Stream<Number> numbers = inputNumbers.stream()
         .flatMap(new ForkFunction<String, Number>()
             .when(NumberUtils::isDigits)
             .thenMap(Integer::parseInt)
             .elseMap(Double::parseDouble)
-            .stream())
-        .mapToDouble(Number::doubleValue);
-    assertEquals(10, numbers.sum(), 0);
+            .stream());
+    assertSum(10, numbers);
   }
 
   @Test
-  public void test_elseFilter() {
-    Stream<String> input = Stream.of("1", "A", "2", "C", "D", "3", "C", "4");
-    StringBuilder letters = new StringBuilder();
-    IntStream numbers = input
-        .flatMap(new ForkFunction<String, Integer>()
+  public void test_noWhen() {
+    Stream<Number> numbers = inputNumbers.stream()
+        .flatMap(new ForkFunction<String, Number>()
+            .thenMap(Integer::parseInt)
+            .elseMap(Double::parseDouble)
+            .stream());
+    assertSum(10, numbers);
+  }
+
+  @Test
+  public void test_noThen() {
+    Stream<Number> numbers = inputNumbers.stream()
+        .flatMap(new ForkFunction<String, Number>()
+            .when(NumberUtils::isDigits)
+            .elseMap(Double::parseDouble)
+            .stream());
+    assertSum(6, numbers);
+  }
+
+  @Test
+  public void test_noElse() {
+    Stream<Number> numbers = inputNumbers.stream()
+        .flatMap(new ForkFunction<String, Number>()
             .when(NumberUtils::isDigits)
             .thenMap(Integer::parseInt)
+            .stream());
+    assertSum(4, numbers);
+  }
+
+  @Test
+  public void test_elseFilter() throws ParseException {
+    Stream<String> input = StreamEx.of(inputNumbers).zipWith("ACDC".chars(),
+        (letter, number) -> Stream.of(letter, number).map(Object::toString))
+        .flatMap(x -> x);
+    StringBuilder letters = new StringBuilder();
+    Stream<Number> numbers = input
+        .flatMap(new ForkFunction<String, Number>()
+            .when(NumberUtils::isNumber)
+            .thenMap(rethrowFunction(NumberFormat.getInstance()::parse))
             .elseFilter(letters::append)
-            .stream())
-        .mapToInt(Integer::intValue);
-    assertEquals(10, numbers.sum());
+            .stream());
+    assertSum(4, numbers);
     assertEquals("ACDC", letters.toString());
+  }
+
+  private void assertSum(double sum, Stream<Number> numbers) {
+    assertEquals(sum, numbers.mapToDouble(Number::doubleValue).sum(), 0);
   }
 
 }
