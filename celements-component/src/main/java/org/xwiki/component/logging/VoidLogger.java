@@ -21,129 +21,112 @@
 package org.xwiki.component.logging;
 
 /**
- * Logger that doesn't do anything. Useful to use when no logger implementation is selected to prevent NPEs.
- * In a component-based environment loggers are always set but when component classes are used as simple
- * Java Beans the logger needs to be set and this logger implementation can be used when the user doesn't
+ * Logger that doesn't do anything. Useful to use when no logger implementation is selected to
+ * prevent NPEs.
+ * In a component-based environment loggers are always set but when component classes are used as
+ * simple
+ * Java Beans the logger needs to be set and this logger implementation can be used when the user
+ * doesn't
  * set explicitly a logger.
- *  
+ * 
  * @version $Id$
  * @since 1.8RC3
  */
-public class VoidLogger implements Logger
-{
-    /**
-     * {@inheritDoc}
-     * #see Logger#debug(String)
-     */
-    public void debug(String message)
-    {
-        // Don't do anything voluntarily
-    }
+public class VoidLogger implements Logger {
 
-    /**
-     * {@inheritDoc}
-     * #see Logger#debug(String, Throwable)
-     */
-    public void debug(String message, Throwable throwable)
-    {
-        // Don't do anything voluntarily
-    }
+  /**
+   * {@inheritDoc}
+   * #see Logger#debug(String)
+   */
+  public void debug(String message) {
+    // Don't do anything voluntarily
+  }
 
-    /**
-     * {@inheritDoc}
-     * #see Logger#debug(String, Object...)
-     */
-    public void debug(String message, Object... objects)
-    {
-        // Don't do anything voluntarily
-    }
+  /**
+   * {@inheritDoc}
+   * #see Logger#debug(String, Throwable)
+   */
+  public void debug(String message, Throwable throwable) {
+    // Don't do anything voluntarily
+  }
 
-    /**
-     * {@inheritDoc}
-     * #see Logger#debug(String, Throwable, Object...)
-     */
-    public void debug(String message, Throwable throwable, Object... objects)
-    {
-        // Don't do anything voluntarily
-    }
+  /**
+   * {@inheritDoc}
+   * #see Logger#debug(String, Object...)
+   */
+  public void debug(String message, Object... objects) {
+    // Don't do anything voluntarily
+  }
 
-    public void error(String message)
-    {
-        // Don't do anything voluntarily
-    }
+  /**
+   * {@inheritDoc}
+   * #see Logger#debug(String, Throwable, Object...)
+   */
+  public void debug(String message, Throwable throwable, Object... objects) {
+    // Don't do anything voluntarily
+  }
 
-    public void error(String message, Throwable throwable)
-    {
-        // Don't do anything voluntarily
-    }
+  public void error(String message) {
+    // Don't do anything voluntarily
+  }
 
-    public void error(String message, Object... objects)
-    {
-        // Don't do anything voluntarily
-    }
+  public void error(String message, Throwable throwable) {
+    // Don't do anything voluntarily
+  }
 
-    public void error(String message, Throwable throwable, Object... objects)
-    {
-        // Don't do anything voluntarily
-    }
+  public void error(String message, Object... objects) {
+    // Don't do anything voluntarily
+  }
 
-    public void info(String message)
-    {
-        // Don't do anything voluntarily
-    }
+  public void error(String message, Throwable throwable, Object... objects) {
+    // Don't do anything voluntarily
+  }
 
-    public void info(String message, Throwable throwable)
-    {
-        // Don't do anything voluntarily
-    }
+  public void info(String message) {
+    // Don't do anything voluntarily
+  }
 
-    public void info(String message, Object... objects)
-    {
-        // Don't do anything voluntarily
-    }
+  public void info(String message, Throwable throwable) {
+    // Don't do anything voluntarily
+  }
 
-    public void info(String message, Throwable throwable, Object... objects)
-    {
-        // Don't do anything voluntarily
-    }
+  public void info(String message, Object... objects) {
+    // Don't do anything voluntarily
+  }
 
-    public boolean isDebugEnabled()
-    {
-        return false;
-    }
+  public void info(String message, Throwable throwable, Object... objects) {
+    // Don't do anything voluntarily
+  }
 
-    public boolean isErrorEnabled()
-    {
-        return false;
-    }
+  public boolean isDebugEnabled() {
+    return false;
+  }
 
-    public boolean isInfoEnabled()
-    {
-        return false;
-    }
+  public boolean isErrorEnabled() {
+    return false;
+  }
 
-    public boolean isWarnEnabled()
-    {
-        return false;
-    }
+  public boolean isInfoEnabled() {
+    return false;
+  }
 
-    public void warn(String message)
-    {
-        // Don't do anything voluntarily
-    }
+  public boolean isWarnEnabled() {
+    return false;
+  }
 
-    public void warn(String message, Throwable throwable)
-    {
-        // Don't do anything voluntarily
-    }
+  public void warn(String message) {
+    // Don't do anything voluntarily
+  }
 
-    public void warn(String message, Object... objects)
-    {
-        // Don't do anything voluntarily
-    }
+  public void warn(String message, Throwable throwable) {
+    // Don't do anything voluntarily
+  }
 
-    public void warn(String message, Throwable throwable, Object... objects)
-    {
-        // Don't do anything voluntarily
-    }
+  public void warn(String message, Object... objects) {
+    // Don't do anything voluntarily
+  }
+
+  public void warn(String message, Throwable throwable, Object... objects) {
+    // Don't do anything voluntarily
+  }
 }

@@ -28,11 +28,10 @@ import junit.framework.TestCase;
  * @version $Id$
  * @since 1.8RC3
  */
-public class LoggerTest extends TestCase
-{
-    public void testDefaultVoidLogger()
-    {
-        AbstractLogEnabled component = new AbstractLogEnabled() {};
-        assertEquals(VoidLogger.class.getName(), component.getLogger().getClass().getName());
-    }
+public class LoggerTest extends TestCase {
+
+  public void testDefaultVoidLogger() {
+    AbstractLogEnabled component = new AbstractLogEnabled() {};
+    assertEquals(VoidLogger.class.getName(), component.getLogger().getClass().getName());
+  }
 }

@@ -28,11 +28,11 @@ import java.util.Collection;
  * @version $Id$
  * @since 1.7M1
  */
-public interface ComponentDescriptor<T> extends ComponentRole<T>
-{
-    Class< ? extends T> getImplementation();
+public interface ComponentDescriptor<T> extends ComponentRole<T> {
 
-    ComponentInstantiationStrategy getInstantiationStrategy();
+  Class<? extends T> getImplementation();
 
-    Collection<ComponentDependency<?>> getComponentDependencies();
+  ComponentInstantiationStrategy getInstantiationStrategy();
+
+  Collection<ComponentDependency<?>> getComponentDependencies();
 }

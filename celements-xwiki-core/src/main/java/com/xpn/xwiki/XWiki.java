@@ -340,15 +340,17 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       EntityReferenceSerializer.class);
 
   @SuppressWarnings("unchecked")
-  private EntityReferenceSerializer<String> localStringEntityReferenceSerializer = Utils.getComponent(
-      EntityReferenceSerializer.class, "local");
+  private EntityReferenceSerializer<String> localStringEntityReferenceSerializer = Utils
+      .getComponent(
+          EntityReferenceSerializer.class, "local");
 
   private EntityReferenceValueProvider defaultEntityReferenceValueProvider = Utils.getComponent(
       EntityReferenceValueProvider.class);
 
   @SuppressWarnings("unchecked")
-  private EntityReferenceSerializer<EntityReference> localReferenceEntityReferenceSerializer = Utils.getComponent(
-      EntityReferenceSerializer.class, "local/reference");
+  private EntityReferenceSerializer<EntityReference> localReferenceEntityReferenceSerializer = Utils
+      .getComponent(
+          EntityReferenceSerializer.class, "local/reference");
 
   /**
    * Used to resolve a string into a proper Document Reference using the current document's
@@ -356,8 +358,9 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
    * blanks, except for the page name for which the default page name is used instead.
    */
   @SuppressWarnings("unchecked")
-  private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver = Utils.getComponent(
-      DocumentReferenceResolver.class, "currentmixed");
+  private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver = Utils
+      .getComponent(
+          DocumentReferenceResolver.class, "currentmixed");
 
   private XWikiURLBuilder entityXWikiURLBuilder = Utils.getComponent(XWikiURLBuilder.class,
       "entity");
@@ -506,8 +509,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     try {
       URL requestURL = context.getURL();
       host = requestURL.getHost();
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // In path-based multi-wiki, the wiki name is an element of the request path.
     // The url is in the form /xwiki (app name)/wiki (servlet name)/wikiname/
@@ -618,8 +620,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     } catch (InvocationTargetException e) {
       e.printStackTrace();
       return null;
-    } finally {
-    }
+    } finally {}
   }
 
   public static String getFormEncoded(String content) {
@@ -669,8 +670,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     } catch (IllegalAccessException e) {
       e.printStackTrace();
       return null;
-    } finally {
-    }
+    } finally {}
   }
 
   public static String getServerWikiPage(String servername) {
@@ -695,15 +695,13 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     int rows = 25;
     try {
       rows = context.getWiki().getUserPreferenceAsInt("editbox_height", context);
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
     textarea.setRows(rows);
 
     int cols = 80;
     try {
       cols = context.getWiki().getUserPreferenceAsInt("editbox_width", context);
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
     textarea.setCols(cols);
     textarea.setName("content");
     textarea.setID("content");
@@ -996,7 +994,6 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * @deprecated since 4.4 instead use ModelUtils#getAllWikis
-   * 
    * @return a cached list of all active virtual wikis (i.e. wikis who have been hit by a user
    *         request). To get a full
    *         list of all virtual wikis database names use
@@ -1009,7 +1006,6 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * @deprecated since 4.4 instead use ModelUtils#getAllWikis
-   * 
    * @return the full list of all database names of all defined virtual wikis. The database names
    *         are computed from
    *         the names of documents having a XWiki.XWikiServerClass object attached to them by
@@ -1101,8 +1097,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
           if (capacity != null) {
             iCapacity = Integer.parseInt(capacity);
           }
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
         try {
           CacheConfiguration configuration = new CacheConfiguration();
           configuration.setConfigurationId("xwiki.virtualwikimap");
@@ -1220,8 +1215,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
       try {
         is = getResourceAsStream(name);
-      } catch (Exception e) {
-      }
+      } catch (Exception e) {}
     }
 
     if (is == null) {
@@ -1249,8 +1243,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
       try {
         is = getResourceAsStream(name);
-      } catch (Exception e) {
-      }
+      } catch (Exception e) {}
     }
 
     if (is == null) {
@@ -1266,8 +1259,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         if (getResourceAsStream(name) != null) {
           return true;
         }
-      } catch (IOException e) {
-      }
+      } catch (IOException e) {}
     }
     try {
       File file = new File(name);
@@ -1325,8 +1317,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     fpath = new File(path);
     if (fpath.exists()) {
       return path;
-    } else {
-    }
+    } else {}
     return null;
   }
 
@@ -1736,15 +1727,13 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     int rows = 25;
     try {
       rows = context.getWiki().getUserPreferenceAsInt("editbox_height", context);
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
     textarea.setRows(rows);
 
     int cols = 80;
     try {
       cols = context.getWiki().getUserPreferenceAsInt("editbox_width", context);
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
     textarea.setCols(cols);
     textarea.setFilter(filter);
     textarea.setName("content");
@@ -1928,8 +1917,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
           }
         }
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // Try parsing a file located in the directory with the same name.
     try {
@@ -1949,8 +1937,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         LOG.warn("Illegal access, tried to use file [" + path + "] as a template."
             + " Possible break-in attempt!");
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     return null;
   }
@@ -2496,8 +2483,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         context.setLanguage(language);
         return language;
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // As no language parameter was passed in the request, try to get the language to use
     // from a cookie.
@@ -2508,8 +2494,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         context.setLanguage(language);
         return language;
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // Next from the default user preference
     try {
@@ -2524,8 +2509,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
           return language;
         }
       }
-    } catch (XWikiException e) {
-    }
+    } catch (XWikiException e) {}
 
     // If the default language is preferred, and since the user didn't explicitly ask for a
     // language already, then use the default wiki language.
@@ -2621,8 +2605,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     // Get request language
     try {
       requestLanguage = Util.normalizeLanguage(context.getRequest().getParameter("language"));
-    } catch (Exception ex) {
-    }
+    } catch (Exception ex) {}
 
     // Get user preference
     try {
@@ -2631,8 +2614,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       if (userdoc != null) {
         userPreferenceLanguage = userdoc.getStringValue("XWiki.XWikiUsers", "default_language");
       }
-    } catch (XWikiException e) {
-    }
+    } catch (XWikiException e) {}
 
     // Get navigator language setting
     if (context.getRequest() != null) {
@@ -2649,8 +2631,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     // Get language from cookie
     try {
       cookieLanguage = Util.normalizeLanguage(getUserPreferenceFromCookie("language", context));
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // Determine which language to use
     // First we get the language from the request
@@ -2705,8 +2686,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     try {
       requestLanguage = Util.normalizeLanguage(context.getRequest().getParameter(
           "interfacelanguage"));
-    } catch (Exception ex) {
-    }
+    } catch (Exception ex) {}
 
     // Get context language
     contextLanguage = context.getInterfaceLanguage();
@@ -2720,8 +2700,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         userPreferenceLanguage = userdoc.getStringValue("XWiki.XWikiUsers",
             "default_interface_language");
       }
-    } catch (XWikiException e) {
-    }
+    } catch (XWikiException e) {}
 
     // Get navigator language setting
     if (context.getRequest() != null) {
@@ -2739,8 +2718,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     try {
       cookieLanguage = Util.normalizeLanguage(getUserPreferenceFromCookie("interfacelanguage",
           context));
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // Determine which language to use
     // First we get the language from the request
@@ -2893,11 +2871,9 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         String className = classes.get(i);
         try {
           getClass(className, context).flushCache();
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
   }
 
@@ -4017,8 +3993,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
             return "Cannot make recursive include";
           }
           includedDocs.add(prefixedTopic);
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
 
         // Get document to include
         doc = getDocument(((XWikiDocument) context.get("doc")).getSpace(), localTopic, context);
@@ -4081,8 +4056,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         if (includedDocs != null) {
           includedDocs.remove(prefixedTopic);
         }
-      } catch (Exception e) {
-      }
+      } catch (Exception e) {}
       return result;
     } finally {
       if (database != null) {
@@ -5154,8 +5128,10 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
        * are used to see, including custom icons, panels, and so on...
        */
       if ((action.equals("skin") && (doc.getSpace().equals("skins") || doc.getSpace().equals(
-          "resources"))) || ((action.equals("skin") || action.equals("download") || action.equals(
-              "ssx") || action.equals("jsx")) && getRightService().hasAccessLevel("view",
+          "resources"))) || ((action.equals("skin") || action.equals("download")
+              || action.equals(
+                  "ssx")
+              || action.equals("jsx")) && getRightService().hasAccessLevel("view",
                   XWikiRightService.GUEST_USER_FULLNAME, doc.getPrefixedFullName(), context))
           || ((action.equals("view") && doc.getFullName().equals("XWiki.AccountValidation")))) {
         allow = true;
@@ -5411,8 +5387,10 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
                 LOG.debug("Using custom URLFactory Service Class [" + urlFactoryServiceClass + "]");
               }
               factoryService = (XWikiURLFactoryService) Class.forName(
-                  urlFactoryServiceClass).getConstructor(new Class<?>[] {
-                      XWiki.class }).newInstance(new Object[] { this });
+                  urlFactoryServiceClass).getConstructor(
+                      new Class<?>[] {
+                          XWiki.class })
+                  .newInstance(new Object[] { this });
             } catch (Exception e) {
               factoryService = null;
               LOG.warn("Failed to initialize URLFactory Service [" + urlFactoryServiceClass + "]",
@@ -5520,8 +5498,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
           }
         }
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     String result = referer.substring(referer.indexOf("://") + 3);
     if (result.endsWith("/")) {
@@ -5691,8 +5668,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
       try {
         sdf.setTimeZone(TimeZone.getTimeZone(getUserTimeZone(context)));
-      } catch (Exception e) {
-      }
+      } catch (Exception e) {}
 
       return sdf.format(date);
     } catch (Exception e) {
@@ -6034,7 +6010,6 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       throw new XWikiException(0, 0, ex.getMessage(), ex);
     }
   }
-
 
   /**
    * @deprecated since 4.4 instead use ModelUtils#getAllDocsForSpace
@@ -6422,8 +6397,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
     try {
       macrosmapping = getResourceContent(MACROS_FILE);
-    } catch (IOException e) {
-    }
+    } catch (IOException e) {}
 
     macrosmapping += "\r\n" + xwiki.getXWikiPreference("macros_mapping", "", context);
 
@@ -6536,10 +6510,12 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     temp = temp.replaceAll("[\u00f1\u0144\u0146\u0148\u0149\u014b\u01f9\u0235]", "n");
     temp = temp.replaceAll(
         "[\u00d2\u00d3\u00d4\u00d5\u00d6\u00d8\u014c\u014e\u0150\u01d1\u01ea\u01ec\u01fe\u020c\u020e\u022a\u022c"
-            + "\u022e\u0230]", "O");
+            + "\u022e\u0230]",
+        "O");
     temp = temp.replaceAll(
         "[\u00f2\u00f3\u00f4\u00f5\u00f6\u00f8\u014d\u014f\u0151\u01d2\u01eb\u01ed\u01ff\u020d\u020f\u022b\u022d"
-            + "\u022f\u0231]", "o");
+            + "\u022f\u0231]",
+        "o");
     temp = temp.replaceAll("[\u0156\u0158\u0210\u0212]", "R");
     temp = temp.replaceAll("[\u0157\u0159\u0211\u0213]", "r");
     temp = temp.replaceAll("[\u015a\u015c\u015e\u0160\u0218]", "S");
@@ -7046,8 +7022,9 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         for (XWikiAttachment attachmentToRestore : toRestore) {
           // There might be multiple versions of the attachment in the trash, search for the right
           // one
-          List<DeletedAttachment> deletedVariants = getAttachmentRecycleBinStore().getAllDeletedAttachments(
-              attachmentToRestore, context, true);
+          List<DeletedAttachment> deletedVariants = getAttachmentRecycleBinStore()
+              .getAllDeletedAttachments(
+                  attachmentToRestore, context, true);
           DeletedAttachment correctVariant = null;
           for (DeletedAttachment variant : deletedVariants) { // Reverse chronological order
             if (variant.getDate().before(rolledbackDoc.getDate())) {

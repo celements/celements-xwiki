@@ -27,46 +27,50 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 /**
- * Proxy Component Manager that creates and queries individual Component Managers specific to the current wiki in
- * the Execution Context. These Component Managers are created on the fly the first time a component is registered
+ * Proxy Component Manager that creates and queries individual Component Managers specific to the
+ * current wiki in
+ * the Execution Context. These Component Managers are created on the fly the first time a component
+ * is registered
  * for the current wiki.
- *  
+ * 
  * @version $Id$
  * @since 2.1RC1
  */
 @Component("wiki")
-public class WikiComponentManager extends AbstractGenericComponentManager implements Initializable
-{
-    /**
-     * Used to access the current wiki in the Execution Context.
-     */
-    @Requirement
-    private DocumentAccessBridge documentAccessBridge;
-    
-    /**
-     * The Component Manager to be used as parent when a component is not found in the current Component Manager.
-     */
-    @Requirement
-    private ComponentManager rootComponentManager;
+public class WikiComponentManager extends AbstractGenericComponentManager implements Initializable {
 
-    /**
-     * {@inheritDoc}
-     * @see Initializable#initialize()
-     */
-    public void initialize() throws InitializationException
-    {
-        // Set the parent to the Root Component Manager since if a component isn't found for a particular wiki
-        // we want to check if it's available in the Root Component Manager.
-        setInternalParent(this.rootComponentManager);
-    }
+  /**
+   * Used to access the current wiki in the Execution Context.
+   */
+  @Requirement
+  private DocumentAccessBridge documentAccessBridge;
 
-    /**
-     * {@inheritDoc}
-     * @see AbstractGenericComponentManager#getKey()
-     */
-    @Override
-    protected String getKey()
-    {
-        return this.documentAccessBridge.getCurrentWiki();
-    }
+  /**
+   * The Component Manager to be used as parent when a component is not found in the current
+   * Component Manager.
+   */
+  @Requirement
+  private ComponentManager rootComponentManager;
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see Initializable#initialize()
+   */
+  public void initialize() throws InitializationException {
+    // Set the parent to the Root Component Manager since if a component isn't found for a
+    // particular wiki
+    // we want to check if it's available in the Root Component Manager.
+    setInternalParent(this.rootComponentManager);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see AbstractGenericComponentManager#getKey()
+   */
+  @Override
+  protected String getKey() {
+    return this.documentAccessBridge.getCurrentWiki();
+  }
 }

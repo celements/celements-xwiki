@@ -25,46 +25,46 @@ package org.xwiki.component.event;
  * @version $Id$
  * @since 2.6RC2
  */
-public class ComponentDescriptorRemovedEvent extends AbstractComponentDescriptorEvent
-{
-    /**
-     * Watches all roles (whenever a component is added it'll trigger this event).
-     */
-    public ComponentDescriptorRemovedEvent()
-    {
+public class ComponentDescriptorRemovedEvent extends AbstractComponentDescriptorEvent {
 
+  /**
+   * Watches all roles (whenever a component is added it'll trigger this event).
+   */
+  public ComponentDescriptorRemovedEvent() {
+
+  }
+
+  /**
+   * @param role
+   *          the component role to watch (all components matching this role will trigger this
+   *          event)
+   */
+  public ComponentDescriptorRemovedEvent(Class<?> role) {
+    super(role);
+  }
+
+  /**
+   * @param role
+   *          the component role to watch
+   * @param roleHint
+   *          the component role hint to watch
+   */
+  public ComponentDescriptorRemovedEvent(Class<?> role, String roleHint) {
+    super(role, roleHint);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see AbstractComponentDescriptorEvent#matches(java.lang.Object)
+   */
+  public boolean matches(Object otherEvent) {
+    boolean result = false;
+
+    if (ComponentDescriptorRemovedEvent.class.isAssignableFrom(otherEvent.getClass())) {
+      result = super.matches(otherEvent);
     }
 
-    /**
-     * @param role the component role to watch (all components matching this role will trigger this event)
-     */
-    public ComponentDescriptorRemovedEvent(Class< ? > role)
-    {
-        super(role);
-    }
-
-    /**
-     * @param role the component role to watch
-     * @param roleHint the component role hint to watch
-     */
-    public ComponentDescriptorRemovedEvent(Class< ? > role, String roleHint)
-    {
-        super(role, roleHint);
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see AbstractComponentDescriptorEvent#matches(java.lang.Object)
-     */
-    public boolean matches(Object otherEvent)
-    {
-        boolean result = false;
-
-        if (ComponentDescriptorRemovedEvent.class.isAssignableFrom(otherEvent.getClass())) {
-            result = super.matches(otherEvent);
-        }
-
-        return result;
-    }
+    return result;
+  }
 }

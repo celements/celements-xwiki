@@ -25,26 +25,24 @@ import org.xwiki.component.phase.LogEnabled;
 /**
  * Convenience class so that components can simply extend this class and not have to reimplement the
  * {@link Logger} interface.
- *  
+ * 
  * @version $Id$
  */
-public class AbstractLogEnabled implements LogEnabled
-{
-    private static final Logger VOID_LOGGER = new VoidLogger();
-    
-    private Logger logger;
+public class AbstractLogEnabled implements LogEnabled {
 
-    public void enableLogging(Logger logger)
-    {
-        this.logger = logger;
-    }
+  private static final Logger VOID_LOGGER = new VoidLogger();
 
-    protected Logger getLogger()
-    {
-        Logger logger = VOID_LOGGER;
-        if (this.logger != null) {
-            logger = this.logger;
-        }
-        return logger;
+  private Logger logger;
+
+  public void enableLogging(Logger logger) {
+    this.logger = logger;
+  }
+
+  protected Logger getLogger() {
+    Logger logger = VOID_LOGGER;
+    if (this.logger != null) {
+      logger = this.logger;
     }
+    return logger;
+  }
 }

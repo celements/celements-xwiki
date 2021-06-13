@@ -26,67 +26,69 @@ import java.util.Map;
 
 /**
  * Various Reflection utilities.
- *  
+ * 
  * @version $Id$
  * @since 2.1RC1
  */
-public class ReflectionUtils
-{
-    /**
-     * @param componentClass the class for which to return all fields
-     * @return all fields declared by the passed class and its superclasses
-     */
-    public static Collection<Field> getAllFields(Class< ? > componentClass)
-    {
-        // Note: use a linked hash map to keep the same order as the one used to declare the fields.
-        Map<String, Field> fields = new LinkedHashMap<String, Field>();
-        Class< ? > targetClass = componentClass;
-        while (targetClass != null) {
-            for (Field field : targetClass.getDeclaredFields()) {
-                // Make sure that if the same field is declared in a class and its superclass
-                // only the field used in the class will be returned. Note that we need to do
-                // this check since the Field object doesn't implement the equals method using 
-                // the field name.
-                if (!fields.containsKey(field.getName())) {
-                    fields.put(field.getName(), field);
-                }
-            }
-            targetClass = targetClass.getSuperclass();
+public class ReflectionUtils {
+
+  /**
+   * @param componentClass
+   *          the class for which to return all fields
+   * @return all fields declared by the passed class and its superclasses
+   */
+  public static Collection<Field> getAllFields(Class<?> componentClass) {
+    // Note: use a linked hash map to keep the same order as the one used to declare the fields.
+    Map<String, Field> fields = new LinkedHashMap<String, Field>();
+    Class<?> targetClass = componentClass;
+    while (targetClass != null) {
+      for (Field field : targetClass.getDeclaredFields()) {
+        // Make sure that if the same field is declared in a class and its superclass
+        // only the field used in the class will be returned. Note that we need to do
+        // this check since the Field object doesn't implement the equals method using
+        // the field name.
+        if (!fields.containsKey(field.getName())) {
+          fields.put(field.getName(), field);
         }
-        return fields.values();
+      }
+      targetClass = targetClass.getSuperclass();
     }
-    
-    /**
-     * Sets a value to a field using reflection even if the field is private.
-     */
-    public static void setFieldValue(Object instanceContainingField, String fieldName, Object fieldValue)
-    {
-        // Find the class containing the field to set
-        Class< ? > targetClass = instanceContainingField.getClass();
-        while (targetClass != null) {
-            for (Field field : targetClass.getDeclaredFields()) {
-                if (field.getName().equalsIgnoreCase(fieldName)) {
-                    try {
-                        boolean isAccessible = field.isAccessible();
-                        try {
-                            field.setAccessible(true);
-                            field.set(instanceContainingField, fieldValue);
-                        } finally {
-                            field.setAccessible(isAccessible);
-                        }
-                    } catch (Exception e) {
-                        // This shouldn't happen but if it does then the Component manager will not function properly
-                        // and we need to abort. It probably means the Java security manager has been configured to
-                        // prevent accessing private fields.
-                        throw new RuntimeException("Failed to set field [" + fieldName + "] in instance of ["
-                            + instanceContainingField.getClass().getName() + "]. The Java Security Manager has "
-                            + "probably been configured to prevent settting private field values. XWiki requires "
-                            + "this ability to work.", e);
-                    }
-                    return;
-                }
+    return fields.values();
+  }
+
+  /**
+   * Sets a value to a field using reflection even if the field is private.
+   */
+  public static void setFieldValue(Object instanceContainingField, String fieldName,
+      Object fieldValue) {
+    // Find the class containing the field to set
+    Class<?> targetClass = instanceContainingField.getClass();
+    while (targetClass != null) {
+      for (Field field : targetClass.getDeclaredFields()) {
+        if (field.getName().equalsIgnoreCase(fieldName)) {
+          try {
+            boolean isAccessible = field.isAccessible();
+            try {
+              field.setAccessible(true);
+              field.set(instanceContainingField, fieldValue);
+            } finally {
+              field.setAccessible(isAccessible);
             }
-            targetClass = targetClass.getSuperclass();
+          } catch (Exception e) {
+            // This shouldn't happen but if it does then the Component manager will not function
+            // properly
+            // and we need to abort. It probably means the Java security manager has been configured
+            // to
+            // prevent accessing private fields.
+            throw new RuntimeException("Failed to set field [" + fieldName + "] in instance of ["
+                + instanceContainingField.getClass().getName() + "]. The Java Security Manager has "
+                + "probably been configured to prevent settting private field values. XWiki requires "
+                + "this ability to work.", e);
+          }
+          return;
         }
+      }
+      targetClass = targetClass.getSuperclass();
     }
+  }
 }

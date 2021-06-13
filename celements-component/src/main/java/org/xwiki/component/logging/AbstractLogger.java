@@ -27,39 +27,42 @@ import java.text.MessageFormat;
  * @version $Id$
  * @since 2.0M1
  */
-public abstract class AbstractLogger implements Logger
-{
-    /**
-     * Formats the message like {@code MessageFormat.format(String, Object...)} but also checks for Exceptions and
-     * catches them as logging should be robust and not interfere with normal program flow. The Exception caught will be
-     * passed to the loggers debug output.
-     * 
-     * @param message message in Formatter format syntax
-     * @param objects Objects to fill in
-     * @return the formatted String if possible, else the message and all objects concatenated.
-     * @see MessageFormat
-     */
-    protected String formatMessage(String message, Object... objects)
-    {
-        try {
-            return MessageFormat.format(message, objects);
-        } catch (IllegalArgumentException e) {
-            debug("Caught exception while formatting logging message: " + message, e);
+public abstract class AbstractLogger implements Logger {
 
-            // Try to save the message for logging output and just append the passed objects instead
-            if (objects != null) {
-                StringBuffer sb = new StringBuffer(message);
-                for (Object object : objects) {
-                    if (object != null) {
-                        sb.append(object);
-                    } else {
-                        sb.append("(null)");
-                    }
-                    sb.append(" ");
-                }
-                return sb.toString();
-            }
-            return message;
+  /**
+   * Formats the message like {@code MessageFormat.format(String, Object...)} but also checks for
+   * Exceptions and
+   * catches them as logging should be robust and not interfere with normal program flow. The
+   * Exception caught will be
+   * passed to the loggers debug output.
+   * 
+   * @param message
+   *          message in Formatter format syntax
+   * @param objects
+   *          Objects to fill in
+   * @return the formatted String if possible, else the message and all objects concatenated.
+   * @see MessageFormat
+   */
+  protected String formatMessage(String message, Object... objects) {
+    try {
+      return MessageFormat.format(message, objects);
+    } catch (IllegalArgumentException e) {
+      debug("Caught exception while formatting logging message: " + message, e);
+
+      // Try to save the message for logging output and just append the passed objects instead
+      if (objects != null) {
+        StringBuffer sb = new StringBuffer(message);
+        for (Object object : objects) {
+          if (object != null) {
+            sb.append(object);
+          } else {
+            sb.append("(null)");
+          }
+          sb.append(" ");
         }
+        return sb.toString();
+      }
+      return message;
     }
+  }
 }

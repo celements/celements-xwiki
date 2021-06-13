@@ -28,145 +28,130 @@ import org.apache.commons.logging.LogFactory;
  * @version $Id$
  * @since 2.0M1
  */
-public class CommonsLoggingLogger extends AbstractLogger
-{
-    /** Wrapped Commons Logging logger object. This communicates with the underlying logging framework. */
-    private Log logger;
-    
-    public CommonsLoggingLogger(Class< ? > clazz)
-    {
-        this.logger = LogFactory.getLog(clazz);
-    }
+public class CommonsLoggingLogger extends AbstractLogger {
 
-    /**
-     * {@inheritDoc}
-     * @see Logger#debug(String, Object...)
-     */
-    public void debug(String message, Object... objects)
-    {
-        if (this.logger.isDebugEnabled()) {
-            this.logger.debug(formatMessage(message, objects));
-        }
-    }
+  /**
+   * Wrapped Commons Logging logger object. This communicates with the underlying logging framework.
+   */
+  private Log logger;
 
-    /**
-     * {@inheritDoc}
-     * @see Logger#debug(String, Throwable, Object...)
-     */
-    public void debug(String message, Throwable throwable, Object... objects)
-    {
-        if (this.logger.isDebugEnabled()) {
-            this.logger.debug(formatMessage(message, objects), throwable);
-        }
-    }
+  public CommonsLoggingLogger(Class<?> clazz) {
+    this.logger = LogFactory.getLog(clazz);
+  }
 
-    /**
-     * {@inheritDoc}
-     * @see Logger#debug(String, Throwable)
-     */
-    public void debug(String message, Throwable throwable)
-    {
-        this.logger.debug(message, throwable);
+  /**
+   * {@inheritDoc}
+   * 
+   * @see Logger#debug(String, Object...)
+   */
+  public void debug(String message, Object... objects) {
+    if (this.logger.isDebugEnabled()) {
+      this.logger.debug(formatMessage(message, objects));
     }
+  }
 
-    /**
-     * {@inheritDoc}
-     * @see Logger#debug(String)
-     */
-    public void debug(String message)
-    {
-        this.logger.debug(message);
+  /**
+   * {@inheritDoc}
+   * 
+   * @see Logger#debug(String, Throwable, Object...)
+   */
+  public void debug(String message, Throwable throwable, Object... objects) {
+    if (this.logger.isDebugEnabled()) {
+      this.logger.debug(formatMessage(message, objects), throwable);
     }
+  }
 
-    public void error(String message, Object... objects)
-    {
-        if (this.logger.isErrorEnabled()) {
-            this.logger.error(formatMessage(message, objects));
-        }
-    }
+  /**
+   * {@inheritDoc}
+   * 
+   * @see Logger#debug(String, Throwable)
+   */
+  public void debug(String message, Throwable throwable) {
+    this.logger.debug(message, throwable);
+  }
 
-    public void error(String message, Throwable throwable, Object... objects)
-    {
-        if (this.logger.isErrorEnabled()) {
-            this.logger.error(formatMessage(message, objects), throwable);
-        }
-    }
+  /**
+   * {@inheritDoc}
+   * 
+   * @see Logger#debug(String)
+   */
+  public void debug(String message) {
+    this.logger.debug(message);
+  }
 
-    public void error(String message, Throwable throwable)
-    {
-        this.logger.error(message, throwable);
+  public void error(String message, Object... objects) {
+    if (this.logger.isErrorEnabled()) {
+      this.logger.error(formatMessage(message, objects));
     }
+  }
 
-    public void error(String message)
-    {
-        this.logger.error(message);
+  public void error(String message, Throwable throwable, Object... objects) {
+    if (this.logger.isErrorEnabled()) {
+      this.logger.error(formatMessage(message, objects), throwable);
     }
+  }
 
-    public void info(String message, Object... objects)
-    {
-        if (this.logger.isInfoEnabled()) {
-            this.logger.info(formatMessage(message, objects));
-        }
-    }
+  public void error(String message, Throwable throwable) {
+    this.logger.error(message, throwable);
+  }
 
-    public void info(String message, Throwable throwable, Object... objects)
-    {
-        if (this.logger.isInfoEnabled()) {
-            this.logger.info(formatMessage(message, objects), throwable);
-        }
-    }
+  public void error(String message) {
+    this.logger.error(message);
+  }
 
-    public void info(String message, Throwable throwable)
-    {
-        this.logger.info(message, throwable);
+  public void info(String message, Object... objects) {
+    if (this.logger.isInfoEnabled()) {
+      this.logger.info(formatMessage(message, objects));
     }
+  }
 
-    public void info(String message)
-    {
-        this.logger.info(message);
+  public void info(String message, Throwable throwable, Object... objects) {
+    if (this.logger.isInfoEnabled()) {
+      this.logger.info(formatMessage(message, objects), throwable);
     }
+  }
 
-    public boolean isDebugEnabled()
-    {
-        return this.logger.isDebugEnabled();
-    }
+  public void info(String message, Throwable throwable) {
+    this.logger.info(message, throwable);
+  }
 
-    public boolean isErrorEnabled()
-    {
-        return this.logger.isErrorEnabled();
-    }
+  public void info(String message) {
+    this.logger.info(message);
+  }
 
-    public boolean isInfoEnabled()
-    {
-        return this.logger.isInfoEnabled();
-    }
+  public boolean isDebugEnabled() {
+    return this.logger.isDebugEnabled();
+  }
 
-    public boolean isWarnEnabled()
-    {
-        return this.logger.isWarnEnabled();
-    }
+  public boolean isErrorEnabled() {
+    return this.logger.isErrorEnabled();
+  }
 
-    public void warn(String message, Object... objects)
-    {
-        if (this.logger.isWarnEnabled()) {
-            this.logger.warn(formatMessage(message, objects));
-        }
-    }
+  public boolean isInfoEnabled() {
+    return this.logger.isInfoEnabled();
+  }
 
-    public void warn(String message, Throwable throwable, Object... objects)
-    {
-        if (this.logger.isWarnEnabled()) {
-            this.logger.warn(formatMessage(message, objects), throwable);
-        }
-    }
+  public boolean isWarnEnabled() {
+    return this.logger.isWarnEnabled();
+  }
 
-    public void warn(String message, Throwable throwable)
-    {
-        this.logger.warn(message, throwable);
+  public void warn(String message, Object... objects) {
+    if (this.logger.isWarnEnabled()) {
+      this.logger.warn(formatMessage(message, objects));
     }
+  }
 
-    public void warn(String message)
-    {
-        this.logger.warn(message);
+  public void warn(String message, Throwable throwable, Object... objects) {
+    if (this.logger.isWarnEnabled()) {
+      this.logger.warn(formatMessage(message, objects), throwable);
     }
+  }
+
+  public void warn(String message, Throwable throwable) {
+    this.logger.warn(message, throwable);
+  }
+
+  public void warn(String message) {
+    this.logger.warn(message);
+  }
 }

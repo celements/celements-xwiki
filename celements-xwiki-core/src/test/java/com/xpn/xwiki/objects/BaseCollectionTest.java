@@ -33,20 +33,18 @@ import com.xpn.xwiki.test.AbstractBridgedComponentTestCase;
  * 
  * @version $Id$
  */
-public class BaseCollectionTest extends AbstractBridgedComponentTestCase
-{
-    @Test
-    public void testGetXClassWithNullReference() throws Exception
-    {
-        BaseCollection collection = new BaseCollection()
-        {
-            @Override
-            public Element toXML(BaseClass bclass)
-            {
-                return null;
-            }
-        };
+public class BaseCollectionTest extends AbstractBridgedComponentTestCase {
 
-        Assert.assertNull(collection.getXClass(getContext()));
-    }
+  @Test
+  public void testGetXClassWithNullReference() throws Exception {
+    BaseCollection collection = new BaseCollection() {
+
+      @Override
+      public Element toXML(BaseClass bclass) {
+        return null;
+      }
+    };
+
+    Assert.assertNull(collection.getXClass(getContext()));
+  }
 }

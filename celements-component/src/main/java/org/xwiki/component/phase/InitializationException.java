@@ -20,21 +20,21 @@
  */
 package org.xwiki.component.phase;
 
-public class InitializationException extends Exception
-{
-    /**
-     * Needed to identify the version of this code when serializing/deserializing (since Exception is Serializable).
-     * Note that the value needs to be modified whenever a non transient field is added or removed in this class. 
-     */
-    private static final long serialVersionUID = -4572006812408492126L;
+public class InitializationException extends Exception {
 
-    public InitializationException(String message)
-    {
-        super(message);
-    }
+  /**
+   * Needed to identify the version of this code when serializing/deserializing (since Exception is
+   * Serializable).
+   * Note that the value needs to be modified whenever a non transient field is added or removed in
+   * this class.
+   */
+  private static final long serialVersionUID = -4572006812408492126L;
 
-    public InitializationException(String message, Throwable cause)
-    {
-        super(message, cause);
-    }
+  public InitializationException(String message) {
+    super(message);
+  }
+
+  public InitializationException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

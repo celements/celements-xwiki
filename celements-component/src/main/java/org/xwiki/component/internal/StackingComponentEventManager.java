@@ -29,88 +29,84 @@ import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
 
 /**
- * Allow stacking component events and flush them whenever the user of this class wants to. This is used for example at
- * application initialization time when we don't want to send events before the Application Context has been initialized
+ * Allow stacking component events and flush them whenever the user of this class wants to. This is
+ * used for example at
+ * application initialization time when we don't want to send events before the Application Context
+ * has been initialized
  * since components subscribing to these events may want to use the Application Context.
  * 
  * @version $Id$
  * @since 2.0M1
  */
-public class StackingComponentEventManager implements ComponentEventManager
-{
-    private ObservationManager observationManager;
+public class StackingComponentEventManager implements ComponentEventManager {
 
-    private Stack<ComponentEventEntry> events = new Stack<ComponentEventEntry>();
+  private ObservationManager observationManager;
 
-    private boolean shouldStack = true;
+  private Stack<ComponentEventEntry> events = new Stack<ComponentEventEntry>();
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.component.manager.ComponentEventManager#notifyComponentRegistered(ComponentDescriptor)
-     */
-    public void notifyComponentRegistered(ComponentDescriptor< ? > descriptor)
-    {
-        notifyComponentEvent(new ComponentDescriptorAddedEvent(descriptor.getRole(), descriptor.getRoleHint()),
-            descriptor);
+  private boolean shouldStack = true;
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.xwiki.component.manager.ComponentEventManager#notifyComponentRegistered(ComponentDescriptor)
+   */
+  public void notifyComponentRegistered(ComponentDescriptor<?> descriptor) {
+    notifyComponentEvent(
+        new ComponentDescriptorAddedEvent(descriptor.getRole(), descriptor.getRoleHint()),
+        descriptor);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.xwiki.component.manager.ComponentEventManager#notifyComponentUnregistered(ComponentDescriptor)
+   */
+  public void notifyComponentUnregistered(ComponentDescriptor<?> descriptor) {
+    notifyComponentEvent(
+        new ComponentDescriptorRemovedEvent(descriptor.getRole(), descriptor.getRoleHint()),
+        descriptor);
+  }
+
+  public synchronized void flushEvents() {
+    for (ComponentEventEntry entry : this.events) {
+      sendEvent(entry.event, entry.descriptor);
     }
+  }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.component.manager.ComponentEventManager#notifyComponentUnregistered(ComponentDescriptor)
-     */
-    public void notifyComponentUnregistered(ComponentDescriptor< ? > descriptor)
-    {
-        notifyComponentEvent(new ComponentDescriptorRemovedEvent(descriptor.getRole(), descriptor.getRoleHint()),
-            descriptor);
+  public void shouldStack(boolean shouldStack) {
+    this.shouldStack = shouldStack;
+  }
+
+  public void setObservationManager(ObservationManager observationManager) {
+    this.observationManager = observationManager;
+  }
+
+  private void notifyComponentEvent(Event event, ComponentDescriptor<?> descriptor) {
+    if (this.shouldStack) {
+      synchronized (this) {
+        this.events.push(new ComponentEventEntry(event, descriptor));
+      }
+    } else {
+      sendEvent(event, descriptor);
     }
+  }
 
-    public synchronized void flushEvents()
-    {
-        for (ComponentEventEntry entry : this.events) {
-            sendEvent(entry.event, entry.descriptor);
-        }
+  private void sendEvent(Event event, ComponentDescriptor<?> descriptor) {
+    if (this.observationManager != null) {
+      this.observationManager.notify(event, this, descriptor);
     }
+  }
 
-    public void shouldStack(boolean shouldStack)
-    {
-        this.shouldStack = shouldStack;
+  static class ComponentEventEntry {
+
+    public Event event;
+
+    public ComponentDescriptor<?> descriptor;
+
+    public ComponentEventEntry(Event event, ComponentDescriptor<?> descriptor) {
+      this.event = event;
+      this.descriptor = descriptor;
     }
-
-    public void setObservationManager(ObservationManager observationManager)
-    {
-        this.observationManager = observationManager;
-    }
-
-    private void notifyComponentEvent(Event event, ComponentDescriptor< ? > descriptor)
-    {
-        if (this.shouldStack) {
-            synchronized (this) {
-                this.events.push(new ComponentEventEntry(event, descriptor));
-            }
-        } else {
-            sendEvent(event, descriptor);
-        }
-    }
-
-    private void sendEvent(Event event, ComponentDescriptor< ? > descriptor)
-    {
-        if (this.observationManager != null) {
-            this.observationManager.notify(event, this, descriptor);
-        }
-    }
-
-    static class ComponentEventEntry
-    {
-        public Event event;
-
-        public ComponentDescriptor< ? > descriptor;
-
-        public ComponentEventEntry(Event event, ComponentDescriptor< ? > descriptor)
-        {
-            this.event = event;
-            this.descriptor = descriptor;
-        }
-    }
+  }
 }

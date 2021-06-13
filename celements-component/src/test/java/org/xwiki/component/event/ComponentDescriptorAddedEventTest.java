@@ -31,44 +31,39 @@ import org.xwiki.observation.event.Event;
  * @version $Id$
  * @since 2.6RC2
  */
-public class ComponentDescriptorAddedEventTest
-{
-    /**
-     * Used in tests below.
-     */
-    private static class Dummy
-    {
-    }
+public class ComponentDescriptorAddedEventTest {
 
-    @Test
-    public void testMatchesAllComponentRoles()
-    {
-        ComponentDescriptorAddedEvent event = new ComponentDescriptorAddedEvent();
-        // Note: We use any class for the test but it's supposed to be a component role class.
-        Assert.assertTrue(event.matches(new ComponentDescriptorAddedEvent(Dummy.class, "rolehint")));
-    }
+  /**
+   * Used in tests below.
+   */
+  private static class Dummy {}
 
-    @Test
-    public void testMatchesWhenDifferentEvent()
-    {
-        ComponentDescriptorAddedEvent event = new ComponentDescriptorAddedEvent();
-        Assert.assertFalse(event.matches(new Event()
-        {
-            public boolean matches(Object otherEvent)
-            {
-                return false;
-            }
-        }));
-    }
+  @Test
+  public void testMatchesAllComponentRoles() {
+    ComponentDescriptorAddedEvent event = new ComponentDescriptorAddedEvent();
+    // Note: We use any class for the test but it's supposed to be a component role class.
+    Assert.assertTrue(event.matches(new ComponentDescriptorAddedEvent(Dummy.class, "rolehint")));
+  }
 
-    @Test
-    public void testMatchesWhenSpecificRoleSpecified()
-    {
-        // Note: We use any class for the test but it's supposed to be a component role class.
-        ComponentDescriptorAddedEvent event = new ComponentDescriptorAddedEvent(Dummy.class);
-        Assert.assertTrue(event.matches(new ComponentDescriptorAddedEvent(Dummy.class, "rolehint")));
-        // Use a different class so that it doesn't match
-        Assert.assertFalse(event.matches(new ComponentDescriptorAddedEvent(ComponentDescriptorAddedEvent.class,
+  @Test
+  public void testMatchesWhenDifferentEvent() {
+    ComponentDescriptorAddedEvent event = new ComponentDescriptorAddedEvent();
+    Assert.assertFalse(event.matches(new Event() {
+
+      public boolean matches(Object otherEvent) {
+        return false;
+      }
+    }));
+  }
+
+  @Test
+  public void testMatchesWhenSpecificRoleSpecified() {
+    // Note: We use any class for the test but it's supposed to be a component role class.
+    ComponentDescriptorAddedEvent event = new ComponentDescriptorAddedEvent(Dummy.class);
+    Assert.assertTrue(event.matches(new ComponentDescriptorAddedEvent(Dummy.class, "rolehint")));
+    // Use a different class so that it doesn't match
+    Assert.assertFalse(
+        event.matches(new ComponentDescriptorAddedEvent(ComponentDescriptorAddedEvent.class,
             "rolehint")));
-    }
+  }
 }

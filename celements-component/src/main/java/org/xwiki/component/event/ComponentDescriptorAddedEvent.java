@@ -25,46 +25,46 @@ package org.xwiki.component.event;
  * @version $Id$
  * @since 2.6RC2
  */
-public class ComponentDescriptorAddedEvent extends AbstractComponentDescriptorEvent
-{
-    /**
-     * Watches all roles (whenever a component is added it'll trigger this event).
-     */
-    public ComponentDescriptorAddedEvent()
-    {
+public class ComponentDescriptorAddedEvent extends AbstractComponentDescriptorEvent {
 
+  /**
+   * Watches all roles (whenever a component is added it'll trigger this event).
+   */
+  public ComponentDescriptorAddedEvent() {
+
+  }
+
+  /**
+   * @param role
+   *          the component role to watch (all components matching this role will trigger this
+   *          event)
+   */
+  public ComponentDescriptorAddedEvent(Class<?> role) {
+    super(role);
+  }
+
+  /**
+   * @param role
+   *          the component role to watch
+   * @param roleHint
+   *          the component role hint to watch
+   */
+  public ComponentDescriptorAddedEvent(Class<?> role, String roleHint) {
+    super(role, roleHint);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see AbstractComponentDescriptorEvent#matches(java.lang.Object)
+   */
+  public boolean matches(Object otherEvent) {
+    boolean result = false;
+
+    if (ComponentDescriptorAddedEvent.class.isAssignableFrom(otherEvent.getClass())) {
+      result = super.matches(otherEvent);
     }
 
-    /**
-     * @param role the component role to watch (all components matching this role will trigger this event)
-     */
-    public ComponentDescriptorAddedEvent(Class< ? > role)
-    {
-        super(role);
-    }
-
-    /**
-     * @param role the component role to watch
-     * @param roleHint the component role hint to watch
-     */
-    public ComponentDescriptorAddedEvent(Class< ? > role, String roleHint)
-    {
-        super(role, roleHint);
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see AbstractComponentDescriptorEvent#matches(java.lang.Object)
-     */
-    public boolean matches(Object otherEvent)
-    {
-        boolean result = false;
-
-        if (ComponentDescriptorAddedEvent.class.isAssignableFrom(otherEvent.getClass())) {
-            result = super.matches(otherEvent);
-        }
-
-        return result;
-    }
+    return result;
+  }
 }

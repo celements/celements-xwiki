@@ -38,6 +38,4 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(TYPE)
 @Inherited
-public @interface ComponentRole
-{
-}
+public @interface ComponentRole {}
