@@ -14,12 +14,10 @@ import javax.annotation.concurrent.Immutable;
  * 'then' is executed for it, otherwise 'else'.
  *
  * <pre>
- * {@code
- *   stream.map(new ForkPredicate<F, T>()
- *       .when(x -> test(x))
- *       .thenDo(x -> doAccept(x))
- *       .elseDo(x -> doFail(x)))
- * }
+ * stream.map(new ForkPredicate<F, T>()
+ *     .when(x -> test(x))
+ *     .thenDo(x -> doAccept(x))
+ *     .elseDo(x -> doFail(x)))
  * </pre>
  *
  * If no 'else' is supplied or returns null, false elements will be filtered by returning
@@ -35,11 +33,15 @@ public class ForkPredicate<T> implements Predicate<T> {
   }
 
   public ForkPredicate(Predicate<T> when, Consumer<T> thenDo, Consumer<T> elseDo) {
-    this(new ForkFunction<>(when, asFunction(thenDo, t -> true)).elseFilter(elseDo));
+    this(new ForkFunction<>(when, asFunction(thenDo).andThen(t -> true)).elseFilter(elseDo));
   }
 
   public ForkPredicate(Predicate<T> when) {
     this(new ForkFunction<>(when, t -> true, t -> false));
+  }
+
+  public ForkPredicate() {
+    this(new ForkFunction<>(null, t -> true, t -> false));
   }
 
   public ForkPredicate<T> when(Predicate<T> pred) {
@@ -47,7 +49,7 @@ public class ForkPredicate<T> implements Predicate<T> {
   }
 
   public ForkPredicate<T> thenDo(Consumer<T> thenDo) {
-    return new ForkPredicate<>(delegate.thenMap(asFunction(thenDo, t -> true)));
+    return new ForkPredicate<>(delegate.thenMap(asFunction(thenDo).andThen(t -> true)));
   }
 
   public ForkPredicate<T> elseDo(Consumer<T> elseDo) {

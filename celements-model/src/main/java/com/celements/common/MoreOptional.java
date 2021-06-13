@@ -16,10 +16,8 @@ public final class MoreOptional {
    * Converts an Optional to a Stream, useful for flatmapping a stream of optionals.
    *
    * <pre>
-   * {@code
-     *     Stream<Optional<T>> streamOfOpts = ...
-     *     Stream<T> stream = streamOfOpts.flatMap(MoreOptional::stream)
-     * }
+   *   Stream<Optional<T>> streamOfOpts = ...
+   *   Stream<T> stream = streamOfOpts.flatMap(MoreOptional::stream)
    * </pre>
    *
    * Can be replaced with {@link Optional#stream()} from Java 9+.

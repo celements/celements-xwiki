@@ -21,12 +21,10 @@ import com.celements.common.MoreOptional;
  * 'then' is executed for it, otherwise 'else'.
  *
  * <pre>
- * {@code
- *   stream.map(new ForkFunction<F, T>()
- *       .when(x -> test(x))
- *       .thenMap(x -> mapAccept(x))
- *       .elseMap(x -> mapFail(x)))
- * }
+ * stream.map(new ForkFunction<F, T>()
+ *     .when(x -> test(x))
+ *     .thenMap(x -> mapAccept(x))
+ *     .elseMap(x -> mapFail(x)))
  * </pre>
  *
  * If no 'else' function is supplied or the function returns null, element for which the 'when'
@@ -75,7 +73,7 @@ public class ForkFunction<F, T> implements Function<F, Optional<T>> {
 
   @NotNull
   public ForkFunction<F, T> elseFilter(@Nullable Consumer<F> elseConsumer) {
-    return new ForkFunction<>(whenPred, thenFunc, asFunction(elseConsumer, f -> null));
+    return new ForkFunction<>(whenPred, thenFunc, asFunction(elseConsumer).andThen(f -> null));
   }
 
   @NotNull

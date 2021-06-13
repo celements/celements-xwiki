@@ -53,21 +53,8 @@ public final class MoreFunctions {
    * @return the given function as a consumer
    */
   @NotNull
-  public static <F, T> Consumer<F> asConsumer(@NotNull Function<F, T> func) {
-    return func::apply;
-  }
-
-  /**
-   * @return the given consumer as a function, the return value is defined by the mapping function.
-   */
-  @NotNull
-  public static <F, T> Function<F, T> asFunction(@Nullable Consumer<F> consumer,
-      @NotNull Function<F, T> valueMapper) {
-    checkNotNull(valueMapper);
-    return (consumer == null) ? valueMapper : f -> {
-      consumer.accept(f);
-      return valueMapper.apply(f);
-    };
+  public static <F, T> Consumer<F> asConsumer(@Nullable Function<F, T> func) {
+    return (func != null) ? func::apply : f -> {};
   }
 
   /**
@@ -75,7 +62,10 @@ public final class MoreFunctions {
    */
   @NotNull
   public static <T> Function<T, T> asFunction(@Nullable Consumer<T> consumer) {
-    return asFunction(consumer, Function.identity());
+    return (consumer != null) ? t -> {
+      consumer.accept(t);
+      return t;
+    } : t -> t;
   }
 
   /**

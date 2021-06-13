@@ -36,6 +36,11 @@ public final class MoreObjectsCel {
   /**
    * When the returned {@code Function} is passed as an argument to {@link Stream#flatMap}, the
    * result is a stream of instances of {@code targetClass}.
+   *
+   * <pre>
+   *   Stream<SourceType> streamSource = ...
+   *   Stream<TargetType> streamTarget = streamSource.flatMap(tryCast(TargetType.class))
+   * </pre>
    */
   @NotNull
   public static <F, T> Function<F, Stream<T>> tryCast(@NotNull Class<T> targetClass) {
@@ -45,25 +50,31 @@ public final class MoreObjectsCel {
   }
 
   /**
-   * @see MoreOptional#toJavaUtil(Function)
+   * @deprecated since 5.2, instead use {@link MoreOptional#toJavaUtil}
    */
+  @Deprecated
+  @NotNull
   public static <F, T> Function<F, Optional<T>> optToJavaUtil(
-      Function<F, com.google.common.base.Optional<T>> func) {
+      @NotNull Function<F, com.google.common.base.Optional<T>> func) {
     return MoreOptional.toJavaUtil(func);
   }
 
   /**
-   * @see MoreOptional#asNonBlank(String)
+   * @deprecated since 5.2, instead use {@link MoreOptional#asNonBlank}
    */
-  public static Optional<String> asOptNonBlank(String str) {
+  @Deprecated
+  @NotNull
+  public static Optional<String> asOptNonBlank(@Nullable String str) {
     return MoreOptional.asNonBlank(str);
   }
 
   /**
-   * @see MoreOptional#findFirstPresent(Supplier...)
+   * @deprecated since 5.2, instead use {@link MoreOptional#findFirstPresent(Supplier...)}
    */
+  @Deprecated
+  @NotNull
   @SafeVarargs
-  public static <T> Optional<T> findFirstPresent(Supplier<Optional<T>>... suppliers) {
+  public static <T> Optional<T> findFirstPresent(@NotNull Supplier<Optional<T>>... suppliers) {
     return MoreOptional.findFirstPresent(suppliers);
   }
 
