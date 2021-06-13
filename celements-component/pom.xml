@@ -24,12 +24,15 @@
       <artifactId>xwiki-core-shared-tests</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- This dependency introduces a cycle:
+            ->{celements-common-test, celements-xwiki-core, celements-component}
     <dependency>
       <groupId>com.celements</groupId>
       <artifactId>celements-shared-tests</artifactId>
       <version>5.0-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
+    -->
   </dependencies>
   <scm>
     <connection>scm:git:git@github.com:celements/celements-xwiki.git</connection>
