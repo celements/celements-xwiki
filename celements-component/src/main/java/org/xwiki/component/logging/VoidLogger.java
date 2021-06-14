@@ -25,7 +25,7 @@ package org.xwiki.component.logging;
  * prevent NPEs. In a component-based environment loggers are always set but when component classes
  * are used as simple Java Beans the logger needs to be set and this logger implementation can be
  * used when the user doesn't set explicitly a logger.
- * 
+ *
  * @version $Id$
  * @since 1.8RC3
  */
@@ -34,6 +34,7 @@ public class VoidLogger implements Logger {
   /**
    * {@inheritDoc} #see Logger#debug(String)
    */
+  @Override
   public void debug(String message) {
     // Don't do anything voluntarily
   }
@@ -41,6 +42,7 @@ public class VoidLogger implements Logger {
   /**
    * {@inheritDoc} #see Logger#debug(String, Throwable)
    */
+  @Override
   public void debug(String message, Throwable throwable) {
     // Don't do anything voluntarily
   }
@@ -48,6 +50,7 @@ public class VoidLogger implements Logger {
   /**
    * {@inheritDoc} #see Logger#debug(String, Object...)
    */
+  @Override
   public void debug(String message, Object... objects) {
     // Don't do anything voluntarily
   }
@@ -55,70 +58,87 @@ public class VoidLogger implements Logger {
   /**
    * {@inheritDoc} #see Logger#debug(String, Throwable, Object...)
    */
+  @Override
   public void debug(String message, Throwable throwable, Object... objects) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void error(String message) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void error(String message, Throwable throwable) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void error(String message, Object... objects) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void error(String message, Throwable throwable, Object... objects) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void info(String message) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void info(String message, Throwable throwable) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void info(String message, Object... objects) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void info(String message, Throwable throwable, Object... objects) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public boolean isDebugEnabled() {
     return false;
   }
 
+  @Override
   public boolean isErrorEnabled() {
     return false;
   }
 
+  @Override
   public boolean isInfoEnabled() {
     return false;
   }
 
+  @Override
   public boolean isWarnEnabled() {
     return false;
   }
 
+  @Override
   public void warn(String message) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void warn(String message, Throwable throwable) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void warn(String message, Object... objects) {
     // Don't do anything voluntarily
   }
 
+  @Override
   public void warn(String message, Throwable throwable, Object... objects) {
     // Don't do anything voluntarily
   }

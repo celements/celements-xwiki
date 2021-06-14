@@ -46,7 +46,7 @@ import org.xwiki.component.util.ReflectionUtils;
 /**
  * Simple implementation of {@link ComponentManager} to be used when using some XWiki modules
  * standalone.
- * 
+ *
  * @version $Id$
  * @since 2.0M1
  */
@@ -56,15 +56,15 @@ public class EmbeddableComponentManager implements ComponentManager {
 
   private ComponentManager parent;
 
-  private Map<RoleHint<?>, ComponentDescriptor<?>> descriptors = new HashMap<RoleHint<?>, ComponentDescriptor<?>>();
+  private Map<RoleHint<?>, ComponentDescriptor<?>> descriptors = new HashMap<>();
 
-  private Map<RoleHint<?>, Object> components = new ConcurrentHashMap<RoleHint<?>, Object>();
+  private Map<RoleHint<?>, Object> components = new ConcurrentHashMap<>();
 
   private Logger logger = new CommonsLoggingLogger(EmbeddableComponentManager.class);
 
   /**
    * Load all component annotations and register them as components.
-   * 
+   *
    * @param classLoader
    *          the class loader to use to look for component definitions
    */
@@ -89,48 +89,53 @@ public class EmbeddableComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#hasComponent(Class, String)
    */
+  @Override
   public <T> boolean hasComponent(Class<T> role, String roleHint) {
-    return this.descriptors.containsKey(new RoleHint<T>(role, roleHint));
+    return this.descriptors.containsKey(new RoleHint<>(role, roleHint));
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#hasComponent(Class)
    */
+  @Override
   public <T> boolean hasComponent(Class<T> role) {
-    return this.descriptors.containsKey(new RoleHint<T>(role));
+    return this.descriptors.containsKey(new RoleHint<>(role));
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#lookup(Class)
    */
+  @Override
   public <T> T lookup(Class<T> role) throws ComponentLookupException {
-    return initialize(new RoleHint<T>(role));
+    return initialize(new RoleHint<>(role));
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#lookup(Class, String)
    */
+  @Override
   public <T> T lookup(Class<T> role, String roleHint) throws ComponentLookupException {
-    return initialize(new RoleHint<T>(role, roleHint));
+    return initialize(new RoleHint<>(role, roleHint));
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#lookupList(Class)
    */
+  @Override
   @SuppressWarnings("unchecked")
   public <T> List<T> lookupList(Class<T> role) throws ComponentLookupException {
-    List<T> objects = new ArrayList<T>();
+    List<T> objects = new ArrayList<>();
     synchronized (this) {
       for (RoleHint<?> roleHint : this.descriptors.keySet()) {
         // It's possible Class reference are not the same when it's coming form different
@@ -150,12 +155,13 @@ public class EmbeddableComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#lookupMap(Class)
    */
+  @Override
   @SuppressWarnings("unchecked")
   public <T> Map<String, T> lookupMap(Class<T> role) throws ComponentLookupException {
-    Map<String, T> objects = new HashMap<String, T>();
+    Map<String, T> objects = new HashMap<>();
     synchronized (this) {
       for (RoleHint<?> roleHint : this.descriptors.keySet()) {
         // It's possible Class reference are not the same when it coming for different ClassLoader
@@ -181,9 +187,10 @@ public class EmbeddableComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#registerComponent(ComponentDescriptor)
    */
+  @Override
   public <T> void registerComponent(ComponentDescriptor<T> componentDescriptor)
       throws ComponentRepositoryException {
     registerComponent(componentDescriptor, null);
@@ -191,14 +198,15 @@ public class EmbeddableComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.xwiki.component.manager.ComponentManager#registerComponent(org.xwiki.component.descriptor.ComponentDescriptor,
    *      java.lang.Object)
    */
+  @Override
   public <T> void registerComponent(ComponentDescriptor<T> componentDescriptor,
       T componentInstance) {
     synchronized (this) {
-      RoleHint<T> roleHint = new RoleHint<T>(componentDescriptor.getRole(),
+      RoleHint<T> roleHint = new RoleHint<>(componentDescriptor.getRole(),
           componentDescriptor.getRoleHint());
 
       this.descriptors.put(roleHint, componentDescriptor);
@@ -220,10 +228,11 @@ public class EmbeddableComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.xwiki.component.manager.ComponentManager#unregisterComponent(java.lang.Class,
    *      java.lang.String)
    */
+  @Override
   @SuppressWarnings("unchecked")
   public void unregisterComponent(Class<?> role, String roleHint) {
     ComponentDescriptor<?> descriptor;
@@ -240,32 +249,34 @@ public class EmbeddableComponentManager implements ComponentManager {
     }
 
     // Send event about component unregistration
-    if (descriptor != null && this.eventManager != null) {
+    if ((descriptor != null) && (this.eventManager != null)) {
       this.eventManager.notifyComponentUnregistered(descriptor);
     }
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#getComponentDescriptor(Class, String)
    */
+  @Override
   @SuppressWarnings("unchecked")
   public <T> ComponentDescriptor<T> getComponentDescriptor(Class<T> role, String roleHint) {
     synchronized (this) {
-      return (ComponentDescriptor<T>) this.descriptors.get(new RoleHint<T>(role, roleHint));
+      return (ComponentDescriptor<T>) this.descriptors.get(new RoleHint<>(role, roleHint));
     }
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#getComponentDescriptorList(Class)
    */
+  @Override
   @SuppressWarnings("unchecked")
   public <T> List<ComponentDescriptor<T>> getComponentDescriptorList(Class<T> role) {
     synchronized (this) {
-      List<ComponentDescriptor<T>> results = new ArrayList<ComponentDescriptor<T>>();
+      List<ComponentDescriptor<T>> results = new ArrayList<>();
       for (Map.Entry<RoleHint<?>, ComponentDescriptor<?>> entry : this.descriptors.entrySet()) {
         // It's possible Class reference are not the same when it coming for different ClassLoader
         // so we
@@ -280,9 +291,10 @@ public class EmbeddableComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#release(Object)
    */
+  @Override
   public <T> void release(T component) throws ComponentLifecycleException {
     synchronized (this) {
       RoleHint<?> key = null;
@@ -302,36 +314,40 @@ public class EmbeddableComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#getComponentEventManager()
    */
+  @Override
   public ComponentEventManager getComponentEventManager() {
     return this.eventManager;
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#setComponentEventManager(ComponentEventManager)
    */
+  @Override
   public void setComponentEventManager(ComponentEventManager eventManager) {
     this.eventManager = eventManager;
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#getParent()
    */
+  @Override
   public ComponentManager getParent() {
     return this.parent;
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#setParent(ComponentManager)
    */
+  @Override
   public void setParent(ComponentManager parentComponentManager) {
     this.parent = parentComponentManager;
   }

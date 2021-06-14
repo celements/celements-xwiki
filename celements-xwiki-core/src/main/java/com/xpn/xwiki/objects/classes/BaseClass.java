@@ -64,7 +64,7 @@ import com.xpn.xwiki.web.Utils;
 /**
  * Represents an XClass, and contains XClass properties. Each field from {@link BaseCollection} is
  * of type {@link PropertyClass} and defines a single XClass property.
- * 
+ *
  * @version $Id$
  */
 public class BaseClass extends BaseCollection implements ClassInterface {
@@ -105,7 +105,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
   /**
    * {@inheritDoc} Note: This method is overridden to add the deprecation warning so that code using
    * is can see it's deprecated.
-   * 
+   *
    * @deprecated since 2.2M2 use {@link #getDocumentReference()}
    */
   @Deprecated
@@ -124,7 +124,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
   @Deprecated
   @Override
   public void setName(String name) {
-    if (this instanceof MetaClass || this instanceof PropertyMetaClass) {
+    if ((this instanceof MetaClass) || (this instanceof PropertyMetaClass)) {
       super.setName(name);
     } else if (StringUtils.isNotBlank(name) && !name.equals(getName())) {
       EntityReference ref = relativeEntityRefResolver.resolve(name, EntityType.DOCUMENT);
@@ -140,7 +140,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
    * {@inheritDoc}
    * <p>
    * This insures natural ordering between properties.
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#addField(java.lang.String,
    *      com.xpn.xwiki.objects.PropertyInterface)
    */
@@ -159,7 +159,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
   /**
    * Mark a property as disabled. A disabled property should not be editable, but existing object
    * values are still kept in the database.
-   * 
+   *
    * @param name
    *          the name of the property to disable
    * @since 2.4M2
@@ -174,7 +174,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * Re-enable a property. This field will appear again in object instances.
-   * 
+   *
    * @param name
    *          the name of the property to enable
    * @since 2.4M2
@@ -189,7 +189,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#get(java.lang.String)
    */
   @Override
@@ -199,7 +199,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#put(java.lang.String,
    *      com.xpn.xwiki.objects.PropertyInterface)
    */
@@ -211,7 +211,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
   /**
    * Get the list of enabled (the default, normal state) property definitions that exist in this
    * class. The resulting list is unmodifiable, but the contained elements are live.
-   * 
+   *
    * @return an unmodifiable list containing the enabled properties of the class
    * @see PropertyClass#isDisabled()
    * @since 2.4M2
@@ -223,10 +223,10 @@ public class BaseClass extends BaseCollection implements ClassInterface {
       return Collections.emptyList();
     }
 
-    List<PropertyClass> enabledProperties = new ArrayList<PropertyClass>(allProperties.size());
+    List<PropertyClass> enabledProperties = new ArrayList<>(allProperties.size());
 
     for (PropertyClass property : allProperties) {
-      if (property != null && !property.isDisabled()) {
+      if ((property != null) && !property.isDisabled()) {
         enabledProperties.add(property);
       }
     }
@@ -238,7 +238,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
   /**
    * Get the list of disabled property definitions that exist in this class. The resulting list is
    * unmodifiable, but the contained elements are live.
-   * 
+   *
    * @return an unmodifiable list containing the disabled properties of the class
    * @see PropertyClass#isDisabled()
    * @since 2.4M2
@@ -250,10 +250,10 @@ public class BaseClass extends BaseCollection implements ClassInterface {
       return Collections.emptyList();
     }
 
-    List<PropertyClass> disabledProperties = new ArrayList<PropertyClass>();
+    List<PropertyClass> disabledProperties = new ArrayList<>();
 
     for (PropertyClass property : allProperties) {
-      if (property != null && property.isDisabled()) {
+      if ((property != null) && property.isDisabled()) {
         disabledProperties.add(property);
       }
     }
@@ -267,7 +267,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
    * the disabled properties in a class, since the object could have been created and stored before
    * some of the class properties were added. The resulting list is unmodifiable, but the contained
    * elements are live.
-   * 
+   *
    * @param object
    *          the instance of this class where the disabled properties must exist
    * @return an unmodifiable list containing the disabled properties of the given object
@@ -280,7 +280,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
       return Collections.emptyList();
     }
 
-    List<PropertyClass> disabledObjectProperties = new ArrayList<PropertyClass>(
+    List<PropertyClass> disabledObjectProperties = new ArrayList<>(
         disabledProperties.size());
 
     for (PropertyClass property : disabledProperties) {
@@ -301,7 +301,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
    * property is a property which exists in the Object but doesn't exist anymore in the Class, or
    * which has the wrong data type. This is used for synchronization of existing or imported Objects
    * with respect to the modifications of their associated Class.
-   * 
+   *
    * @param object
    *          the instance of this class where to look for undefined properties
    * @return an unmodifiable list containing the properties of the object which don't exist in the
@@ -315,7 +315,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
       return Collections.emptyList();
     }
 
-    List<BaseProperty> deprecatedObjectProperties = new ArrayList<BaseProperty>();
+    List<BaseProperty> deprecatedObjectProperties = new ArrayList<>();
 
     for (BaseProperty property : objectProperties) {
       if (safeget(property.getName()) == null) {
@@ -402,7 +402,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#clone()
    */
   @Override
@@ -420,7 +420,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#equals(java.lang.Object)
    */
   @Override
@@ -471,7 +471,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#toXML(com.xpn.xwiki.objects.classes.BaseClass)
    */
   @Override
@@ -967,7 +967,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
     if ((custommapping1 != null) && (custommapping1.trim().length() > 0)) {
       return context.getWiki().getStore().getCustomMappingPropertyList(this);
     } else {
-      return new ArrayList<String>();
+      return new ArrayList<>();
     }
   }
 
@@ -1076,7 +1076,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
   }
 
   public String makeQuery(XWikiCriteria query) {
-    List<String> criteriaList = new ArrayList<String>();
+    List<String> criteriaList = new ArrayList<>();
     for (PropertyClass property : (Collection<PropertyClass>) getFieldList()) {
       String name = property.getName();
       Map<String, Object> map = query.getParameters(getName() + "_" + name);
@@ -1095,7 +1095,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
     select.setID(prefix + "searchcolumns");
 
     List<String> list = Arrays.asList(getPropertyNames());
-    Map<String, String> prettynamesmap = new HashMap<String, String>();
+    Map<String, String> prettynamesmap = new HashMap<>();
     for (int i = 0; i < list.size(); i++) {
       String propname = list.get(i);
       list.set(i, prefix + propname);
@@ -1105,8 +1105,8 @@ public class BaseClass extends BaseCollection implements ClassInterface {
     List<String> selectlist = query.getDisplayProperties();
 
     // Add options from Set
-    for (Iterator<String> it = list.iterator(); it.hasNext();) {
-      String value = it.next().toString();
+    for (String string : list) {
+      String value = string.toString();
       String displayValue = prettynamesmap.get(value);
       option option = new option(displayValue, displayValue);
       option.addElement(displayValue);
@@ -1127,7 +1127,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
     select.setID(prefix + "searchorder");
 
     List<String> list = Arrays.asList(getPropertyNames());
-    Map<String, String> prettynamesmap = new HashMap<String, String>();
+    Map<String, String> prettynamesmap = new HashMap<>();
     for (int i = 0; i < list.size(); i++) {
       String propname = list.get(i);
       list.set(i, prefix + propname);
@@ -1141,8 +1141,8 @@ public class BaseClass extends BaseCollection implements ClassInterface {
     }
 
     // Add options from Set
-    for (Iterator<String> it = list.iterator(); it.hasNext();) {
-      String value = it.next().toString();
+    for (String string : list) {
+      String value = string.toString();
       String displayValue = prettynamesmap.get(value);
       option option = new option(displayValue, displayValue);
       option.addElement(displayValue);
@@ -1171,8 +1171,8 @@ public class BaseClass extends BaseCollection implements ClassInterface {
   public boolean validateObject(BaseObject obj, XWikiContext context) throws XWikiException {
     boolean isValid = true;
     Object[] props = getPropertyNames();
-    for (int i = 0; i < props.length; i++) {
-      String propname = (String) props[i];
+    for (Object prop : props) {
+      String propname = (String) prop;
       BaseProperty property = (BaseProperty) obj.get(propname);
       PropertyClass propclass = (PropertyClass) get(propname);
       isValid &= propclass.validateProperty(property, context);
@@ -1202,8 +1202,8 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   public void flushCache() {
     Object[] props = getPropertyNames();
-    for (int i = 0; i < props.length; i++) {
-      String propname = (String) props[i];
+    for (Object prop : props) {
+      String propname = (String) prop;
       PropertyClass propclass = (PropertyClass) get(propname);
       if (propclass != null) {
         propclass.flushCache();
@@ -1213,12 +1213,12 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#getDiff(java.lang.Object, com.xpn.xwiki.XWikiContext)
    */
   @Override
   public List<ObjectDiff> getDiff(Object oldObject, XWikiContext context) {
-    ArrayList<ObjectDiff> difflist = new ArrayList<ObjectDiff>();
+    ArrayList<ObjectDiff> difflist = new ArrayList<>();
     BaseClass oldClass = (BaseClass) oldObject;
     for (PropertyClass newProperty : (Collection<PropertyClass>) getFieldList()) {
       String propertyName = newProperty.getName();

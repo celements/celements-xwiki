@@ -25,13 +25,13 @@ import org.dom4j.Element;
 
 public interface PropertyInterface extends ElementInterface {
 
-  public long getId();
+  long getId();
 
-  public BaseCollection getObject();
+  BaseCollection getObject();
 
-  public void setObject(BaseCollection object);
+  void setObject(BaseCollection object);
 
-  public String toFormString();
+  String toFormString();
 
-  public Element toXML();
+  Element toXML();
 }

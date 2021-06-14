@@ -28,7 +28,7 @@ import org.xwiki.component.manager.ComponentManager;
 /**
  * Create Component Manager implementation based on the Embeddable Component Manager (i.e. a simple
  * implementation of {@link ComponentManager} to be used when using some XWiki modules standalone).
- * 
+ *
  * @version $Id$
  * @since 2.1RC1
  */
@@ -44,9 +44,10 @@ public class EmbeddableComponentManagerFactory implements ComponentManagerFactor
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManagerFactory#createComponentManager(ComponentManager)
    */
+  @Override
   public ComponentManager createComponentManager(ComponentManager parentComponentManager) {
     ComponentManager cm = new EmbeddableComponentManager();
 

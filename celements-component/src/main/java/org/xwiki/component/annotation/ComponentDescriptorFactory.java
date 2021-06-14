@@ -37,7 +37,7 @@ import org.xwiki.component.util.ReflectionUtils;
 
 /**
  * Constructs a Component Descriptor out of a class definition that contains Annotations.
- * 
+ *
  * @version $Id$
  * @since 1.8.1
  * @see ComponentAnnotationLoader
@@ -48,7 +48,7 @@ public class ComponentDescriptorFactory {
    * Create component descriptors for the passed component implementation class and component role
    * class. There can be more than one descriptor if the component class has specified several
    * hints.
-   * 
+   *
    * @param componentClass
    *          the component implementation class
    * @param componentRoleClass
@@ -57,17 +57,17 @@ public class ComponentDescriptorFactory {
    */
   public List<ComponentDescriptor> createComponentDescriptors(Class<?> componentClass,
       Class<?> componentRoleClass) {
-    List<ComponentDescriptor> descriptors = new ArrayList<ComponentDescriptor>();
+    List<ComponentDescriptor> descriptors = new ArrayList<>();
 
     // If the Component annotation has several hints specified ignore the default hint value and for
     // each specified
     // hint create a Component Descriptor
     String[] hints;
     Component component = componentClass.getAnnotation(Component.class);
-    if (component != null && component.hints().length > 0) {
+    if ((component != null) && (component.hints().length > 0)) {
       hints = component.hints();
     } else {
-      if (component != null && component.value().trim().length() > 0) {
+      if ((component != null) && (component.value().trim().length() > 0)) {
         hints = new String[] { component.value().trim() };
       } else {
         hints = new String[] { "default" };
@@ -85,7 +85,7 @@ public class ComponentDescriptorFactory {
   /**
    * Create a component descriptor for the passed component implementation class, hint and component
    * role class.
-   * 
+   *
    * @param componentClass
    *          the component implementation class
    * @param hint
@@ -163,7 +163,7 @@ public class ComponentDescriptorFactory {
 
   /**
    * Extract component role frol the field to inject.
-   * 
+   *
    * @param field
    *          the field to inject
    * @param requirement
@@ -192,7 +192,7 @@ public class ComponentDescriptorFactory {
 
   /**
    * Extract generic type from the list field.
-   * 
+   *
    * @param field
    *          the list field to inject
    * @return the role of the components in the list
@@ -203,7 +203,7 @@ public class ComponentDescriptorFactory {
     if (type instanceof ParameterizedType) {
       ParameterizedType pType = (ParameterizedType) type;
       Type[] types = pType.getActualTypeArguments();
-      if (types.length > 0 && types[types.length - 1] instanceof Class) {
+      if ((types.length > 0) && (types[types.length - 1] instanceof Class)) {
         return (Class) types[types.length - 1];
       }
     }

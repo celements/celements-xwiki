@@ -22,7 +22,7 @@ package org.xwiki.component.descriptor;
 
 /**
  * Default implementation of {@link ComponentDependency}.
- * 
+ *
  * @version $Id$
  * @since 1.7M1
  */
@@ -35,10 +35,12 @@ public class DefaultComponentDependency<T> extends DefaultComponentRole<T>
 
   private String[] hints;
 
+  @Override
   public Class<?> getMappingType() {
     return this.mappingType;
   }
 
+  @Override
   public String getName() {
     return this.name;
   }
@@ -55,6 +57,7 @@ public class DefaultComponentDependency<T> extends DefaultComponentRole<T>
     this.hints = hints;
   }
 
+  @Override
   public String[] getHints() {
     return this.hints;
   }

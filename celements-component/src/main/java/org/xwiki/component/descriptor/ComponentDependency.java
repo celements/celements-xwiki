@@ -22,7 +22,7 @@ package org.xwiki.component.descriptor;
 
 /**
  * Represents a component dependency.
- * 
+ *
  * @version $Id$
  * @since 1.7M1
  */

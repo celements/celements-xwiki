@@ -23,9 +23,9 @@ package org.xwiki.component.annotation;
 import java.util.Set;
 
 import org.hamcrest.Description;
+import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.hamcrest.Factory;
 import org.hamcrest.core.IsNot;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -37,7 +37,7 @@ import org.xwiki.component.manager.ComponentManager;
 
 /**
  * Unit tests for {@link ComponentAnnotationLoader}.
- * 
+ *
  * @version $Id$
  * @since 1.8.1
  */
@@ -84,6 +84,7 @@ public class ComponentAnnotationLoaderTest {
       return item.getImplementation().equals(this.implementation);
     }
 
+    @Override
     public void describeTo(Description description) {
       description.appendText("a ComponentDescriptor with implementation ")
           .appendValue(this.implementation);
@@ -114,7 +115,7 @@ public class ComponentAnnotationLoaderTest {
 
       {
         allowing(mockManager).registerComponent(
-            with(new IsNot<ComponentDescriptor>(
+            with(new IsNot<>(
                 aComponentDescriptorWithImplementation(SimpleRole.class))));
       }
     });

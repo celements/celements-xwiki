@@ -32,13 +32,13 @@ import org.xwiki.component.manager.ComponentManager;
 
 /**
  * Unit tests for {@link EmbeddableComponentManager}.
- * 
+ *
  * @version $Id$
  * @since 2.0M1
  */
 public class EmbeddableComponentManagerTest {
 
-  public static interface Role {}
+  public interface Role {}
 
   public static class RoleImpl implements Role {}
 
@@ -48,12 +48,12 @@ public class EmbeddableComponentManagerTest {
   public void testGetComponentDescriptorList() throws Exception {
     EmbeddableComponentManager ecm = new EmbeddableComponentManager();
 
-    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<>();
     d1.setRole(Role.class);
     d1.setRoleHint("hint1");
     ecm.registerComponent(d1);
 
-    DefaultComponentDescriptor<Role> d2 = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> d2 = new DefaultComponentDescriptor<>();
     d2.setRole(Role.class);
     d2.setRoleHint("hint2");
     ecm.registerComponent(d2);
@@ -68,7 +68,7 @@ public class EmbeddableComponentManagerTest {
   public void testRegisterComponentOverExistingOne() throws Exception {
     EmbeddableComponentManager ecm = new EmbeddableComponentManager();
 
-    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<>();
     d1.setRole(Role.class);
     d1.setImplementation(RoleImpl.class);
     ecm.registerComponent(d1);
@@ -76,7 +76,7 @@ public class EmbeddableComponentManagerTest {
     Object instance = ecm.lookup(Role.class);
     Assert.assertSame(RoleImpl.class, instance.getClass());
 
-    DefaultComponentDescriptor<Role> d2 = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> d2 = new DefaultComponentDescriptor<>();
     d2.setRole(Role.class);
     d2.setImplementation(OtherRoleImpl.class);
     ecm.registerComponent(d2);
@@ -89,7 +89,7 @@ public class EmbeddableComponentManagerTest {
   public void testRegisterComponentInstance() throws Exception {
     EmbeddableComponentManager ecm = new EmbeddableComponentManager();
 
-    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<>();
     d1.setRole(Role.class);
     d1.setImplementation(RoleImpl.class);
     Role instance = new RoleImpl();
@@ -102,7 +102,7 @@ public class EmbeddableComponentManagerTest {
   public void testUnregisterComponent() throws Exception {
     EmbeddableComponentManager ecm = new EmbeddableComponentManager();
 
-    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<>();
     d1.setRole(Role.class);
     d1.setImplementation(RoleImpl.class);
     ecm.registerComponent(d1);
@@ -137,14 +137,14 @@ public class EmbeddableComponentManagerTest {
     ecm.setParent(createParentComponentManager());
 
     // Register a component with the same Role and Hint as in the parent
-    DefaultComponentDescriptor<Role> cd1 = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> cd1 = new DefaultComponentDescriptor<>();
     cd1.setRole(Role.class);
     cd1.setImplementation(RoleImpl.class);
     Role roleImpl = new RoleImpl();
     ecm.registerComponent(cd1, roleImpl);
 
     // Register a component with the same Role as in the parent but with a different hint
-    DefaultComponentDescriptor<Role> cd2 = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> cd2 = new DefaultComponentDescriptor<>();
     cd2.setRole(Role.class);
     cd2.setRoleHint("hint");
     cd2.setImplementation(RoleImpl.class);
@@ -162,7 +162,7 @@ public class EmbeddableComponentManagerTest {
 
   private ComponentManager createParentComponentManager() throws Exception {
     EmbeddableComponentManager parent = new EmbeddableComponentManager();
-    DefaultComponentDescriptor<Role> cd = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> cd = new DefaultComponentDescriptor<>();
     cd.setRole(Role.class);
     cd.setImplementation(RoleImpl.class);
     parent.registerComponent(cd);
@@ -173,7 +173,7 @@ public class EmbeddableComponentManagerTest {
   public void testHasComponent() throws Exception {
     EmbeddableComponentManager ecm = new EmbeddableComponentManager();
 
-    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> d1 = new DefaultComponentDescriptor<>();
     d1.setRole(Role.class);
     d1.setRoleHint("default");
     ecm.registerComponent(d1);

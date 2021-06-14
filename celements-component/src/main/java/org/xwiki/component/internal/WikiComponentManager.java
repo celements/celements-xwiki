@@ -30,7 +30,7 @@ import org.xwiki.component.phase.InitializationException;
  * Proxy Component Manager that creates and queries individual Component Managers specific to the
  * current wiki in the Execution Context. These Component Managers are created on the fly the first
  * time a component is registered for the current wiki.
- * 
+ *
  * @version $Id$
  * @since 2.1RC1
  */
@@ -52,9 +52,10 @@ public class WikiComponentManager extends AbstractGenericComponentManager implem
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see Initializable#initialize()
    */
+  @Override
   public void initialize() throws InitializationException {
     // Set the parent to the Root Component Manager since if a component isn't found for a
     // particular wiki
@@ -64,7 +65,7 @@ public class WikiComponentManager extends AbstractGenericComponentManager implem
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see AbstractGenericComponentManager#getKey()
    */
   @Override

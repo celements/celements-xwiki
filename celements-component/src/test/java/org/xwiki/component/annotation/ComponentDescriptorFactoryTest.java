@@ -33,7 +33,7 @@ import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 
 /**
  * Unit tests for {@link ComponentDescriptorFactory}.
- * 
+ *
  * @version $Id$
  * @since 1.8.1
  */

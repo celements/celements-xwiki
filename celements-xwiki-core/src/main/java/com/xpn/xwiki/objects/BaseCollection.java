@@ -62,7 +62,7 @@ import com.xpn.xwiki.web.Utils;
  * <li>an XObject definition (composed of XObject properties)</li>
  * <li>an XWikiStats object (composed of stats properties)</li>
  * </ul>
- * 
+ *
  * @version $Id$
  */
 public abstract class BaseCollection extends BaseElement implements ObjectInterface, Cloneable {
@@ -93,7 +93,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
   /**
    * List of properties (eg XClass properties, XObject properties, etc).
    */
-  protected Map<String, Object> fields = new LinkedHashMap<String, Object>();
+  protected Map<String, Object> fields = new LinkedHashMap<>();
 
   protected List fieldsToRemove = new ArrayList();
 
@@ -128,7 +128,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see java.lang.Object#hashCode()
    */
   @Override
@@ -154,7 +154,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
   public DocumentReference getXClassReference() {
     // Ensure we always return an absolute references since we always want well-constructed to
     // be used from outside this class.
-    if (this.xClassDocRefCache == null && getRelativeXClassReference() != null) {
+    if ((this.xClassDocRefCache == null) && (getRelativeXClassReference() != null)) {
       this.xClassDocRefCache = this.currentReferenceDocumentReferenceResolver
           .resolve(getRelativeXClassReference(), getDocumentReference());
     }
@@ -171,7 +171,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
   /**
    * Note that this method cannot be removed for now since it's used by Hibernate for saving an
    * XObject.
-   * 
+   *
    * @deprecated since 2.2M2 use {@link #getXClassReference()} instead
    */
   @Deprecated
@@ -212,7 +212,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
   /**
    * Note that this method cannot be removed for now since it's used by Hibernate for loading an
    * XObject.
-   * 
+   *
    * @deprecated since 2.2.3 use {@link #setXClassReference(EntityReference)} ()} instead
    */
   @Deprecated
@@ -233,28 +233,31 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.ObjectInterface#safeget(java.lang.String)
    */
+  @Override
   public PropertyInterface safeget(String name) {
     return (PropertyInterface) getFields().get(name);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.ObjectInterface#get(java.lang.String)
    */
+  @Override
   public PropertyInterface get(String name) throws XWikiException {
     return safeget(name);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.ObjectInterface#safeput(java.lang.String,
    *      com.xpn.xwiki.objects.PropertyInterface)
    */
+  @Override
   public void safeput(String name, PropertyInterface property) {
     addField(name, property);
     if (property instanceof BaseProperty) {
@@ -265,10 +268,11 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.ObjectInterface#put(java.lang.String,
    *      com.xpn.xwiki.objects.PropertyInterface)
    */
+  @Override
   public void put(String name, PropertyInterface property) throws XWikiException {
     safeput(name, property);
   }
@@ -298,10 +302,11 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.ObjectInterface#getxWikiClass(com.xpn.xwiki.XWikiContext)
    * @deprecated since 2.2M1 use {@link #getXClass(com.xpn.xwiki.XWikiContext)}
    */
+  @Override
   @Deprecated
   public BaseClass getxWikiClass(XWikiContext context) {
     return getXClass(context);
@@ -309,7 +314,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   public String getStringValue(String name) {
     BaseProperty prop = (BaseProperty) safeget(name);
-    if (prop == null || prop.getValue() == null) {
+    if ((prop == null) || (prop.getValue() == null)) {
       return "";
     } else {
       return prop.getValue().toString();
@@ -447,7 +452,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
   public Set<?> getSetValue(String name) {
     ListProperty prop = (ListProperty) safeget(name);
     if (prop == null) {
-      return new HashSet<Object>();
+      return new HashSet<>();
     } else {
       return new HashSet<Object>((Collection<?>) prop.getValue());
     }
@@ -554,7 +559,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseElement#equals(java.lang.Object)
    */
   @Override
@@ -596,6 +601,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
     return clone(true);
   }
 
+  @Override
   protected BaseCollection clone(boolean keepsIdentity) {
     BaseCollection clone = (BaseCollection) super.clone(keepsIdentity);
     clone.setXClassReference(getRelativeXClassReference());
@@ -623,7 +629,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
   }
 
   public List<ObjectDiff> getDiff(Object oldObject, XWikiContext context) {
-    ArrayList<ObjectDiff> difflist = new ArrayList<ObjectDiff>();
+    ArrayList<ObjectDiff> difflist = new ArrayList<>();
     BaseCollection oldCollection = (BaseCollection) oldObject;
     // Iterate over the new properties first, to handle changed and added objects
     for (Object key : this.getFields().keySet()) {
@@ -717,9 +723,10 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.ObjectInterface#toXML(com.xpn.xwiki.objects.classes.BaseClass)
    */
+  @Override
   public abstract Element toXML(BaseClass bclass);
 
   public String toXMLString() {
@@ -751,7 +758,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
    * @since 2.4M2
    */
   public Map<String, Object> getCustomMappingMap() throws XWikiException {
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new HashMap<>();
     for (String name : this.fields.keySet()) {
       BaseProperty property = (BaseProperty) get(name);
       map.put(name, property.getCustomMappingValue());
@@ -763,7 +770,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see BaseElement#setDocumentReference(org.xwiki.model.reference.DocumentReference)
    * @since 2.2.3
    */
@@ -779,7 +786,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see BaseElement#setWiki(String)
    * @since 2.2.3
    */
@@ -796,7 +803,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see BaseElement#setName(String)
    * @since 2.2.3
    */

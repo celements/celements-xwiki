@@ -23,7 +23,7 @@ package org.xwiki.component.manager;
 /**
  * Raised during component's release (see {@link ComponentManager#release(Object)}) if an error
  * happens during the end lifecycle execution (during component's destroy for example).
- * 
+ *
  * @version $Id$
  */
 public class ComponentLifecycleException extends Exception {

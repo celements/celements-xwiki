@@ -19,10 +19,6 @@
  */
 package com.xpn.xwiki.test;
 
-import com.xpn.xwiki.CoreConfiguration;
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.util.XWikiStubContextProvider;
-import com.xpn.xwiki.web.Utils;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -33,6 +29,11 @@ import org.xwiki.container.Container;
 import org.xwiki.context.Execution;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.test.AbstractComponentTestCase;
+
+import com.xpn.xwiki.CoreConfiguration;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.util.XWikiStubContextProvider;
+import com.xpn.xwiki.web.Utils;
 
 /**
  * Same as {@link com.xpn.xwiki.test.AbstractBridgedXWikiComponentTestCase} but for JUnit 4.x and
@@ -53,6 +54,7 @@ public class AbstractBridgedComponentTestCase extends AbstractComponentTestCase 
     }
   };
 
+  @Override
   @Before
   public void setUp() throws Exception {
     super.setUp();
@@ -88,6 +90,7 @@ public class AbstractBridgedComponentTestCase extends AbstractComponentTestCase 
     });
   }
 
+  @Override
   @After
   public void tearDown() throws Exception {
     Utils.setComponentManager(null);
@@ -98,6 +101,7 @@ public class AbstractBridgedComponentTestCase extends AbstractComponentTestCase 
     return this.context;
   }
 
+  @Override
   public Mockery getMockery() {
     return this.mockery;
   }

@@ -27,7 +27,7 @@ import org.xwiki.component.descriptor.ComponentDescriptor;
  * that implementations use the Observation module to send the events. We're introducing this level
  * of indirection in order to be able to perform some processing before the events are fired. For
  * example one implementation may want to stack the events before sending them.
- * 
+ *
  * @version $Id$
  * @since 2.0M1
  */
@@ -35,7 +35,7 @@ public interface ComponentEventManager {
 
   /**
    * Notify all listeners that a component with the passed descriptor has been registered.
-   * 
+   *
    * @param descriptor
    *          the descriptor for the instantiated component
    * @since 2.0M2
@@ -44,7 +44,7 @@ public interface ComponentEventManager {
 
   /**
    * Notify all listeners that a component with the passed descriptor has been unregistered.
-   * 
+   *
    * @param descriptor
    *          the descriptor for the instantiated component
    * @since 2.0M2

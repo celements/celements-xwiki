@@ -24,14 +24,14 @@ package org.xwiki.component.logging;
  * Logger component, used for logging messages. Classes that want to log should <em>not</em> declare
  * a dependency on this component, but implement the {@link org.xwiki.component.phase.LogEnabled}
  * interface. A quick way to enable logging is to extend {@link AbstractLogEnabled}.
- * 
+ *
  * @version $Id$
  */
 public interface Logger {
 
   /**
    * Log a message with the <code>debug</code> priority.
-   * 
+   *
    * @param message
    *          The message to be logged. No further processing of the message is performed.
    */
@@ -40,7 +40,7 @@ public interface Logger {
   /**
    * Log a message with the <code>debug</code> priority, also printing the exception that caused
    * this message, along with its stack trace.
-   * 
+   *
    * @param message
    *          The message to be logged. No further processing of the message is performed.
    * @param throwable
@@ -63,7 +63,7 @@ public interface Logger {
    * <p>
    * The logged message will only be formatted if the message is actually logged.
    * </p>
-   * 
+   *
    * @param message
    *          The message to be formatted via {@link java.text.MessageFormat#format()}
    * @param objects
@@ -87,7 +87,7 @@ public interface Logger {
    * <p>
    * The logged message will only be assembled if the message is actually logged.
    * </p>
-   * 
+   *
    * @param message
    *          The message to be formatted via {@link java.text.MessageFormat#format()}
    * @param throwable
@@ -100,7 +100,7 @@ public interface Logger {
 
   /**
    * Check if the <code>debug</code> priority is enabled.
-   * 
+   *
    * @return <code>true</code> if messages with <code>debug</code> priority will be logged,
    *         <code>false</code> otherwise
    */
@@ -108,7 +108,7 @@ public interface Logger {
 
   /**
    * Log a message with the <code>info</code> priority.
-   * 
+   *
    * @param message
    *          The message to be logged. No further processing of the message is performed.
    */
@@ -117,7 +117,7 @@ public interface Logger {
   /**
    * Log a message with the <code>info</code> priority, also printing the exception that caused this
    * message, along with its stack trace.
-   * 
+   *
    * @param message
    *          The message to be logged. No further processing of the message is performed.
    * @param throwable
@@ -141,7 +141,7 @@ public interface Logger {
    * <p>
    * The logged message will only be assembled if the message is actually logged.
    * </p>
-   * 
+   *
    * @param message
    *          The message to be formatted via {@link java.text.MessageFormat#format()}
    * @param objects
@@ -165,7 +165,7 @@ public interface Logger {
    * <p>
    * The logged message will only be assembled if the message is actually logged.
    * </p>
-   * 
+   *
    * @param message
    *          The message to be formatted via {@link java.text.MessageFormat#format()}
    * @param throwable
@@ -178,7 +178,7 @@ public interface Logger {
 
   /**
    * Check if the <code>info</code> priority is enabled.
-   * 
+   *
    * @return <code>true</code> if messages with <code>info</code> priority will be logged,
    *         <code>false</code> otherwise
    */
@@ -186,7 +186,7 @@ public interface Logger {
 
   /**
    * Log a message with the <code>warn</code> priority.
-   * 
+   *
    * @param message
    *          The message to be logged. No further processing of the message is performed.
    */
@@ -195,7 +195,7 @@ public interface Logger {
   /**
    * Log a message with the <code>warn</code> priority, also printing the exception that caused this
    * message, along with its stack trace.
-   * 
+   *
    * @param message
    *          The message to be logged. No further processing of the message is performed.
    * @param throwable
@@ -218,7 +218,7 @@ public interface Logger {
    * <p>
    * The logged message will only be assembled if the message is actually logged.
    * </p>
-   * 
+   *
    * @param message
    *          The message to be formatted via {@link java.text.MessageFormat#format()}
    * @param objects
@@ -242,7 +242,7 @@ public interface Logger {
    * <p>
    * The logged message will only be assembled if the message is actually logged.
    * </p>
-   * 
+   *
    * @param message
    *          The message to be formatted via {@link java.text.MessageFormat#format()}
    * @param throwable
@@ -255,7 +255,7 @@ public interface Logger {
 
   /**
    * Check if the <code>warn</code> priority is enabled.
-   * 
+   *
    * @return <code>true</code> if messages with <code>warn</code> priority will be logged,
    *         <code>false</code> otherwise
    */
@@ -263,7 +263,7 @@ public interface Logger {
 
   /**
    * Log a message with the <code>error</code> priority.
-   * 
+   *
    * @param message
    *          The message to be logged. No further processing of the message is performed.
    */
@@ -272,7 +272,7 @@ public interface Logger {
   /**
    * Log a message with the <code>error</code> priority, also printing the exception that caused
    * this message, along with its stack trace.
-   * 
+   *
    * @param message
    *          The message to be logged. No further processing of the message is performed.
    * @param throwable
@@ -295,7 +295,7 @@ public interface Logger {
    * <p>
    * The logged message will only be assembled if the message is actually logged.
    * </p>
-   * 
+   *
    * @param message
    *          The message to be formatted via {@link java.text.MessageFormat#format()}
    * @param objects
@@ -319,7 +319,7 @@ public interface Logger {
    * <p>
    * The logged message will only be assembled if the message is actually logged.
    * </p>
-   * 
+   *
    * @param message
    *          The message to be formatted via {@link java.text.MessageFormat#format()}
    * @param throwable
@@ -332,7 +332,7 @@ public interface Logger {
 
   /**
    * Check if the <code>error</code> priority is enabled.
-   * 
+   *
    * @return <code>true</code> if messages with <code>error</code> priority will be logged,
    *         <code>false</code> otherwise
    */

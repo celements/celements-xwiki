@@ -113,9 +113,10 @@ public abstract class BaseElement implements ElementInterface, Serializable {
    * @see com.xpn.xwiki.objects.ElementInterface#getDocumentReference()
    * @since 2.2M2
    */
+  @Override
   public DocumentReference getDocumentReference() {
     // Object using name without setting a reference are not allowed to retrieve the reference
-    if (this.reference == null && this.name != null) {
+    if ((this.reference == null) && (this.name != null)) {
       throw new IllegalStateException(
           "BaseElement#getDocumentReference could not be called when a non-reference Name has been set.");
     }
@@ -128,9 +129,10 @@ public abstract class BaseElement implements ElementInterface, Serializable {
    *
    * @see com.xpn.xwiki.objects.ElementInterface#getName()
    */
+  @Override
   public String getName() {
     // If the name is null then serialize the reference as a string.
-    if (this.name == null && this.reference != null) {
+    if ((this.name == null) && (this.reference != null)) {
       this.name = this.localEntityReferenceSerializer.serialize(this.reference);
     }
 
@@ -143,6 +145,7 @@ public abstract class BaseElement implements ElementInterface, Serializable {
    * @see com.xpn.xwiki.objects.ElementInterface#setDocumentReference(DocumentReference)
    * @since 2.2M2
    */
+  @Override
   public void setDocumentReference(DocumentReference reference) {
     // If the name is already set then reset it since we're now using a reference
     this.reference = cloneDocRef(reference);
@@ -154,6 +157,7 @@ public abstract class BaseElement implements ElementInterface, Serializable {
    *
    * @see com.xpn.xwiki.objects.ElementInterface#setName(java.lang.String)
    */
+  @Override
   public void setName(String name) {
     // If a reference is already set, then you cannot set a name
     if (this.reference != null) {
@@ -191,7 +195,7 @@ public abstract class BaseElement implements ElementInterface, Serializable {
   @Deprecated
   public void setWiki(String wiki) {
     // Object using name without setting a reference are not allowed to set a wiki reference
-    if (this.reference == null && this.name != null) {
+    if ((this.reference == null) && (this.name != null)) {
       throw new IllegalStateException(
           "BaseElement#setWiki could not be called when a non-reference Name has been set.");
     }
@@ -224,7 +228,7 @@ public abstract class BaseElement implements ElementInterface, Serializable {
       return true;
     }
 
-    if (el == null || !(el.getClass().equals(this.getClass()))) {
+    if ((el == null) || !(el.getClass().equals(this.getClass()))) {
       return false;
     }
 

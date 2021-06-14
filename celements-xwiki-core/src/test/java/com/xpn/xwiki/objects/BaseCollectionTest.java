@@ -20,17 +20,17 @@
  */
 package com.xpn.xwiki.objects;
 
-import junit.framework.Assert;
-
 import org.dom4j.Element;
 import org.junit.Test;
 
 import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xpn.xwiki.test.AbstractBridgedComponentTestCase;
 
+import junit.framework.Assert;
+
 /**
  * Unit tests for the {@link BaseCollection} class.
- * 
+ *
  * @version $Id$
  */
 public class BaseCollectionTest extends AbstractBridgedComponentTestCase {

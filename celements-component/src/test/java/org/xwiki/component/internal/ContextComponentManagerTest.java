@@ -19,8 +19,6 @@
  */
 package org.xwiki.component.internal;
 
-import junit.framework.Assert;
-
 import org.jmock.Expectations;
 import org.jmock.States;
 import org.junit.Test;
@@ -30,11 +28,13 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.test.AbstractComponentTestCase;
 
+import junit.framework.Assert;
+
 /**
  * Unit tests for {@link ContextComponentManager} which indirectly test
  * {@link org.xwiki.component.internal.WikiComponentManager} and
  * {@link org.xwiki.component.internal.UserComponentManager} (and their ancillary classes).
- * 
+ *
  * @version $Id$
  * @since 2.1RC1
  */
@@ -45,13 +45,13 @@ public class ContextComponentManagerTest extends AbstractComponentTestCase {
    */
   private DocumentAccessBridge mockDocumentAccessBridge;
 
-  public static interface Role {}
+  public interface Role {}
 
   public static class RoleImpl implements Role {}
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see AbstractComponentTestCase#registerComponents()
    */
   @Override
@@ -76,7 +76,7 @@ public class ContextComponentManagerTest extends AbstractComponentTestCase {
     });
 
     ComponentManager userCM = getComponentManager().lookup(ComponentManager.class, "user");
-    DefaultComponentDescriptor<Role> cd = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> cd = new DefaultComponentDescriptor<>();
     cd.setRole(Role.class);
     cd.setImplementation(RoleImpl.class);
 
@@ -125,7 +125,7 @@ public class ContextComponentManagerTest extends AbstractComponentTestCase {
 
     // Register in the current wiki.
     ComponentManager wikiCM = getComponentManager().lookup(ComponentManager.class, "wiki");
-    DefaultComponentDescriptor<Role> cd = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> cd = new DefaultComponentDescriptor<>();
     cd.setRole(Role.class);
     cd.setImplementation(RoleImpl.class);
     wikiCM.registerComponent(cd);
@@ -170,7 +170,7 @@ public class ContextComponentManagerTest extends AbstractComponentTestCase {
     });
 
     // Register in the current wiki.
-    DefaultComponentDescriptor<Role> cd = new DefaultComponentDescriptor<Role>();
+    DefaultComponentDescriptor<Role> cd = new DefaultComponentDescriptor<>();
     cd.setRole(Role.class);
     cd.setImplementation(RoleImpl.class);
     getComponentManager().registerComponent(cd);

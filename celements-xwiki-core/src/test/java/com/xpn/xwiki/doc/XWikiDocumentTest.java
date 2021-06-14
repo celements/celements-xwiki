@@ -56,7 +56,7 @@ import com.xpn.xwiki.web.XWikiMessageTool;
 
 /**
  * Unit tests for {@link XWikiDocument}.
- * 
+ *
  * @version $Id$
  */
 public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase {
@@ -347,7 +347,7 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase {
   public void testObjectGuidsAfterDocumentCopy() throws Exception {
     assertTrue(this.document.getXObjects().size() > 0);
 
-    List<String> originalGuids = new ArrayList<String>();
+    List<String> originalGuids = new ArrayList<>();
     for (Map.Entry<DocumentReference, List<BaseObject>> entry : this.document.getXObjects()
         .entrySet()) {
       for (BaseObject baseObject : entry.getValue()) {
@@ -537,8 +537,8 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase {
 
     Set<String> linkedPages = this.document.getUniqueLinkedPages(getContext());
 
-    assertEquals(new HashSet<String>(Arrays.asList("TargetPage", "TargetSpace.TargetPage")),
-        new HashSet<String>(
+    assertEquals(new HashSet<>(Arrays.asList("TargetPage", "TargetSpace.TargetPage")),
+        new HashSet<>(
             linkedPages));
   }
 
@@ -554,7 +554,7 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase {
     Set<String> linkedPages = this.document.getUniqueLinkedPages(getContext());
 
     assertEquals(
-        new LinkedHashSet<String>(Arrays.asList("Space.TargetPage", "TargetSpace.TargetPage",
+        new LinkedHashSet<>(Arrays.asList("Space.TargetPage", "TargetSpace.TargetPage",
             "targetwiki:TargetSpace.TargetPage")),
         linkedPages);
   }
@@ -1228,7 +1228,7 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase {
    * cloned into and that GUID fors merged objects are different from the original GUIDs.
    */
   public void testMergeObjectsHaveCorrectReferenceAndDifferentGuids() {
-    List<String> originalGuids = new ArrayList<String>();
+    List<String> originalGuids = new ArrayList<>();
     for (Map.Entry<DocumentReference, List<BaseObject>> entry : this.document.getXObjects()
         .entrySet()) {
       for (BaseObject baseObject : entry.getValue()) {

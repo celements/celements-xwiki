@@ -2594,7 +2594,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       String accept = context.getRequest().getHeader("Accept-Language");
       if ((accept != null) && (!accept.equals(""))) {
         String[] alist = StringUtils.split(accept, ",;-");
-        if ((alist != null) && !(alist.length == 0)) {
+        if ((alist != null) && (alist.length != 0)) {
           context.setLanguage(alist[0]);
           navigatorLanguage = alist[0];
         }
@@ -2680,7 +2680,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       String accept = context.getRequest().getHeader("Accept-Language");
       if ((accept != null) && (!accept.equals(""))) {
         String[] alist = StringUtils.split(accept, ",;-");
-        if ((alist != null) && !(alist.length == 0)) {
+        if ((alist != null) && (alist.length != 0)) {
           context.setLanguage(alist[0]);
           navigatorLanguage = alist[0];
         }
@@ -2840,8 +2840,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     // Make sure we call all classes flushCache function
     try {
       List<String> classes = getClassList(context);
-      for (int i = 0; i < classes.size(); i++) {
-        String className = classes.get(i);
+      for (String className : classes) {
         try {
           getClass(className, context).flushCache();
         } catch (Exception e) {}
@@ -3593,8 +3592,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       mailSenderClass = Class.forName("com.xpn.xwiki.plugin.mailsender.MailSenderPluginApi");
 
       // public int sendRawMessage(String from, String to, String rawMessage)
-      mailSenderSendRaw = mailSenderClass.getMethod("sendRawMessage", new Class[] { String.class,
-          String.class, String.class });
+      mailSenderSendRaw = mailSenderClass.getMethod("sendRawMessage", String.class, String.class,
+          String.class);
     } catch (Exception e) {
       LOG.error("Problem getting MailSender via Reflection. Using the old sendMessage mechanism.",
           e);
@@ -4603,7 +4602,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       }
 
       // User is not active
-      if (!(userdoc.getIntValue("XWiki.XWikiUsers", "active") == 1)) {
+      if ((userdoc.getIntValue("XWiki.XWikiUsers", "active") != 1)) {
         if (LOG.isErrorEnabled()) {
           LOG.error("Wiki creation (" + wikiName + "," + wikiUrl + "," + wikiAdmin + ") failed: "
               + "user is not active");
@@ -5343,9 +5342,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
               }
               factoryService = (XWikiURLFactoryService) Class.forName(
                   urlFactoryServiceClass).getConstructor(
-                      new Class<?>[] {
-                          XWiki.class })
-                  .newInstance(new Object[] { this });
+                      XWiki.class)
+                  .newInstance(this);
             } catch (Exception e) {
               factoryService = null;
               LOG.warn("Failed to initialize URLFactory Service [" + urlFactoryServiceClass + "]",
@@ -6050,8 +6048,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     try {
       // refreshes all Links of each doc of the wiki
       List<String> docs = getStore().getQueryManager().getNamedQuery("getAllDocuments").execute();
-      for (int i = 0; i < docs.size(); i++) {
-        XWikiDocument myDoc = this.getDocument(docs.get(i), context);
+      for (String doc : docs) {
+        XWikiDocument myDoc = this.getDocument(doc, context);
         myDoc.getStore().saveLinks(myDoc, context, true);
       }
     } catch (QueryException ex) {

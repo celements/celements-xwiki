@@ -22,7 +22,6 @@
 package com.xpn.xwiki.stats.impl;
 
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.dom4j.Element;
@@ -38,14 +37,14 @@ import com.xpn.xwiki.stats.impl.StatsUtil.PeriodType;
 
 /**
  * Base class for all stored statistics object.
- * 
+ *
  * @version $Id$
  */
 public class XWikiStats extends BaseCollection {
 
   /**
    * The properties of statistics object.
-   * 
+   *
    * @version $Id$
    */
   public enum Property {
@@ -139,7 +138,7 @@ public class XWikiStats extends BaseCollection {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#hashCode()
    */
   @Override
@@ -149,7 +148,7 @@ public class XWikiStats extends BaseCollection {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#clone()
    */
   @Override
@@ -160,7 +159,7 @@ public class XWikiStats extends BaseCollection {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#equals(java.lang.Object)
    */
   @Override
@@ -183,7 +182,7 @@ public class XWikiStats extends BaseCollection {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#toXML(com.xpn.xwiki.objects.classes.BaseClass)
    */
   @Override
@@ -209,9 +208,9 @@ public class XWikiStats extends BaseCollection {
     el.addText(getClassName());
     oel.add(el);
 
-    for (Iterator<?> it = getFieldList().iterator(); it.hasNext();) {
+    for (Object name : getFieldList()) {
       Element pel = new DOMElement(XMLNODE_PROPERTY);
-      PropertyInterface bprop = (PropertyInterface) it.next();
+      PropertyInterface bprop = (PropertyInterface) name;
       pel.add(bprop.toXML());
       oel.add(pel);
     }
@@ -221,7 +220,7 @@ public class XWikiStats extends BaseCollection {
 
   /**
    * Initialize statistics object from XML schema.
-   * 
+   *
    * @param oel
    *          the XML root node containing statistics datas.
    * @throws XWikiException
@@ -237,8 +236,8 @@ public class XWikiStats extends BaseCollection {
 
     setName(oel.element(XMLNODE_NAME).getText());
     List<?> list = oel.elements(XMLNODE_PROPERTY);
-    for (int i = 0; i < list.size(); i++) {
-      Element pcel = (Element) ((Element) list.get(i)).elements().get(0);
+    for (Object element : list) {
+      Element pcel = ((Element) element).elements().get(0);
       String name = pcel.getName();
       PropertyClass pclass = (PropertyClass) bclass.get(name);
       if (pclass != null) {

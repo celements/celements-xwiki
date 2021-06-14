@@ -32,7 +32,7 @@ import org.xwiki.component.phase.InitializationException;
 /**
  * Chains Component Managers to perform lookups based on the current execution context (current
  * user, current wiki, etc).
- * 
+ *
  * @version $Id$
  * @since 2.1RC1
  */
@@ -47,9 +47,10 @@ public class ContextComponentManager extends DelegateComponentManager implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see Initializable#initialize()
    */
+  @Override
   public void initialize() throws InitializationException {
     // The first Component Manager in the lookup chain is the user Component Manager (i.e.
     // components registered
@@ -62,7 +63,7 @@ public class ContextComponentManager extends DelegateComponentManager implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#registerComponent(ComponentDescriptor, Object)
    */
   @Override
@@ -73,7 +74,7 @@ public class ContextComponentManager extends DelegateComponentManager implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#registerComponent(ComponentDescriptor)
    */
   @Override
@@ -84,7 +85,7 @@ public class ContextComponentManager extends DelegateComponentManager implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#release(Object)
    */
   @Override
@@ -94,7 +95,7 @@ public class ContextComponentManager extends DelegateComponentManager implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#setComponentEventManager(ComponentEventManager)
    */
   @Override
@@ -104,7 +105,7 @@ public class ContextComponentManager extends DelegateComponentManager implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#setParent(ComponentManager)
    */
   @Override
@@ -114,7 +115,7 @@ public class ContextComponentManager extends DelegateComponentManager implements
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#unregisterComponent(Class, String)
    */
   @Override

@@ -19,15 +19,15 @@
  */
 package com.xpn.xwiki.objects.classes;
 
-import junit.framework.Assert;
-
 import org.apache.commons.lang.math.RandomUtils;
 
 import com.xpn.xwiki.test.AbstractBridgedXWikiComponentTestCase;
 
+import junit.framework.Assert;
+
 /**
  * Unit tests for the base {@link PropertyClass} class.
- * 
+ *
  * @version $Id$
  * @since 2.4M2
  */

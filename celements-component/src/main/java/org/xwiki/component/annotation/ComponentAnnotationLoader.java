@@ -44,7 +44,7 @@ import org.xwiki.component.manager.ComponentManager;
 /**
  * Dynamically loads all components defined using Annotations and declared in
  * META-INF/components.txt files.
- * 
+ *
  * @version $Id$
  * @since 1.8.1
  */
@@ -82,7 +82,7 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
 
   /**
    * Loads all components defined using annotations.
-   * 
+   *
    * @param manager
    *          the component manager to use to dynamically register components
    * @param classLoader
@@ -128,7 +128,7 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
       // 2) For each component class name found, load its class and use introspection to find the
       // necessary
       // annotations required to create a Component Descriptor.
-      Map<RoleHint, ComponentDescriptor> descriptorMap = new HashMap<RoleHint, ComponentDescriptor>();
+      Map<RoleHint, ComponentDescriptor> descriptorMap = new HashMap<>();
       for (String componentClassName : componentClassNames) {
         Class<?> componentClass = classLoader.loadClass(componentClassName);
 
@@ -182,7 +182,7 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
   }
 
   public List<ComponentDescriptor> getComponentsDescriptors(Class<?> componentClass) {
-    List<ComponentDescriptor> descriptors = new ArrayList<ComponentDescriptor>();
+    List<ComponentDescriptor> descriptors = new ArrayList<>();
 
     // Look for ComponentRole annotations and register one component per ComponentRole found
     for (Class<?> componentRoleClass : findComponentRoleClasses(componentClass)) {
@@ -197,17 +197,17 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
    * Finds the interfaces that implement component roles by looking recursively in all interfaces of
    * the passed component implementation class. If the roles annotation value is specified then use
    * the specified list instead of doing auto-discovery.
-   * 
+   *
    * @param componentClass
    *          the component implementation class for which to find the component roles it implements
    * @return the list of component role classes implemented
    */
   public Set<Class<?>> findComponentRoleClasses(Class<?> componentClass) {
     // Note: We use a Set to ensure that we don't register duplicate roles.
-    Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
+    Set<Class<?>> classes = new LinkedHashSet<>();
 
     Component component = componentClass.getAnnotation(Component.class);
-    if (component != null && component.roles().length > 0) {
+    if ((component != null) && (component.roles().length > 0)) {
       classes.addAll(Arrays.asList(component.roles()));
     } else {
       // Look in both superclass and interfaces for @ComponentRole.
@@ -224,7 +224,7 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
       // an interface
       // that has the @ComponentRole annotation.
       Class<?> superClass = componentClass.getSuperclass();
-      if (superClass != null && !superClass.getName().equals(Object.class.getName())) {
+      if ((superClass != null) && !superClass.getName().equals(Object.class.getName())) {
         classes.addAll(findComponentRoleClasses(superClass));
       }
 
@@ -235,7 +235,7 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
 
   /**
    * Get all components listed in the passed resource file.
-   * 
+   *
    * @param classLoader
    *          the classloader to use to find the resources
    * @param location
@@ -246,7 +246,7 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
    */
   private List<String> getDeclaredComponents(ClassLoader classLoader, String location)
       throws IOException {
-    List<String> annotatedClassNames = new ArrayList<String>();
+    List<String> annotatedClassNames = new ArrayList<>();
     Enumeration<URL> urls = classLoader.getResources(location);
     while (urls.hasMoreElements()) {
       URL url = urls.nextElement();
@@ -265,7 +265,7 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
 
   /**
    * Get all components listed in the passed resource stream.
-   * 
+   *
    * @param componentListStream
    *          the stream to parse
    * @return the list of component implementation class names
@@ -274,7 +274,7 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
    * @since 2.5M2
    */
   public List<String> getDeclaredComponents(InputStream componentListStream) throws IOException {
-    List<String> annotatedClassNames = new ArrayList<String>();
+    List<String> annotatedClassNames = new ArrayList<>();
 
     // Read all components definition from the URL
     // Always force UTF-8 as the encoding, since these files are read from the official jars, and

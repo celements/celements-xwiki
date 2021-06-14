@@ -26,7 +26,7 @@ import java.util.Map;
 
 /**
  * Various Reflection utilities.
- * 
+ *
  * @version $Id$
  * @since 2.1RC1
  */
@@ -39,7 +39,7 @@ public class ReflectionUtils {
    */
   public static Collection<Field> getAllFields(Class<?> componentClass) {
     // Note: use a linked hash map to keep the same order as the one used to declare the fields.
-    Map<String, Field> fields = new LinkedHashMap<String, Field>();
+    Map<String, Field> fields = new LinkedHashMap<>();
     Class<?> targetClass = componentClass;
     while (targetClass != null) {
       for (Field field : targetClass.getDeclaredFields()) {

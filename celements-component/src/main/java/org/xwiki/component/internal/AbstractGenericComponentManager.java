@@ -31,7 +31,7 @@ import org.xwiki.component.manager.ComponentRepositoryException;
  * Generic implementation that creates Component Manager instances based on the generic notion of a
  * key. This is used for example by the Wiki Component Manager or the User Component Manager which
  * respectively have a key returning the current wiki and the current user in the Execution Context.
- * 
+ *
  * @version $Id$
  * @since 2.1RC1
  */
@@ -40,7 +40,7 @@ public abstract class AbstractGenericComponentManager extends DelegateComponentM
   /**
    * Holds Component Managers based on {@link #getKey()}.
    */
-  private Map<String, ComponentManager> componentManagers = new HashMap<String, ComponentManager>();
+  private Map<String, ComponentManager> componentManagers = new HashMap<>();
 
   /**
    * The Factory to use to create Component Managers whenever a component is registered for a key
@@ -63,7 +63,7 @@ public abstract class AbstractGenericComponentManager extends DelegateComponentM
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#getComponentManager()
    */
   @Override
@@ -85,7 +85,7 @@ public abstract class AbstractGenericComponentManager extends DelegateComponentM
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#registerComponent(ComponentDescriptor, Object)
    */
   @Override
@@ -109,7 +109,7 @@ public abstract class AbstractGenericComponentManager extends DelegateComponentM
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#registerComponent(ComponentDescriptor, Object)
    */
   @Override
@@ -120,7 +120,7 @@ public abstract class AbstractGenericComponentManager extends DelegateComponentM
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see DelegateComponentManager#unregisterComponent(Class, String)
    */
   @Override

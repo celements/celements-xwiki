@@ -21,7 +21,7 @@ package org.xwiki.component.event;
 
 /**
  * Event sent to tell that a new Component Descriptor has been unregistered.
- * 
+ *
  * @version $Id$
  * @since 2.6RC2
  */
@@ -55,9 +55,10 @@ public class ComponentDescriptorRemovedEvent extends AbstractComponentDescriptor
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see AbstractComponentDescriptorEvent#matches(java.lang.Object)
    */
+  @Override
   public boolean matches(Object otherEvent) {
     boolean result = false;
 

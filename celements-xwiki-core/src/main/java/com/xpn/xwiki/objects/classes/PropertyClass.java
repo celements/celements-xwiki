@@ -49,7 +49,7 @@ import com.xpn.xwiki.web.Utils;
  * Represents an XClass property and contains property definitions (eg "relational storage",
  * "display type", "separator", "multi select", etc). Each property definition is of type
  * {@link BaseProperty}.
- * 
+ *
  * @version $Id$
  */
 public class PropertyClass extends BaseCollection
@@ -83,10 +83,12 @@ public class PropertyClass extends BaseCollection
     this.pMetaClass = (PropertyMetaClass) xWikiClass;
   }
 
+  @Override
   public BaseCollection getObject() {
     return this.object;
   }
 
+  @Override
   public void setObject(BaseCollection object) {
     this.object = (BaseClass) object;
   }
@@ -109,10 +111,12 @@ public class PropertyClass extends BaseCollection
     setId(id, IdVersion.CELEMENTS_3);
   }
 
+  @Override
   public String toString(BaseProperty property) {
     return property.toText();
   }
 
+  @Override
   public BaseProperty fromString(String value) {
     return null;
   }
@@ -122,6 +126,7 @@ public class PropertyClass extends BaseCollection
     return fromString(value);
   }
 
+  @Override
   public void displayHidden(StringBuffer buffer, String name, String prefix, BaseCollection object,
       XWikiContext context) {
     input input = new input();
@@ -136,6 +141,7 @@ public class PropertyClass extends BaseCollection
     buffer.append(input.toString());
   }
 
+  @Override
   public void displaySearch(StringBuffer buffer, String name, String prefix, XWikiCriteria criteria,
       XWikiContext context) {
     input input = new input();
@@ -151,6 +157,7 @@ public class PropertyClass extends BaseCollection
     buffer.append(input.toString());
   }
 
+  @Override
   public void displayView(StringBuffer buffer, String name, String prefix, BaseCollection object,
       XWikiContext context) {
     BaseProperty prop = (BaseProperty) object.safeget(name);
@@ -159,6 +166,7 @@ public class PropertyClass extends BaseCollection
     }
   }
 
+  @Override
   public void displayEdit(StringBuffer buffer, String name, String prefix, BaseCollection object,
       XWikiContext context) {
     input input = new input();
@@ -221,7 +229,7 @@ public class PropertyClass extends BaseCollection
 
   public boolean isCustomDisplayed(XWikiContext context) {
     String disp = getCustomDisplay();
-    return disp != null && disp.length() > 0;
+    return (disp != null) && (disp.length() > 0);
   }
 
   public void displayCustom(StringBuffer buffer, String fieldName, String prefix, String type,
@@ -318,7 +326,7 @@ public class PropertyClass extends BaseCollection
 
   /**
    * Gets international tooltip
-   * 
+   *
    * @param context
    * @return
    */
@@ -367,6 +375,7 @@ public class PropertyClass extends BaseCollection
     return toXML();
   }
 
+  @Override
   public Element toXML() {
     Element pel = new DOMElement(getName());
 
@@ -387,8 +396,8 @@ public class PropertyClass extends BaseCollection
     List list = pcel.elements();
     BaseClass bclass = getxWikiClass();
 
-    for (int i = 0; i < list.size(); i++) {
-      Element ppcel = (Element) list.get(i);
+    for (Object element : list) {
+      Element ppcel = (Element) element;
       String name = ppcel.getName();
       if (bclass == null) {
         Object[] args = { getClass().getName() };
@@ -405,6 +414,7 @@ public class PropertyClass extends BaseCollection
     }
   }
 
+  @Override
   public String toFormString() {
     return toString();
   }
@@ -426,7 +436,7 @@ public class PropertyClass extends BaseCollection
   /**
    * See if this property is disabled or not. A disabled property should not be editable, but
    * existing object values are still kept in the database.
-   * 
+   *
    * @return {@code true} if this property is disabled and should not be used, {@code false}
    *         otherwise
    * @see #setDisabled(boolean)
@@ -439,7 +449,7 @@ public class PropertyClass extends BaseCollection
   /**
    * Disable or re-enable this property. A disabled property should not be editable, but existing
    * object values are still kept in the database.
-   * 
+   *
    * @param disabled
    *          whether the property is disabled or not
    * @see #isDisabled()
@@ -461,12 +471,14 @@ public class PropertyClass extends BaseCollection
     return true;
   }
 
+  @Override
   public BaseProperty fromValue(Object value) {
     BaseProperty property = newProperty();
     property.setValue(value);
     return property;
   }
 
+  @Override
   public BaseProperty newProperty() {
     return new BaseProperty();
   }
@@ -518,11 +530,12 @@ public class PropertyClass extends BaseCollection
     }
   }
 
+  @Override
   public void flushCache() {}
 
   /**
    * Compares two property definitions based on their index number.
-   * 
+   *
    * @param other
    *          the other property definition to be compared with
    * @return a negative integer, zero, or a positive integer as this object is less than, equal to,
@@ -530,6 +543,7 @@ public class PropertyClass extends BaseCollection
    * @see #getNumber()
    * @since 2.4M2
    */
+  @Override
   public int compareTo(PropertyClass other) {
     int result = this.getNumber() - other.getNumber();
 

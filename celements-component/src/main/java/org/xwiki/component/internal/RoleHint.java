@@ -21,7 +21,7 @@ package org.xwiki.component.internal;
 
 /**
  * Represent the unique identifier of a Component (pair Role/Hint).
- * 
+ *
  * @version $Id$
  * @since 2.0M1
  */
@@ -67,17 +67,17 @@ public class RoleHint<T> {
     // It's possible Class reference are not the same when it coming for different ClassLoader so we
     // compare class
     // names
-    return (getRole() == rolehint.getRole() || (getRole() != null && getRole().getName().equals(
+    return ((getRole() == rolehint.getRole()) || ((getRole() != null) && getRole().getName().equals(
         rolehint.getRole().getName())))
-        && (getHint() == rolehint.getHint()
-            || (getHint() != null && getHint().equals(rolehint.getHint())));
+        && ((getHint() == rolehint.getHint())
+            || ((getHint() != null) && getHint().equals(rolehint.getHint())));
   }
 
   @Override
   public int hashCode() {
     int hash = 8;
-    hash = 31 * hash + (null == getRole() ? 0 : getRole().getName().hashCode());
-    hash = 31 * hash + (null == getHint() ? 0 : getHint().hashCode());
+    hash = (31 * hash) + (null == getRole() ? 0 : getRole().getName().hashCode());
+    hash = (31 * hash) + (null == getHint() ? 0 : getHint().hashCode());
     return hash;
   }
 

@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * Default implementation of {@link ComponentDescriptor}.
- * 
+ *
  * @version $Id$
  * @since 1.7M1
  */
@@ -37,12 +37,13 @@ public class DefaultComponentDescriptor<T> extends DefaultComponentRole<T>
 
   private ComponentInstantiationStrategy instantiationStrategy = ComponentInstantiationStrategy.SINGLETON;
 
-  private List<ComponentDependency<?>> componentDependencies = new ArrayList<ComponentDependency<?>>();
+  private List<ComponentDependency<?>> componentDependencies = new ArrayList<>();
 
   public void setImplementation(Class<? extends T> implementation) {
     this.implementation = implementation;
   }
 
+  @Override
   public Class<? extends T> getImplementation() {
     return implementation;
   }
@@ -51,10 +52,12 @@ public class DefaultComponentDescriptor<T> extends DefaultComponentRole<T>
     this.instantiationStrategy = instantiationStrategy;
   }
 
+  @Override
   public ComponentInstantiationStrategy getInstantiationStrategy() {
     return this.instantiationStrategy;
   }
 
+  @Override
   public Collection<ComponentDependency<?>> getComponentDependencies() {
     return this.componentDependencies;
   }
@@ -64,7 +67,7 @@ public class DefaultComponentDescriptor<T> extends DefaultComponentRole<T>
   }
 
   public <TT> void addComponentDependency(Class<TT> role, String roleHint) {
-    DefaultComponentDependency<TT> componentDependency = new DefaultComponentDependency<TT>();
+    DefaultComponentDependency<TT> componentDependency = new DefaultComponentDependency<>();
     componentDependency.setRole(role);
     componentDependency.setRoleHint(roleHint);
 

@@ -24,7 +24,7 @@ import java.util.Collection;
 
 /**
  * Represent a component.
- * 
+ *
  * @version $Id$
  * @since 1.7M1
  */

@@ -22,12 +22,11 @@ package org.xwiki.component.event;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xwiki.component.event.ComponentDescriptorAddedEvent;
 import org.xwiki.observation.event.Event;
 
 /**
  * Unit tests for {@link ComponentDescriptorAddedEvent}.
- * 
+ *
  * @version $Id$
  * @since 2.6RC2
  */
@@ -48,12 +47,7 @@ public class ComponentDescriptorAddedEventTest {
   @Test
   public void testMatchesWhenDifferentEvent() {
     ComponentDescriptorAddedEvent event = new ComponentDescriptorAddedEvent();
-    Assert.assertFalse(event.matches(new Event() {
-
-      public boolean matches(Object otherEvent) {
-        return false;
-      }
-    }));
+    Assert.assertFalse(event.matches((Event) otherEvent -> false));
   }
 
   @Test

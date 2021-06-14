@@ -21,7 +21,7 @@ package org.xwiki.component.event;
 
 /**
  * Base class for events about components descriptors.
- * 
+ *
  * @version $Id$
  * @since 2.6RC2
  */
@@ -67,6 +67,7 @@ public abstract class AbstractComponentDescriptorEvent implements ComponentDescr
   /**
    * @return the component's role being watched or null if all components registrations are watched
    */
+  @Override
   public Class<?> getRole() {
     return this.role;
   }
@@ -75,15 +76,17 @@ public abstract class AbstractComponentDescriptorEvent implements ComponentDescr
    * @return the component's role hint being watched or null if all role's components registrations
    *         are watched
    */
+  @Override
   public String getRoleHint() {
     return this.roleHint;
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.xwiki.observation.event.Event#matches(java.lang.Object)
    */
+  @Override
   public boolean matches(Object otherEvent) {
     boolean result = false;
 
@@ -97,7 +100,7 @@ public abstract class AbstractComponentDescriptorEvent implements ComponentDescr
         // so we
         // compare class names
         if (getRole().getName().equals(event.getRole().getName())) {
-          result = getRoleHint() == null || getRoleHint().equals(event.getRoleHint());
+          result = (getRoleHint() == null) || getRoleHint().equals(event.getRoleHint());
         }
       }
     }

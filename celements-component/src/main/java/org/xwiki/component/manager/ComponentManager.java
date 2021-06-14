@@ -27,7 +27,7 @@ import org.xwiki.component.descriptor.ComponentDescriptor;
 
 /**
  * Provide way to access and modify components repository.
- * 
+ *
  * @version $Id$
  */
 @ComponentRole
@@ -59,7 +59,7 @@ public interface ComponentManager {
   /**
    * Find a component instance that implements that passed interface class. If the component has a
    * singleton lifecycle then this method always return the same instance.
-   * 
+   *
    * @param <T>
    *          the component role type
    * @param role
@@ -73,7 +73,7 @@ public interface ComponentManager {
   /**
    * Find a component instance that implements that passed interface class. If the component has a
    * singleton lifecycle then this method always return the same instance.
-   * 
+   *
    * @param <T>
    *          the component role type
    * @param role
@@ -89,7 +89,7 @@ public interface ComponentManager {
 
   /**
    * Remove a component from the list of available components.
-   * 
+   *
    * @param <T>
    *          the component role type
    * @param component
@@ -109,7 +109,7 @@ public interface ComponentManager {
    * <p>
    * If a component with the same role and role hint already exists it will be replaced by this
    * provided one when lookup.
-   * 
+   *
    * @param <T>
    *          the component role type
    * @param componentDescriptor
@@ -128,7 +128,7 @@ public interface ComponentManager {
    * <p>
    * If a component with the same role and role hint already exists it will be replaced by this
    * provided one when lookup.
-   * 
+   *
    * @param <T>
    *          the component role type
    * @param componentDescriptor
@@ -144,7 +144,7 @@ public interface ComponentManager {
 
   /**
    * Remove a component from the component repository dynamically.
-   * 
+   *
    * @param role
    *          the role identifying the component
    * @param roleHint

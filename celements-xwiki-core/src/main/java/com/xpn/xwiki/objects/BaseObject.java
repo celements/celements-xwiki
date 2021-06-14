@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
@@ -66,7 +65,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
   /**
    * Note: This method is overridden to add the deprecation warning so that code using it can see
    * it's deprecated. {@inheritDoc}
-   * 
+   *
    * @deprecated since 2.2M2 use {@link #getDocumentReference()}
    */
   @Deprecated
@@ -78,7 +77,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
   /**
    * Note: BaseElement.setName() does not support setting reference anymore since 2.4M2.
    * {@inheritDoc}
-   * 
+   *
    * @deprecated since 2.2M2 use
    *             {@link #setDocumentReference(org.xwiki.model.reference.DocumentReference)}
    */
@@ -97,7 +96,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#hashCode()
    */
   @Override
@@ -163,6 +162,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
     return clone(true);
   }
 
+  @Override
   protected BaseObject clone(boolean keepsIdentity) {
     BaseObject clone = (BaseObject) super.clone(keepsIdentity);
     if (keepsIdentity) {
@@ -192,7 +192,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#equals(java.lang.Object)
    */
   @Override
@@ -215,7 +215,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseCollection#toXML(com.xpn.xwiki.objects.classes.BaseClass)
    */
   @Override
@@ -244,7 +244,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
       PropertyInterface bprop = (PropertyInterface) it.next();
 
       String pname = bprop.getName();
-      if (pname != null && !pname.trim().equals("")) {
+      if ((pname != null) && !pname.trim().equals("")) {
         pel.add(bprop.toXML());
         oel.add(pel);
       }
@@ -274,13 +274,13 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
 
     // If no GUID exists in the XML, then use the one randomly generated at initialization
     Element guidElement = oel.element("guid");
-    if (guidElement != null && guidElement.getText() != null) {
+    if ((guidElement != null) && (guidElement.getText() != null)) {
       this.guid = guidElement.getText();
     }
 
     List list = oel.elements("property");
-    for (int i = 0; i < list.size(); i++) {
-      Element pcel = (Element) ((Element) list.get(i)).elements().get(0);
+    for (Object element : list) {
+      Element pcel = ((Element) element).elements().get(0);
       String name = pcel.getName();
       PropertyClass pclass = (PropertyClass) bclass.get(name);
       if (pclass != null) {
@@ -294,7 +294,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
 
   @Override
   public List<ObjectDiff> getDiff(Object oldEntity, XWikiContext context) {
-    ArrayList<ObjectDiff> difflist = new ArrayList<ObjectDiff>();
+    ArrayList<ObjectDiff> difflist = new ArrayList<>();
     BaseObject oldObject = (BaseObject) oldEntity;
     // Iterate over the new properties first, to handle changed and added objects
     for (String propertyName : this.getPropertyList()) {
@@ -309,7 +309,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
       if (oldProperty == null) {
         // The property exist in the new object, but not in the old one
         if ((newProperty != null) && (!newProperty.toText().equals(""))) {
-          String newPropertyValue = (newProperty.getValue() instanceof String || pclass == null)
+          String newPropertyValue = ((newProperty.getValue() instanceof String) || (pclass == null))
               ? newProperty.toText()
               : pclass.displayView(propertyName, this, context);
           difflist.add(new ObjectDiff(getClassName(), getNumber(), getGuid(), "added", propertyName,
@@ -320,10 +320,10 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
         // The property exists in both objects and is different
         if (pclass != null) {
           // Put the values as they would be displayed in the interface
-          String newPropertyValue = (newProperty.getValue() instanceof String || pclass == null)
+          String newPropertyValue = ((newProperty.getValue() instanceof String) || (pclass == null))
               ? newProperty.toText()
               : pclass.displayView(propertyName, this, context);
-          String oldPropertyValue = (oldProperty.getValue() instanceof String || pclass == null)
+          String oldPropertyValue = ((oldProperty.getValue() instanceof String) || (pclass == null))
               ? oldProperty.toText()
               : pclass.displayView(propertyName, oldObject, context);
           difflist

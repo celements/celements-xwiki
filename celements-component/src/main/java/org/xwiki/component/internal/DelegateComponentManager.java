@@ -31,7 +31,7 @@ import org.xwiki.component.manager.ComponentRepositoryException;
 
 /**
  * Delegate all calls to a defined Component Manager, acting as a Proxy for it.
- * 
+ *
  * @version $Id$
  * @since 2.1RC1
  */
@@ -59,81 +59,90 @@ public class DelegateComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#getComponentDescriptor(Class, String)
    */
+  @Override
   public <T> ComponentDescriptor<T> getComponentDescriptor(Class<T> role, String roleHint) {
     return getComponentManager().getComponentDescriptor(role, roleHint);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#getComponentDescriptorList(Class)
    */
+  @Override
   public <T> List<ComponentDescriptor<T>> getComponentDescriptorList(Class<T> role) {
     return getComponentManager().getComponentDescriptorList(role);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#hasComponent(Class, String)
    */
+  @Override
   public <T> boolean hasComponent(Class<T> role, String roleHint) {
     return getComponentManager().hasComponent(role, roleHint);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#hasComponent(Class)
    */
+  @Override
   public <T> boolean hasComponent(Class<T> role) {
     return getComponentManager().hasComponent(role);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#lookup(Class, String)
    */
+  @Override
   public <T> T lookup(Class<T> role, String roleHint) throws ComponentLookupException {
     return getComponentManager().lookup(role, roleHint);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#lookup(Class)
    */
+  @Override
   public <T> T lookup(Class<T> role) throws ComponentLookupException {
     return getComponentManager().lookup(role);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#lookupList(Class)
    */
+  @Override
   public <T> List<T> lookupList(Class<T> role) throws ComponentLookupException {
     return getComponentManager().lookupList(role);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#lookupMap(Class)
    */
+  @Override
   public <T> Map<String, T> lookupMap(Class<T> role) throws ComponentLookupException {
     return getComponentManager().lookupMap(role);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#registerComponent(ComponentDescriptor, Object)
    */
+  @Override
   public <T> void registerComponent(ComponentDescriptor<T> componentDescriptor, T componentInstance)
       throws ComponentRepositoryException {
     getComponentManager().registerComponent(componentDescriptor, componentInstance);
@@ -141,9 +150,10 @@ public class DelegateComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#registerComponent(ComponentDescriptor)
    */
+  @Override
   public <T> void registerComponent(ComponentDescriptor<T> componentDescriptor)
       throws ComponentRepositoryException {
     getComponentManager().registerComponent(componentDescriptor);
@@ -151,54 +161,60 @@ public class DelegateComponentManager implements ComponentManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#release(Object)
    */
+  @Override
   public <T> void release(T component) throws ComponentLifecycleException {
     getComponentManager().release(component);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#getComponentEventManager()
    */
+  @Override
   public ComponentEventManager getComponentEventManager() {
     return getComponentManager().getComponentEventManager();
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#setComponentEventManager(ComponentEventManager)
    */
+  @Override
   public void setComponentEventManager(ComponentEventManager eventManager) {
     getComponentManager().setComponentEventManager(eventManager);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#unregisterComponent(Class, String)
    */
+  @Override
   public void unregisterComponent(Class<?> role, String roleHint) {
     getComponentManager().unregisterComponent(role, roleHint);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#getParent()
    */
+  @Override
   public ComponentManager getParent() {
     return getComponentManager().getParent();
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see ComponentManager#setParent(ComponentManager)
    */
+  @Override
   public void setParent(ComponentManager parentComponentManager) {
     getComponentManager().setParent(parentComponentManager);
   }

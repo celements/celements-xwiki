@@ -29,6 +29,7 @@ public class DefaultComponentRole<T> implements ComponentRole<T> {
     this.role = role;
   }
 
+  @Override
   public Class<T> getRole() {
     return this.role;
   }
@@ -37,6 +38,7 @@ public class DefaultComponentRole<T> implements ComponentRole<T> {
     this.roleHint = roleHint;
   }
 
+  @Override
   public String getRoleHint() {
     return roleHint;
   }

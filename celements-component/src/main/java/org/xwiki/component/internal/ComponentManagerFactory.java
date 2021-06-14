@@ -30,7 +30,7 @@ import org.xwiki.component.manager.ComponentManager;
  * ComponentAnnotationLoader loader = new ComponentAnnotationLoader();
  * loader.initialize(factory.createComponentManager(), classLoader);
  * </pre></code>
- * 
+ *
  * @version $Id$
  * @since 2.1RC1
  */

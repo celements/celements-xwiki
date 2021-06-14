@@ -33,7 +33,7 @@ import org.xwiki.observation.event.Event;
  * used for example at application initialization time when we don't want to send events before the
  * Application Context has been initialized since components subscribing to these events may want to
  * use the Application Context.
- * 
+ *
  * @version $Id$
  * @since 2.0M1
  */
@@ -41,15 +41,16 @@ public class StackingComponentEventManager implements ComponentEventManager {
 
   private ObservationManager observationManager;
 
-  private Stack<ComponentEventEntry> events = new Stack<ComponentEventEntry>();
+  private Stack<ComponentEventEntry> events = new Stack<>();
 
   private boolean shouldStack = true;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.xwiki.component.manager.ComponentEventManager#notifyComponentRegistered(ComponentDescriptor)
    */
+  @Override
   public void notifyComponentRegistered(ComponentDescriptor<?> descriptor) {
     notifyComponentEvent(
         new ComponentDescriptorAddedEvent(descriptor.getRole(), descriptor.getRoleHint()),
@@ -58,9 +59,10 @@ public class StackingComponentEventManager implements ComponentEventManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.xwiki.component.manager.ComponentEventManager#notifyComponentUnregistered(ComponentDescriptor)
    */
+  @Override
   public void notifyComponentUnregistered(ComponentDescriptor<?> descriptor) {
     notifyComponentEvent(
         new ComponentDescriptorRemovedEvent(descriptor.getRole(), descriptor.getRoleHint()),

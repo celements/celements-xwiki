@@ -25,7 +25,7 @@ import org.xwiki.component.phase.LogEnabled;
 /**
  * Convenience class so that components can simply extend this class and not have to reimplement the
  * {@link Logger} interface.
- * 
+ *
  * @version $Id$
  */
 public class AbstractLogEnabled implements LogEnabled {
@@ -34,6 +34,7 @@ public class AbstractLogEnabled implements LogEnabled {
 
   private Logger logger;
 
+  @Override
   public void enableLogging(Logger logger) {
     this.logger = logger;
   }

@@ -24,7 +24,7 @@ import junit.framework.TestCase;
 
 /**
  * Unit tests for {@link AbstractLogEnabled}.
- * 
+ *
  * @version $Id$
  * @since 1.8RC3
  */

@@ -47,25 +47,27 @@ public class BaseProperty extends BaseElement
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.PropertyInterface#getObject()
    */
+  @Override
   public BaseCollection getObject() {
     return this.object;
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.PropertyInterface#setObject(com.xpn.xwiki.objects.BaseCollection)
    */
+  @Override
   public void setObject(BaseCollection object) {
     this.object = object;
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseElement#equals(java.lang.Object)
    */
   @Override
@@ -77,7 +79,7 @@ public class BaseProperty extends BaseElement
 
     // I hate this.. needed for hibernate to find the object
     // when loading the collections..
-    if ((this.object == null) || ((BaseProperty) el).getObject() == null) {
+    if ((this.object == null) || (((BaseProperty) el).getObject() == null)) {
       return (hashCode() == el.hashCode());
     }
 
@@ -110,7 +112,7 @@ public class BaseProperty extends BaseElement
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see java.lang.Object#hashCode()
    */
   @Override
@@ -128,7 +130,7 @@ public class BaseProperty extends BaseElement
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.BaseElement#clone()
    */
   @Override
@@ -146,9 +148,10 @@ public class BaseProperty extends BaseElement
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.PropertyInterface#toXML()
    */
+  @Override
   public Element toXML() {
     Element el = new DOMElement(getName());
     Object value = getValue();
@@ -159,9 +162,10 @@ public class BaseProperty extends BaseElement
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see com.xpn.xwiki.objects.PropertyInterface#toFormString()
    */
+  @Override
   public String toFormString() {
     return Utils.formEncode(toText());
   }
