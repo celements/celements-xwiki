@@ -36,7 +36,7 @@ import com.xpn.xwiki.XWikiContext;
 @Component
 public class MandatoryDocumentCompositor implements IMandatoryDocumentCompositorRole {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(MandatoryDocumentCompositor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MandatoryDocumentCompositor.class);
 
   @Requirement
   Map<String, IMandatoryDocumentRole> mandatoryDocumentsMap;

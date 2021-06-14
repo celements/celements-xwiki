@@ -20,7 +20,7 @@ import com.xpn.xwiki.objects.BaseObject;
 @Component
 public class DefaultXObjectUpdateService implements IXObjectUpdateRole {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(DefaultXObjectUpdateService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultXObjectUpdateService.class);
 
   @Requirement
   private IModelAccessFacade modelAccess;

@@ -72,7 +72,7 @@ import com.xpn.xwiki.web.XWikiResponse;
 @Component
 public class AttachmentService implements IAttachmentServiceRole {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(AttachmentService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AttachmentService.class);
 
   /** The prefix of the corresponding filename input field name. */
   private static final String FILENAME_FIELD_NAME = "filename";
