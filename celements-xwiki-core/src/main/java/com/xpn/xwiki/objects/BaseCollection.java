@@ -73,24 +73,20 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
    * The meaning of this reference fields depends on the element represented. Examples:
    * <ul>
    * <li>If this BaseCollection instance represents an XObject then refers to the document where the
-   * XObject's
-   * XClass is defined.</li>
+   * XObject's XClass is defined.</li>
    * <li>If this BaseCollection instance represents an XClass then it's not used.</li>
    * </ul>
    * Note that we're saving the XClass reference as a relative reference instead of an absolute one.
-   * This is because
-   * We want the ability (for example) to create an XObject relative to the current space or wiki so
-   * that a copy of
-   * that XObject would retain that relativity. This is for example useful when copying a Wiki into
-   * another Wiki
-   * so that the copied XObject have a XClassReference pointing in the new wiki.
+   * This is because We want the ability (for example) to create an XObject relative to the current
+   * space or wiki so that a copy of that XObject would retain that relativity. This is for example
+   * useful when copying a Wiki into another Wiki so that the copied XObject have a XClassReference
+   * pointing in the new wiki.
    */
   private EntityReference relativeXClassRef;
 
   /**
    * Cache the XClass reference resolved as an absolute reference for improved performance (so that
-   * we don't have to
-   * resolve the relative reference every time getXClassReference() is called.
+   * we don't have to resolve the relative reference every time getXClassReference() is called.
    */
   private DocumentReference xClassDocRefCache;
 
@@ -105,18 +101,15 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
    * The meaning of this reference fields depends on the element represented. Examples:
    * <ul>
    * <li>When the BaseCollection represents an XObject, this number is the position of this XObject
-   * in the document
-   * where it's located. The first XObject of a given XClass type is at position 0, and other
-   * XObject of the
-   * same XClass type are at position 1, etc.</li>
+   * in the document where it's located. The first XObject of a given XClass type is at position 0,
+   * and other XObject of the same XClass type are at position 1, etc.</li>
    * </ul>
    */
   protected int number;
 
   /**
    * Used to resolve XClass references in the way they are stored externally (database, xml, etc),
-   * ie relative or
-   * absolute.
+   * ie relative or absolute.
    */
   private EntityReferenceResolver<String> relativeEntityReferenceResolver = Utils
       .getComponent(EntityReferenceResolver.class, "relative");
@@ -537,8 +530,7 @@ public abstract class BaseCollection extends BaseElement implements ObjectInterf
 
   /**
    * Return an iterator that will operate on a collection of values (as would be returned by
-   * getProperties or
-   * getFieldList) sorted by their name (ElementInterface.getName()).
+   * getProperties or getFieldList) sorted by their name (ElementInterface.getName()).
    */
   public Iterator getSortedIterator() {
     Iterator it = null;

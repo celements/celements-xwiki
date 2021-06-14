@@ -29,9 +29,8 @@ import org.xwiki.container.ApplicationContext;
 
 /**
  * Simple {@link ApplicationContext} implementation that uses the classloader's
- * <code>getResource</code> and
- * <code>getResourceAsStream</code> methods to access resources. Useful for running tests without a
- * real live container.
+ * <code>getResource</code> and <code>getResourceAsStream</code> methods to access resources. Useful
+ * for running tests without a real live container.
  * 
  * @version $Id$
  */

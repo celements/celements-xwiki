@@ -24,12 +24,9 @@ import org.xwiki.component.descriptor.ComponentDescriptor;
 
 /**
  * Manages Component Events (when a component instance is created for example). It's recommended
- * that implementations
- * use the Observation module to send the events. We're introducing this level of indirection in
- * order to be able to
- * perform some processing before the events are fired. For example one implementation may want to
- * stack the events
- * before sending them.
+ * that implementations use the Observation module to send the events. We're introducing this level
+ * of indirection in order to be able to perform some processing before the events are fired. For
+ * example one implementation may want to stack the events before sending them.
  * 
  * @version $Id$
  * @since 2.0M1

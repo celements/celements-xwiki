@@ -1054,8 +1054,7 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase {
 
   /**
    * Normally the xobject vector has the Nth object on the Nth position, but in case an object gets
-   * misplaced, trying
-   * to remove it should indeed remove that object, and no other.
+   * misplaced, trying to remove it should indeed remove that object, and no other.
    */
   public void testRemovingObjectWithWrongObjectVector() {
     // Setup: Create a document and two xobjects
@@ -1226,8 +1225,7 @@ public class XWikiDocumentTest extends AbstractBridgedXWikiComponentTestCase {
 
   /**
    * Verify that merging objects modify their references to point to the document in which they are
-   * cloned into and
-   * that GUID fors merged objects are different from the original GUIDs.
+   * cloned into and that GUID fors merged objects are different from the original GUIDs.
    */
   public void testMergeObjectsHaveCorrectReferenceAndDifferentGuids() {
     List<String> originalGuids = new ArrayList<String>();

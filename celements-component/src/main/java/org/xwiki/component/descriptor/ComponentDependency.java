@@ -30,8 +30,7 @@ public interface ComponentDependency<T> extends ComponentRole<T> {
 
   /**
    * @return the name of the injection point (can be the name of the field for field injection or
-   *         the name
-   *         of the method for method injection
+   *         the name of the method for method injection
    */
   String getName();
 
@@ -42,8 +41,7 @@ public interface ComponentDependency<T> extends ComponentRole<T> {
 
   /**
    * @return a list of hints used when the mapping type is a collection or map so that only
-   *         component implementations
-   *         matching passed hints are injected
+   *         component implementations matching passed hints are injected
    */
   String[] getHints();
 }

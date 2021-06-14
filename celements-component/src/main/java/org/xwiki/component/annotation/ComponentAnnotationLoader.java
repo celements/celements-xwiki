@@ -52,15 +52,13 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
 
   /**
    * Location in the classloader of the file defining the list of component implementation class to
-   * parser for
-   * annotations.
+   * parser for annotations.
    */
   public static final String COMPONENT_LIST = "META-INF/components.txt";
 
   /**
    * Location in the classloader of the file specifying which component implementation to use when
-   * several with the
-   * same role/hint are found.
+   * several with the same role/hint are found.
    */
   public static final String COMPONENT_OVERRIDE_LIST = "META-INF/component-overrides.txt";
 
@@ -197,10 +195,8 @@ public class ComponentAnnotationLoader extends AbstractLogEnabled {
 
   /**
    * Finds the interfaces that implement component roles by looking recursively in all interfaces of
-   * the passed
-   * component implementation class. If the roles annotation value is specified then use the
-   * specified list instead of
-   * doing auto-discovery.
+   * the passed component implementation class. If the roles annotation value is specified then use
+   * the specified list instead of doing auto-discovery.
    * 
    * @param componentClass
    *          the component implementation class for which to find the component roles it implements

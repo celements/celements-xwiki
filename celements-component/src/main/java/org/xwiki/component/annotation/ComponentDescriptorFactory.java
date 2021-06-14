@@ -46,8 +46,8 @@ public class ComponentDescriptorFactory {
 
   /**
    * Create component descriptors for the passed component implementation class and component role
-   * class. There can be
-   * more than one descriptor if the component class has specified several hints.
+   * class. There can be more than one descriptor if the component class has specified several
+   * hints.
    * 
    * @param componentClass
    *          the component implementation class

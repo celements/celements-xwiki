@@ -29,8 +29,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Defines a field or method that needs to be injected with a component.
- * A hint can be specified to choose which implementation to use.
+ * Defines a field or method that needs to be injected with a component. A hint can be specified to
+ * choose which implementation to use.
  * 
  * @version $Id$
  * @since 1.8.1
@@ -58,8 +58,7 @@ public @interface Requirement {
 
   /**
    * When injecting a Collection of requirements, allows specifying a discrete list of hints to use.
-   * If these are
-   * not specified, then all implementations for the specified role will be injected.
+   * If these are not specified, then all implementations for the specified role will be injected.
    */
   String[] hints() default {};
 }

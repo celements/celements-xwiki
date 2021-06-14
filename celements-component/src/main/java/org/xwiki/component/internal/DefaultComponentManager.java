@@ -32,8 +32,7 @@ import org.xwiki.component.manager.ComponentRepositoryException;
 
 /**
  * Wraps the Component Manager in a component so that components requiring the component Manager can
- * have it injected
- * automatically.
+ * have it injected automatically.
  * 
  * @version $Id$
  * @since 2.0M1

@@ -47,8 +47,7 @@ public abstract class BaseElement implements ElementInterface, Serializable {
 
   /**
    * Used to convert a Document Reference to string (compact form without the wiki part if it
-   * matches the current
-   * wiki).
+   * matches the current wiki).
    */
   protected final EntityReferenceSerializer<String> compactWikiEntityReferenceSerializer = Utils
       .getComponent(EntityReferenceSerializer.class, "compactwiki");
@@ -67,8 +66,7 @@ public abstract class BaseElement implements ElementInterface, Serializable {
 
   /**
    * Reference to the document in which this element is defined (for elements where this make sense,
-   * for example
-   * for an XClass or a XObject).
+   * for example for an XClass or a XObject).
    */
   private DocumentReference reference;
 
@@ -126,8 +124,7 @@ public abstract class BaseElement implements ElementInterface, Serializable {
   }
 
   /**
-   * Note that this method is used by Hibernate for saving an element.
-   * {@inheritDoc}
+   * Note that this method is used by Hibernate for saving an element. {@inheritDoc}
    *
    * @see com.xpn.xwiki.objects.ElementInterface#getName()
    */
@@ -153,8 +150,7 @@ public abstract class BaseElement implements ElementInterface, Serializable {
   }
 
   /**
-   * Note that this method is used by Hibernate for loading an element.
-   * {@inheritDoc}
+   * Note that this method is used by Hibernate for loading an element. {@inheritDoc}
    *
    * @see com.xpn.xwiki.objects.ElementInterface#setName(java.lang.String)
    */
@@ -303,8 +299,7 @@ public abstract class BaseElement implements ElementInterface, Serializable {
 
   /**
    * @return the syntax id of the document containing this element. If an error occurs while
-   *         retrieving the document a
-   *         syntax id of "xwiki/1.0" is assumed.
+   *         retrieving the document a syntax id of "xwiki/1.0" is assumed.
    * @deprecated since 2.2M2 use
    *             <code>context.getWiki().getDocument(object.getDocumentReference())</code> and then
    *             get the syntax on the document object

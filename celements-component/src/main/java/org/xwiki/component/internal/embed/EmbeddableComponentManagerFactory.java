@@ -26,9 +26,8 @@ import org.xwiki.component.internal.ComponentManagerFactory;
 import org.xwiki.component.manager.ComponentManager;
 
 /**
- * Create Component Manager implementation based on the Embeddable Component Manager
- * (i.e. a simple implementation of {@link ComponentManager} to be used when using
- * some XWiki modules standalone).
+ * Create Component Manager implementation based on the Embeddable Component Manager (i.e. a simple
+ * implementation of {@link ComponentManager} to be used when using some XWiki modules standalone).
  * 
  * @version $Id$
  * @since 2.1RC1
@@ -37,8 +36,8 @@ import org.xwiki.component.manager.ComponentManager;
 public class EmbeddableComponentManagerFactory implements ComponentManagerFactory {
 
   /**
-   * The Root Component Manager used to get access to the set Component Event Manager that we
-   * set by default for newly created Component Managers.
+   * The Root Component Manager used to get access to the set Component Event Manager that we set by
+   * default for newly created Component Managers.
    */
   @Requirement
   private ComponentManager rootComponentManager;

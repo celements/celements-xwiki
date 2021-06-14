@@ -47,8 +47,8 @@ import com.xpn.xwiki.web.Utils;
 
 /**
  * Represents an XClass property and contains property definitions (eg "relational storage",
- * "display type",
- * "separator", "multi select", etc). Each property definition is of type {@link BaseProperty}.
+ * "display type", "separator", "multi select", etc). Each property definition is of type
+ * {@link BaseProperty}.
  * 
  * @version $Id$
  */
@@ -425,8 +425,7 @@ public class PropertyClass extends BaseCollection
 
   /**
    * See if this property is disabled or not. A disabled property should not be editable, but
-   * existing object values
-   * are still kept in the database.
+   * existing object values are still kept in the database.
    * 
    * @return {@code true} if this property is disabled and should not be used, {@code false}
    *         otherwise
@@ -439,8 +438,7 @@ public class PropertyClass extends BaseCollection
 
   /**
    * Disable or re-enable this property. A disabled property should not be editable, but existing
-   * object values are
-   * still kept in the database.
+   * object values are still kept in the database.
    * 
    * @param disabled
    *          whether the property is disabled or not
@@ -528,8 +526,7 @@ public class PropertyClass extends BaseCollection
    * @param other
    *          the other property definition to be compared with
    * @return a negative integer, zero, or a positive integer as this object is less than, equal to,
-   *         or greater than
-   *         the specified object.
+   *         or greater than the specified object.
    * @see #getNumber()
    * @since 2.4M2
    */

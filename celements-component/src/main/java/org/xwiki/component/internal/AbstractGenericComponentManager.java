@@ -29,10 +29,8 @@ import org.xwiki.component.manager.ComponentRepositoryException;
 
 /**
  * Generic implementation that creates Component Manager instances based on the generic notion of a
- * key.
- * This is used for example by the Wiki Component Manager or the User Component Manager which
- * respectively
- * have a key returning the current wiki and the current user in the Execution Context.
+ * key. This is used for example by the Wiki Component Manager or the User Component Manager which
+ * respectively have a key returning the current wiki and the current user in the Execution Context.
  * 
  * @version $Id$
  * @since 2.1RC1
@@ -46,8 +44,7 @@ public abstract class AbstractGenericComponentManager extends DelegateComponentM
 
   /**
    * The Factory to use to create Component Managers whenever a component is registered for a key
-   * that doesn't
-   * already exist.
+   * that doesn't already exist.
    */
   @Requirement
   private ComponentManagerFactory componentManagerFactory;
@@ -59,10 +56,8 @@ public abstract class AbstractGenericComponentManager extends DelegateComponentM
 
   /**
    * @return the key (any String) representing the current Component Manager. For example in the
-   *         case of a
-   *         User Component Manager the key can be the current user in the execution context so that
-   *         we can
-   *         register/lookup components only for that user
+   *         case of a User Component Manager the key can be the current user in the execution
+   *         context so that we can register/lookup components only for that user
    */
   protected abstract String getKey();
 
@@ -141,8 +136,7 @@ public abstract class AbstractGenericComponentManager extends DelegateComponentM
 
   /**
    * @return the Parent Component Manager to default to when there's no Component Manager matching
-   *         the key returned
-   *         by {@link #getKey()}.
+   *         the key returned by {@link #getKey()}.
    */
   protected ComponentManager getInternalParent() {
     return this.internalParent;

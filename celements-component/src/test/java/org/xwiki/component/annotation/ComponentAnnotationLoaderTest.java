@@ -54,8 +54,7 @@ public class ComponentAnnotationLoaderTest {
 
   /**
    * Note that even though it's not necessary we implement Role to ensure that the SuperRoleImpl
-   * component
-   * will only be registered once.
+   * component will only be registered once.
    */
   @Component
   public class SuperRoleImpl extends RoleImpl implements Role {}

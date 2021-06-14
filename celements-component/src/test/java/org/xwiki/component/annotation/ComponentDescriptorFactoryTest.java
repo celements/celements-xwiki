@@ -113,8 +113,7 @@ public class ComponentDescriptorFactoryTest {
 
   /**
    * Verify that we get the same result when we use a class that extends another class (i.e.
-   * inheritance
-   * works).
+   * inheritance works).
    */
   @Test
   public void testCreateComponentDescriptorWhenClassExtension() {

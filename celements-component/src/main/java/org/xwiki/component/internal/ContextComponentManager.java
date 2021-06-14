@@ -30,8 +30,8 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 /**
- * Chains Component Managers to perform lookups based on the current execution context
- * (current user, current wiki, etc).
+ * Chains Component Managers to perform lookups based on the current execution context (current
+ * user, current wiki, etc).
  * 
  * @version $Id$
  * @since 2.1RC1
@@ -124,8 +124,7 @@ public class ContextComponentManager extends DelegateComponentManager implements
 
   /**
    * Exception to throw when trying to access a write method since this Component Manager is a
-   * chaining
-   * Component Manager and should only be used for read-only access.
+   * chaining Component Manager and should only be used for read-only access.
    */
   private void throwException() {
     throw new RuntimeException(

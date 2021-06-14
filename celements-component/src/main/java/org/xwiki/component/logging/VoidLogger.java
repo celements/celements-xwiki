@@ -22,12 +22,9 @@ package org.xwiki.component.logging;
 
 /**
  * Logger that doesn't do anything. Useful to use when no logger implementation is selected to
- * prevent NPEs.
- * In a component-based environment loggers are always set but when component classes are used as
- * simple
- * Java Beans the logger needs to be set and this logger implementation can be used when the user
- * doesn't
- * set explicitly a logger.
+ * prevent NPEs. In a component-based environment loggers are always set but when component classes
+ * are used as simple Java Beans the logger needs to be set and this logger implementation can be
+ * used when the user doesn't set explicitly a logger.
  * 
  * @version $Id$
  * @since 1.8RC3
@@ -35,32 +32,28 @@ package org.xwiki.component.logging;
 public class VoidLogger implements Logger {
 
   /**
-   * {@inheritDoc}
-   * #see Logger#debug(String)
+   * {@inheritDoc} #see Logger#debug(String)
    */
   public void debug(String message) {
     // Don't do anything voluntarily
   }
 
   /**
-   * {@inheritDoc}
-   * #see Logger#debug(String, Throwable)
+   * {@inheritDoc} #see Logger#debug(String, Throwable)
    */
   public void debug(String message, Throwable throwable) {
     // Don't do anything voluntarily
   }
 
   /**
-   * {@inheritDoc}
-   * #see Logger#debug(String, Object...)
+   * {@inheritDoc} #see Logger#debug(String, Object...)
    */
   public void debug(String message, Object... objects) {
     // Don't do anything voluntarily
   }
 
   /**
-   * {@inheritDoc}
-   * #see Logger#debug(String, Throwable, Object...)
+   * {@inheritDoc} #see Logger#debug(String, Throwable, Object...)
    */
   public void debug(String message, Throwable throwable, Object... objects) {
     // Don't do anything voluntarily

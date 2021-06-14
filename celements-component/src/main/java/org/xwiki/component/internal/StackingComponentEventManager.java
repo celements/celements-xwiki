@@ -30,10 +30,9 @@ import org.xwiki.observation.event.Event;
 
 /**
  * Allow stacking component events and flush them whenever the user of this class wants to. This is
- * used for example at
- * application initialization time when we don't want to send events before the Application Context
- * has been initialized
- * since components subscribing to these events may want to use the Application Context.
+ * used for example at application initialization time when we don't want to send events before the
+ * Application Context has been initialized since components subscribing to these events may want to
+ * use the Application Context.
  * 
  * @version $Id$
  * @since 2.0M1

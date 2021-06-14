@@ -24,9 +24,8 @@ public class ComponentLookupException extends Exception {
 
   /**
    * Needed to identify the version of this code when serializing/deserializing (since Exception is
-   * Serializable).
-   * Note that the value needs to be modified whenever a non transient field is added or removed in
-   * this class.
+   * Serializable). Note that the value needs to be modified whenever a non transient field is added
+   * or removed in this class.
    */
   private static final long serialVersionUID = 8361313158481775054L;
 

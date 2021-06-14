@@ -28,10 +28,8 @@ import org.xwiki.component.phase.InitializationException;
 
 /**
  * Proxy Component Manager that creates and queries individual Component Managers specific to the
- * current wiki in
- * the Execution Context. These Component Managers are created on the fly the first time a component
- * is registered
- * for the current wiki.
+ * current wiki in the Execution Context. These Component Managers are created on the fly the first
+ * time a component is registered for the current wiki.
  * 
  * @version $Id$
  * @since 2.1RC1

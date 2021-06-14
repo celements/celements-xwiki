@@ -39,8 +39,7 @@ public interface ComponentManager {
    * @param role
    *          the class (aka role) that the component implements
    * @return true if the component has already been instantiated or not. Always return false for
-   *         components with a
-   *         per-lookup instantiation strategy
+   *         components with a per-lookup instantiation strategy
    */
   <T> boolean hasComponent(Class<T> role);
 
@@ -51,18 +50,15 @@ public interface ComponentManager {
    *          the class (aka role) that the component implements
    * @param roleHint
    *          the hint that differentiates a component implementation from another one (each
-   *          component is
-   *          registered with a hint; the "default" hint being the default)
+   *          component is registered with a hint; the "default" hint being the default)
    * @return true if the component has already been instantiated or not. Always return false for
-   *         components with a
-   *         per-lookup instantiation strategy
+   *         components with a per-lookup instantiation strategy
    */
   <T> boolean hasComponent(Class<T> role, String roleHint);
 
   /**
    * Find a component instance that implements that passed interface class. If the component has a
-   * singleton lifecycle
-   * then this method always return the same instance.
+   * singleton lifecycle then this method always return the same instance.
    * 
    * @param <T>
    *          the component role type
@@ -76,8 +72,7 @@ public interface ComponentManager {
 
   /**
    * Find a component instance that implements that passed interface class. If the component has a
-   * singleton lifecycle
-   * then this method always return the same instance.
+   * singleton lifecycle then this method always return the same instance.
    * 
    * @param <T>
    *          the component role type
@@ -85,8 +80,7 @@ public interface ComponentManager {
    *          the class (aka role) that the component implements
    * @param roleHint
    *          the hint that differentiates a component implementation from another one (each
-   *          component is
-   *          registered with a hint; the "default" hint being the default)
+   *          component is registered with a hint; the "default" hint being the default)
    * @return the component instance
    * @throws ComponentLookupException
    *           in case the component cannot be found
@@ -100,8 +94,7 @@ public interface ComponentManager {
    *          the component role type
    * @param component
    *          the component to release passed as a component instance. The component definition
-   *          matching the
-   *          passed instance is removed
+   *          matching the passed instance is removed
    * @throws ComponentLifecycleException
    *           if the component's ending lifecycle raises an error
    */
@@ -115,8 +108,7 @@ public interface ComponentManager {
    * Add a component in the component repository dynamically.
    * <p>
    * If a component with the same role and role hint already exists it will be replaced by this
-   * provided one when
-   * lookup.
+   * provided one when lookup.
    * 
    * @param <T>
    *          the component role type
@@ -131,12 +123,11 @@ public interface ComponentManager {
 
   /**
    * Add a component in the component repository dynamically. This method also makes possible to set
-   * the instance
-   * returned by the {@link ComponentManager} instead of letting it created it from descriptor.
+   * the instance returned by the {@link ComponentManager} instead of letting it created it from
+   * descriptor.
    * <p>
    * If a component with the same role and role hint already exists it will be replaced by this
-   * provided one when
-   * lookup.
+   * provided one when lookup.
    * 
    * @param <T>
    *          the component role type
@@ -199,8 +190,7 @@ public interface ComponentManager {
   /**
    * @return the parent Component Manager of this Component Manager. When doing lookups if the
    *         component cannot be found in the current Component Manager it'll also be looked for in
-   *         the parent
-   *         Component Manager
+   *         the parent Component Manager
    */
   ComponentManager getParent();
 

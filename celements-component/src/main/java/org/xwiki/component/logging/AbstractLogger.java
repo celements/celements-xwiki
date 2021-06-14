@@ -31,10 +31,8 @@ public abstract class AbstractLogger implements Logger {
 
   /**
    * Formats the message like {@code MessageFormat.format(String, Object...)} but also checks for
-   * Exceptions and
-   * catches them as logging should be robust and not interfere with normal program flow. The
-   * Exception caught will be
-   * passed to the loggers debug output.
+   * Exceptions and catches them as logging should be robust and not interfere with normal program
+   * flow. The Exception caught will be passed to the loggers debug output.
    * 
    * @param message
    *          message in Formatter format syntax

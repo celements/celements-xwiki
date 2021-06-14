@@ -63,8 +63,7 @@ import com.xpn.xwiki.web.Utils;
 
 /**
  * Represents an XClass, and contains XClass properties. Each field from {@link BaseCollection} is
- * of type
- * {@link PropertyClass} and defines a single XClass property.
+ * of type {@link PropertyClass} and defines a single XClass property.
  * 
  * @version $Id$
  */
@@ -90,10 +89,9 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * Used to resolve a reference into a proper Document Reference using the current document's
-   * reference to fill the
-   * blanks, except for the page name for which the default page name is used instead and for the
-   * wiki name for which
-   * the current wiki is used instead of the current document reference's wiki.
+   * reference to fill the blanks, except for the page name for which the default page name is used
+   * instead and for the wiki name for which the current wiki is used instead of the current
+   * document reference's wiki.
    */
   private DocumentReferenceResolver<EntityReference> currentMixedDocRefResolver = Utils
       .getComponent(DocumentReferenceResolver.class, "currentmixed/reference");
@@ -105,9 +103,8 @@ public class BaseClass extends BaseCollection implements ClassInterface {
       EntityReferenceResolver.class, "relative");
 
   /**
-   * {@inheritDoc}
-   * Note: This method is overridden to add the deprecation warning so that code using is can see
-   * it's deprecated.
+   * {@inheritDoc} Note: This method is overridden to add the deprecation warning so that code using
+   * is can see it's deprecated.
    * 
    * @deprecated since 2.2M2 use {@link #getDocumentReference()}
    */
@@ -119,9 +116,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * Note: BaseElement#setName() does not support setting reference anymore since 2.4M2. This was
-   * broken and
-   * has been replaced by this overridden method. See XWIKI-5285
-   * {@inheritDoc}
+   * broken and has been replaced by this overridden method. See XWIKI-5285 {@inheritDoc}
    *
    * @deprecated since 2.2M2 use
    *             {@link #setDocumentReference(org.xwiki.model.reference.DocumentReference)}
@@ -163,8 +158,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * Mark a property as disabled. A disabled property should not be editable, but existing object
-   * values are still
-   * kept in the database.
+   * values are still kept in the database.
    * 
    * @param name
    *          the name of the property to disable
@@ -216,8 +210,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * Get the list of enabled (the default, normal state) property definitions that exist in this
-   * class. The resulting
-   * list is unmodifiable, but the contained elements are live.
+   * class. The resulting list is unmodifiable, but the contained elements are live.
    * 
    * @return an unmodifiable list containing the enabled properties of the class
    * @see PropertyClass#isDisabled()
@@ -244,8 +237,7 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * Get the list of disabled property definitions that exist in this class. The resulting list is
-   * unmodifiable, but
-   * the contained elements are live.
+   * unmodifiable, but the contained elements are live.
    * 
    * @return an unmodifiable list containing the disabled properties of the class
    * @see PropertyClass#isDisabled()
@@ -272,10 +264,9 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * Get the list of disabled properties that exist in a given object. This list is a subset of all
-   * the disabled
-   * properties in a class, since the object could have been created and stored before some of the
-   * class properties
-   * were added. The resulting list is unmodifiable, but the contained elements are live.
+   * the disabled properties in a class, since the object could have been created and stored before
+   * some of the class properties were added. The resulting list is unmodifiable, but the contained
+   * elements are live.
    * 
    * @param object
    *          the instance of this class where the disabled properties must exist
@@ -307,11 +298,9 @@ public class BaseClass extends BaseCollection implements ClassInterface {
 
   /**
    * Retrieves deprecated properties of the given object compared to the class. A deprecated
-   * property is a property
-   * which exists in the Object but doesn't exist anymore in the Class, or which has the wrong data
-   * type. This is used
-   * for synchronization of existing or imported Objects with respect to the modifications of their
-   * associated Class.
+   * property is a property which exists in the Object but doesn't exist anymore in the Class, or
+   * which has the wrong data type. This is used for synchronization of existing or imported Objects
+   * with respect to the modifications of their associated Class.
    * 
    * @param object
    *          the instance of this class where to look for undefined properties

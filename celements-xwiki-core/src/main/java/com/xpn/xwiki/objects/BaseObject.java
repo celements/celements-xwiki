@@ -50,10 +50,9 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
 
   /**
    * Used to resolve a reference into a proper Document Reference using the current document's
-   * reference to fill the
-   * blanks, except for the page name for which the default page name is used instead and for the
-   * wiki name for which
-   * the current wiki is used instead of the current document reference's wiki.
+   * reference to fill the blanks, except for the page name for which the default page name is used
+   * instead and for the wiki name for which the current wiki is used instead of the current
+   * document reference's wiki.
    */
   private DocumentReferenceResolver<EntityReference> currentMixedDocRefResolver = Utils
       .getComponent(DocumentReferenceResolver.class, "currentmixed/reference");
@@ -66,8 +65,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
 
   /**
    * Note: This method is overridden to add the deprecation warning so that code using it can see
-   * it's deprecated.
-   * {@inheritDoc}
+   * it's deprecated. {@inheritDoc}
    * 
    * @deprecated since 2.2M2 use {@link #getDocumentReference()}
    */
@@ -175,8 +173,7 @@ public class BaseObject extends BaseCollection implements ObjectInterface, Seria
 
   /**
    * Similar to {@link #clone()} but whereas a clone is an exact copy (with the same GUID), a
-   * duplicate keeps the
-   * same data but with a different identity.
+   * duplicate keeps the same data but with a different identity.
    *
    * @since 2.2.3
    */

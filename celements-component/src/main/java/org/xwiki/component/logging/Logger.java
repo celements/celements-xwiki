@@ -22,10 +22,8 @@ package org.xwiki.component.logging;
 
 /**
  * Logger component, used for logging messages. Classes that want to log should <em>not</em> declare
- * a dependency on
- * this component, but implement the {@link org.xwiki.component.phase.LogEnabled} interface. A quick
- * way to enable
- * logging is to extend {@link AbstractLogEnabled}.
+ * a dependency on this component, but implement the {@link org.xwiki.component.phase.LogEnabled}
+ * interface. A quick way to enable logging is to extend {@link AbstractLogEnabled}.
  * 
  * @version $Id$
  */
@@ -41,8 +39,7 @@ public interface Logger {
 
   /**
    * Log a message with the <code>debug</code> priority, also printing the exception that caused
-   * this message, along
-   * with its stack trace.
+   * this message, along with its stack trace.
    * 
    * @param message
    *          The message to be logged. No further processing of the message is performed.
@@ -54,8 +51,7 @@ public interface Logger {
   /**
    * <p>
    * Logs the {@code message} to the logger with <code>debug</code> priority while expanding the
-   * message with the
-   * objects passed. The message uses the {@link java.text.MessageFormat} syntax.
+   * message with the objects passed. The message uses the {@link java.text.MessageFormat} syntax.
    * </p>
    * <p>
    * Example:<br/>
@@ -79,10 +75,8 @@ public interface Logger {
   /**
    * <p>
    * Logs the {@code message} to the logger with <code>debug</code> priority while expanding the
-   * message with the
-   * objects passed, also printing the exception that caused this message, along with its stack
-   * trace. The message
-   * uses the {@link java.text.MessageFormat} syntax.
+   * message with the objects passed, also printing the exception that caused this message, along
+   * with its stack trace. The message uses the {@link java.text.MessageFormat} syntax.
    * </p>
    * <p>
    * Example:<br/>
@@ -108,8 +102,7 @@ public interface Logger {
    * Check if the <code>debug</code> priority is enabled.
    * 
    * @return <code>true</code> if messages with <code>debug</code> priority will be logged,
-   *         <code>false</code>
-   *         otherwise
+   *         <code>false</code> otherwise
    */
   boolean isDebugEnabled();
 
@@ -123,8 +116,7 @@ public interface Logger {
 
   /**
    * Log a message with the <code>info</code> priority, also printing the exception that caused this
-   * message, along
-   * with its stack trace.
+   * message, along with its stack trace.
    * 
    * @param message
    *          The message to be logged. No further processing of the message is performed.
@@ -136,8 +128,8 @@ public interface Logger {
   /**
    * <p>
    * Logs the {@code message} to the logger with <code>info</code> priority while expanding the
-   * message with the
-   * objects passed. The message uses the {@link java.text.MessageFormat} syntax. <br>
+   * message with the objects passed. The message uses the {@link java.text.MessageFormat} syntax.
+   * <br>
    * </p>
    * <p>
    * Example:<br/>
@@ -161,10 +153,8 @@ public interface Logger {
   /**
    * <p>
    * Logs the {@code message} to the logger with <code>info</code> priority while expanding the
-   * message with the
-   * objects passed, also printing the exception that caused this message, along with its stack
-   * trace. The message
-   * uses the {@link java.text.MessageFormat} syntax.
+   * message with the objects passed, also printing the exception that caused this message, along
+   * with its stack trace. The message uses the {@link java.text.MessageFormat} syntax.
    * </p>
    * <p>
    * Example:<br/>
@@ -190,8 +180,7 @@ public interface Logger {
    * Check if the <code>info</code> priority is enabled.
    * 
    * @return <code>true</code> if messages with <code>info</code> priority will be logged,
-   *         <code>false</code>
-   *         otherwise
+   *         <code>false</code> otherwise
    */
   boolean isInfoEnabled();
 
@@ -205,8 +194,7 @@ public interface Logger {
 
   /**
    * Log a message with the <code>warn</code> priority, also printing the exception that caused this
-   * message, along
-   * with its stack trace.
+   * message, along with its stack trace.
    * 
    * @param message
    *          The message to be logged. No further processing of the message is performed.
@@ -218,8 +206,7 @@ public interface Logger {
   /**
    * <p>
    * Logs the {@code message} to the logger with <code>warn</code> priority while expanding the
-   * message with the
-   * objects passed. The message uses the {@link java.text.MessageFormat} syntax.
+   * message with the objects passed. The message uses the {@link java.text.MessageFormat} syntax.
    * </p>
    * <p>
    * Example:<br/>
@@ -243,10 +230,8 @@ public interface Logger {
   /**
    * <p>
    * Logs the {@code message} to the logger with <code>warn</code> priority while expanding the
-   * message with the
-   * objects passed, also printing the exception that caused this message, along with its stack
-   * trace. The message
-   * uses the {@link java.text.MessageFormat} syntax.
+   * message with the objects passed, also printing the exception that caused this message, along
+   * with its stack trace. The message uses the {@link java.text.MessageFormat} syntax.
    * </p>
    * <p>
    * Example:<br/>
@@ -272,8 +257,7 @@ public interface Logger {
    * Check if the <code>warn</code> priority is enabled.
    * 
    * @return <code>true</code> if messages with <code>warn</code> priority will be logged,
-   *         <code>false</code>
-   *         otherwise
+   *         <code>false</code> otherwise
    */
   boolean isWarnEnabled();
 
@@ -287,8 +271,7 @@ public interface Logger {
 
   /**
    * Log a message with the <code>error</code> priority, also printing the exception that caused
-   * this message, along
-   * with its stack trace.
+   * this message, along with its stack trace.
    * 
    * @param message
    *          The message to be logged. No further processing of the message is performed.
@@ -300,8 +283,7 @@ public interface Logger {
   /**
    * <p>
    * Logs the {@code message} to the logger with <code>error</code> priority while expanding the
-   * message with the
-   * objects passed. The message uses the {@link java.text.MessageFormat} syntax.
+   * message with the objects passed. The message uses the {@link java.text.MessageFormat} syntax.
    * </p>
    * <p>
    * Example:<br/>
@@ -325,10 +307,8 @@ public interface Logger {
   /**
    * <p>
    * Logs the {@code message} to the logger with <code>error</code> priority while expanding the
-   * message with the
-   * objects passed, also printing the exception that caused this message, along with its stack
-   * trace. The message
-   * uses the {@link java.text.MessageFormat} syntax.
+   * message with the objects passed, also printing the exception that caused this message, along
+   * with its stack trace. The message uses the {@link java.text.MessageFormat} syntax.
    * </p>
    * <p>
    * Example:<br/>
@@ -354,8 +334,7 @@ public interface Logger {
    * Check if the <code>error</code> priority is enabled.
    * 
    * @return <code>true</code> if messages with <code>error</code> priority will be logged,
-   *         <code>false</code>
-   *         otherwise
+   *         <code>false</code> otherwise
    */
   boolean isErrorEnabled();
 }
