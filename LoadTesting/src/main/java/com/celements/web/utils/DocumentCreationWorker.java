@@ -113,7 +113,7 @@ public class DocumentCreationWorker extends AbstractXWikiRunnable {
         unmappedObj.setStringValue("attachment", styles + " - dolor " + rnd2 + " sim " + rnd1);
         context.getWiki().saveDocument(doc, context);
         docsCreated++;
-      } catch (XWikiException e) {
+      } catch (XWikiException | NullPointerException exp) {
         LOGGER.error(context.getWiki() + " - " + docFullName, e);
       } catch (NullPointerException npe) {
         LOGGER.error(context.getWiki() + " - " + docFullName, npe);
