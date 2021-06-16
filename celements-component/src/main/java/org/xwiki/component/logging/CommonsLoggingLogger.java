@@ -32,13 +32,13 @@ import org.slf4j.LoggerFactory;
  *
  * @version $Id$
  * @since 2.0M1
- * @deprecated since 5.1
+ * @deprecated since 5.2, instead use {@link org.slf4j.Logger}
  */
 @Deprecated
 public class CommonsLoggingLogger extends AbstractLogger {
 
   /**
-   * Wrapped Commons Logging logger object. This communicates with the underlying logging framework.
+   * Wrapped logger object. This communicates with the underlying logging framework.
    */
 
   private Logger logger;
