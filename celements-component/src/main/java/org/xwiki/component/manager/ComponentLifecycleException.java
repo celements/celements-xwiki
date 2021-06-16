@@ -21,26 +21,25 @@
 package org.xwiki.component.manager;
 
 /**
- * Raised during component's release (see {@link ComponentManager#release(Object)}) if an error happens during 
- * the end lifecycle execution (during component's destroy for example).
- * 
+ * Raised during component's release (see {@link ComponentManager#release(Object)}) if an error
+ * happens during the end lifecycle execution (during component's destroy for example).
+ *
  * @version $Id$
  */
-public class ComponentLifecycleException extends Exception
-{
-    /**
-     * Needed to identify the version of this code when serializing/deserializing (since Exception is Serializable).
-     * Note that the value needs to be modified whenever a non transient field is added or removed in this class. 
-     */
-    private static final long serialVersionUID = 4997756616508082309L;
+public class ComponentLifecycleException extends Exception {
 
-    public ComponentLifecycleException(String message)
-    {
-        super(message);
-    }
+  /**
+   * Needed to identify the version of this code when serializing/deserializing (since Exception is
+   * Serializable). Note that the value needs to be modified whenever a non transient field is added
+   * or removed in this class.
+   */
+  private static final long serialVersionUID = 4997756616508082309L;
 
-    public ComponentLifecycleException(String message, Throwable cause)
-    {
-        super(message, cause);
-    }
+  public ComponentLifecycleException(String message) {
+    super(message);
+  }
+
+  public ComponentLifecycleException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

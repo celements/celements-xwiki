@@ -340,24 +340,27 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       EntityReferenceSerializer.class);
 
   @SuppressWarnings("unchecked")
-  private EntityReferenceSerializer<String> localStringEntityReferenceSerializer = Utils.getComponent(
-      EntityReferenceSerializer.class, "local");
+  private EntityReferenceSerializer<String> localStringEntityReferenceSerializer = Utils
+      .getComponent(
+          EntityReferenceSerializer.class, "local");
 
   private EntityReferenceValueProvider defaultEntityReferenceValueProvider = Utils.getComponent(
       EntityReferenceValueProvider.class);
 
   @SuppressWarnings("unchecked")
-  private EntityReferenceSerializer<EntityReference> localReferenceEntityReferenceSerializer = Utils.getComponent(
-      EntityReferenceSerializer.class, "local/reference");
+  private EntityReferenceSerializer<EntityReference> localReferenceEntityReferenceSerializer = Utils
+      .getComponent(
+          EntityReferenceSerializer.class, "local/reference");
 
   /**
    * Used to resolve a string into a proper Document Reference using the current document's
-   * reference to fill the
-   * blanks, except for the page name for which the default page name is used instead.
+   * reference to fill the blanks, except for the page name for which the default page name is used
+   * instead.
    */
   @SuppressWarnings("unchecked")
-  private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver = Utils.getComponent(
-      DocumentReferenceResolver.class, "currentmixed");
+  private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver = Utils
+      .getComponent(
+          DocumentReferenceResolver.class, "currentmixed");
 
   private XWikiURLBuilder entityXWikiURLBuilder = Utils.getComponent(XWikiURLBuilder.class,
       "entity");
@@ -421,10 +424,9 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * First try to find the configuration file pointed by the passed location as a file. If it does
-   * not exist or if the
-   * file cannot be read (for example if the security manager doesn't allow it), then try to load
-   * the file as a
-   * resource using the Servlet Context and failing that from teh classpath.
+   * not exist or if the file cannot be read (for example if the security manager doesn't allow it),
+   * then try to load the file as a resource using the Servlet Context and failing that from teh
+   * classpath.
    *
    * @param configurationLocation
    *          the location where the XWiki configuration file is located (either an absolute or
@@ -484,8 +486,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
    * @return an XWiki object configured for the wiki corresponding to the current request
    * @throws XWikiException
    *           if the requested URL does not correspond to a real wiki, or if there's an error in
-   *           the
-   *           storage
+   *           the storage
    */
   public static XWiki getXWiki(XWikiContext context) throws XWikiException {
     XWiki xwiki = getMainXWiki(context);
@@ -506,8 +507,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     try {
       URL requestURL = context.getURL();
       host = requestURL.getHost();
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // In path-based multi-wiki, the wiki name is an element of the request path.
     // The url is in the form /xwiki (app name)/wiki (servlet name)/wikiname/
@@ -618,8 +618,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     } catch (InvocationTargetException e) {
       e.printStackTrace();
       return null;
-    } finally {
-    }
+    } finally {}
   }
 
   public static String getFormEncoded(String content) {
@@ -669,8 +668,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     } catch (IllegalAccessException e) {
       e.printStackTrace();
       return null;
-    } finally {
-    }
+    } finally {}
   }
 
   public static String getServerWikiPage(String servername) {
@@ -695,15 +693,13 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     int rows = 25;
     try {
       rows = context.getWiki().getUserPreferenceAsInt("editbox_height", context);
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
     textarea.setRows(rows);
 
     int cols = 80;
     try {
       cols = context.getWiki().getUserPreferenceAsInt("editbox_width", context);
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
     textarea.setCols(cols);
     textarea.setName("content");
     textarea.setID("content");
@@ -717,8 +713,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * This provide a way to create an XWiki object without initializing the whole XWiki (including
-   * plugins, storage,
-   * etc.).
+   * plugins, storage, etc.).
    * <p>
    * Needed for tools or tests which need XWiki because it is used everywhere in the API.
    * </p>
@@ -877,8 +872,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Ensure that mandatory classes (ie classes XWiki needs to work properly) exist and create them
-   * if they don't
-   * exist.
+   * if they don't exist.
    */
   private void initializeMandatoryClasses(XWikiContext context) throws XWikiException {
     getPrefsClass(context);
@@ -907,8 +901,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * TODO: This is only a temporary work around, we need to use a component-based init mechanism
-   * instead. Note that we
-   * need DB access to be available (at component initialization) to make this possible.
+   * instead. Note that we need DB access to be available (at component initialization) to make this
+   * possible.
    * <p>
    * This method is protected to be able to skip it in unit tests.
    */
@@ -996,10 +990,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * @deprecated since 4.4 instead use ModelUtils#getAllWikis
-   * 
    * @return a cached list of all active virtual wikis (i.e. wikis who have been hit by a user
-   *         request). To get a full
-   *         list of all virtual wikis database names use
+   *         request). To get a full list of all virtual wikis database names use
    *         {@link #getVirtualWikisDatabaseNames(XWikiContext)}.
    */
   @Deprecated
@@ -1009,13 +1001,11 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * @deprecated since 4.4 instead use ModelUtils#getAllWikis
-   * 
    * @return the full list of all database names of all defined virtual wikis. The database names
-   *         are computed from
-   *         the names of documents having a XWiki.XWikiServerClass object attached to them by
-   *         removing the
-   *         "XWiki.XWikiServer" prefix and making it lower case. For example a page named
-   *         "XWiki.XWikiServerMyDatabase" would return "mydatabase" as the database name.
+   *         are computed from the names of documents having a XWiki.XWikiServerClass object
+   *         attached to them by removing the "XWiki.XWikiServer" prefix and making it lower case.
+   *         For example a page named "XWiki.XWikiServerMyDatabase" would return "mydatabase" as the
+   *         database name.
    */
   @Deprecated
   public List<String> getVirtualWikisDatabaseNames(XWikiContext context) throws XWikiException {
@@ -1058,8 +1048,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
    * @param context
    *          the current context
    * @return the name of the document containing the wiki definition, or {@code null} if no wiki
-   *         corresponds to the
-   *         hostname
+   *         corresponds to the hostname
    * @throws XWikiException
    *           if a problem occurs while searching the storage
    */
@@ -1101,8 +1090,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
           if (capacity != null) {
             iCapacity = Integer.parseInt(capacity);
           }
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
         try {
           CacheConfiguration configuration = new CacheConfiguration();
           configuration.setConfigurationId("xwiki.virtualwikimap");
@@ -1220,8 +1208,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
       try {
         is = getResourceAsStream(name);
-      } catch (Exception e) {
-      }
+      } catch (Exception e) {}
     }
 
     if (is == null) {
@@ -1249,8 +1236,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
       try {
         is = getResourceAsStream(name);
-      } catch (Exception e) {
-      }
+      } catch (Exception e) {}
     }
 
     if (is == null) {
@@ -1266,8 +1252,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         if (getResourceAsStream(name) != null) {
           return true;
         }
-      } catch (IOException e) {
-      }
+      } catch (IOException e) {}
     }
     try {
       File file = new File(name);
@@ -1325,8 +1310,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     fpath = new File(path);
     if (fpath.exists()) {
       return path;
-    } else {
-    }
+    } else {}
     return null;
   }
 
@@ -1629,20 +1613,16 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Retrieve all the deleted attachments that belonged to a certain document. Note that this does
-   * not distinguish
-   * between different incarnations of a document name, and it does not require that the document
-   * still exists, it
-   * returns all the attachments that at the time of their deletion had a document with the
-   * specified name as their
-   * owner.
+   * not distinguish between different incarnations of a document name, and it does not require that
+   * the document still exists, it returns all the attachments that at the time of their deletion
+   * had a document with the specified name as their owner.
    *
    * @param docName
    *          the {@link XWikiDocument#getFullName() name} of the owner document
    * @param context
    *          the current request context
    * @return A list with all the deleted attachments which belonged to the specified document. If no
-   *         such attachments
-   *         are found in the trash, an empty list is returned.
+   *         such attachments are found in the trash, an empty list is returned.
    * @throws XWikiException
    *           if an error occurs while loading the attachments
    */
@@ -1658,14 +1638,11 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Retrieve all the deleted attachments that belonged to a certain document and had the specified
-   * name. Multiple
-   * versions can be returned since the same file can be uploaded and deleted several times,
-   * creating different
-   * instances in the trash. Note that this does not distinguish between different incarnations of a
-   * document name,
-   * and it does not require that the document still exists, it returns all the attachments that at
-   * the time of their
-   * deletion had a document with the specified name as their owner.
+   * name. Multiple versions can be returned since the same file can be uploaded and deleted several
+   * times, creating different instances in the trash. Note that this does not distinguish between
+   * different incarnations of a document name, and it does not require that the document still
+   * exists, it returns all the attachments that at the time of their deletion had a document with
+   * the specified name as their owner.
    *
    * @param docName
    *          the {@link DeletedAttachment#getDocName() name of the document} the attachment
@@ -1675,8 +1652,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
    * @param context
    *          the current request context
    * @return A list with all the deleted attachments which belonged to the specified document and
-   *         had the specified
-   *         filename. If no such attachments are found in the trash, an empty list is returned.
+   *         had the specified filename. If no such attachments are found in the trash, an empty
+   *         list is returned.
    * @throws XWikiException
    *           if an error occurs while loading the attachments
    */
@@ -1736,15 +1713,13 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     int rows = 25;
     try {
       rows = context.getWiki().getUserPreferenceAsInt("editbox_height", context);
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
     textarea.setRows(rows);
 
     int cols = 80;
     try {
       cols = context.getWiki().getUserPreferenceAsInt("editbox_width", context);
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
     textarea.setCols(cols);
     textarea.setFilter(filter);
     textarea.setName("content");
@@ -1761,9 +1736,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /*
    * public String[] getClassList() throws XWikiException { List list = store.getClassList();
-   * String[] array = new
-   * String[list.size()]; for (int i=0;i<list.size();i++) array[i] = (String)list.get(i); return
-   * array; }
+   * String[] array = new String[list.size()]; for (int i=0;i<list.size();i++) array[i] =
+   * (String)list.get(i); return array; }
    */
 
   public <T> List<T> search(String sql, XWikiContext context) throws XWikiException {
@@ -1928,8 +1902,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
           }
         }
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // Try parsing a file located in the directory with the same name.
     try {
@@ -1949,8 +1922,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         LOG.warn("Illegal access, tried to use file [" + path + "] as a template."
             + " Possible break-in attempt!");
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     return null;
   }
@@ -1977,8 +1949,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Designed to include dynamic content, such as Servlets or JSPs, inside Velocity templates; works
-   * by creating a
-   * RequestDispatcher, buffering the output, then returning it as a string.
+   * by creating a RequestDispatcher, buffering the output, then returning it as a string.
    *
    * @author LBlaze
    */
@@ -2000,8 +1971,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
   /**
    * @param iconName
    *          the standard name of an icon (it's not the name of the file on the filesystem, it's a
-   *          generic
-   *          name, for example "success" for a success icon
+   *          generic name, for example "success" for a success icon
    * @return the URL to the icon resource
    * @since 2.6M1
    */
@@ -2286,21 +2256,17 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Obtain a preference value for the wiki, looking up first in the XWiki.XWikiPreferences
-   * document, then fallbacking
-   * on a config parameter when the first lookup gives an empty string, then returning the default
-   * value if the config
-   * parameter returned itself an empty string.
+   * document, then fallbacking on a config parameter when the first lookup gives an empty string,
+   * then returning the default value if the config parameter returned itself an empty string.
    *
    * @param prefname
    *          the parameter to look for in the XWiki.XWikiPreferences object corresponding to the
-   *          context's
-   *          language in the XWiki.XWikiPreferences document of the wiki (or the first
-   *          XWiki.XWikiPreferences
-   *          object contained, if the one for the context'ds language could not be found).
+   *          context's language in the XWiki.XWikiPreferences document of the wiki (or the first
+   *          XWiki.XWikiPreferences object contained, if the one for the context'ds language could
+   *          not be found).
    * @param fallback_param
    *          the parameter in xwiki.cfg to fallback on, in case the XWiki.XWikiPreferences object
-   *          gave
-   *          no result
+   *          gave no result
    * @param default_value
    *          the default value to fallback on, in case both XWiki.XWikiPreferences and the fallback
    *          xwiki.cfg parameter gave no result
@@ -2444,14 +2410,11 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * First try to find the current language in use from the XWiki context. If none is used and if
-   * the wiki is not
-   * multilingual use the default language defined in the XWiki preferences. If the wiki is
-   * multilingual try to get
-   * the language passed in the request. If none was passed try to get it from a cookie. If no
-   * language cookie exists
-   * then use the user default language and barring that use the browser's "Accept-Language" header
-   * sent in HTTP
-   * request. If none is defined use the default language.
+   * the wiki is not multilingual use the default language defined in the XWiki preferences. If the
+   * wiki is multilingual try to get the language passed in the request. If none was passed try to
+   * get it from a cookie. If no language cookie exists then use the user default language and
+   * barring that use the browser's "Accept-Language" header sent in HTTP request. If none is
+   * defined use the default language.
    *
    * @return the language to use
    */
@@ -2496,8 +2459,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         context.setLanguage(language);
         return language;
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // As no language parameter was passed in the request, try to get the language to use
     // from a cookie.
@@ -2508,8 +2470,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         context.setLanguage(language);
         return language;
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // Next from the default user preference
     try {
@@ -2524,8 +2485,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
           return language;
         }
       }
-    } catch (XWikiException e) {
-    }
+    } catch (XWikiException e) {}
 
     // If the default language is preferred, and since the user didn't explicitly ask for a
     // language already, then use the default wiki language.
@@ -2566,16 +2526,13 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Construct a list of language codes (ISO 639-1) from the Accept-Languages header. This method
-   * filters out some
-   * bugs in different browsers or containers, like returning '*' as a language (Jetty) or using '_'
-   * as a
-   * language--country delimiter (some versions of Opera).
+   * filters out some bugs in different browsers or containers, like returning '*' as a language
+   * (Jetty) or using '_' as a language--country delimiter (some versions of Opera).
    *
    * @param request
    *          The client request.
    * @return A list of language codes, in the client preference order; might be empty if the header
-   *         is not well
-   *         formed.
+   *         is not well formed.
    */
   @SuppressWarnings("unchecked")
   private List<String> getAcceptedLanguages(XWikiRequest request) {
@@ -2621,8 +2578,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     // Get request language
     try {
       requestLanguage = Util.normalizeLanguage(context.getRequest().getParameter("language"));
-    } catch (Exception ex) {
-    }
+    } catch (Exception ex) {}
 
     // Get user preference
     try {
@@ -2631,15 +2587,14 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       if (userdoc != null) {
         userPreferenceLanguage = userdoc.getStringValue("XWiki.XWikiUsers", "default_language");
       }
-    } catch (XWikiException e) {
-    }
+    } catch (XWikiException e) {}
 
     // Get navigator language setting
     if (context.getRequest() != null) {
       String accept = context.getRequest().getHeader("Accept-Language");
       if ((accept != null) && (!accept.equals(""))) {
         String[] alist = StringUtils.split(accept, ",;-");
-        if ((alist != null) && !(alist.length == 0)) {
+        if ((alist != null) && (alist.length != 0)) {
           context.setLanguage(alist[0]);
           navigatorLanguage = alist[0];
         }
@@ -2649,8 +2604,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     // Get language from cookie
     try {
       cookieLanguage = Util.normalizeLanguage(getUserPreferenceFromCookie("language", context));
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // Determine which language to use
     // First we get the language from the request
@@ -2705,8 +2659,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     try {
       requestLanguage = Util.normalizeLanguage(context.getRequest().getParameter(
           "interfacelanguage"));
-    } catch (Exception ex) {
-    }
+    } catch (Exception ex) {}
 
     // Get context language
     contextLanguage = context.getInterfaceLanguage();
@@ -2720,15 +2673,14 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         userPreferenceLanguage = userdoc.getStringValue("XWiki.XWikiUsers",
             "default_interface_language");
       }
-    } catch (XWikiException e) {
-    }
+    } catch (XWikiException e) {}
 
     // Get navigator language setting
     if (context.getRequest() != null) {
       String accept = context.getRequest().getHeader("Accept-Language");
       if ((accept != null) && (!accept.equals(""))) {
         String[] alist = StringUtils.split(accept, ",;-");
-        if ((alist != null) && !(alist.length == 0)) {
+        if ((alist != null) && (alist.length != 0)) {
           context.setLanguage(alist[0]);
           navigatorLanguage = alist[0];
         }
@@ -2739,8 +2691,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     try {
       cookieLanguage = Util.normalizeLanguage(getUserPreferenceFromCookie("interfacelanguage",
           context));
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     // Determine which language to use
     // First we get the language from the request
@@ -2889,15 +2840,12 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     // Make sure we call all classes flushCache function
     try {
       List<String> classes = getClassList(context);
-      for (int i = 0; i < classes.size(); i++) {
-        String className = classes.get(i);
+      for (String className : classes) {
         try {
           getClass(className, context).flushCache();
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
   }
 
@@ -2998,10 +2946,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Verify if the <code>XWiki.TagClass</code> page exists and that it contains all the required
-   * configuration
-   * properties to make the tag feature work properly. If some properties are missing they are
-   * created and saved in
-   * the database.
+   * configuration properties to make the tag feature work properly. If some properties are missing
+   * they are created and saved in the database.
    *
    * @param context
    *          the XWiki Context
@@ -3037,14 +2983,11 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Verify if the <code>XWiki.SheetClass</code> page exists and that it contains all the required
-   * configuration
-   * properties to make the sheet feature work properly. If some properties are missing they are
-   * created and saved in
-   * the database. SheetClass is used to a page as a sheet. When a page is tagged as a sheet and
-   * that page is included
-   * in another page using the include macro then editing it triggers automatic inline edition (for
-   * XWiki Syntax 2.0
-   * only - for XWiki Syntax 1.0 automatic inline edition is triggered using #includeForm).
+   * configuration properties to make the sheet feature work properly. If some properties are
+   * missing they are created and saved in the database. SheetClass is used to a page as a sheet.
+   * When a page is tagged as a sheet and that page is included in another page using the include
+   * macro then editing it triggers automatic inline edition (for XWiki Syntax 2.0 only - for XWiki
+   * Syntax 1.0 automatic inline edition is triggered using #includeForm).
    *
    * @param context
    *          the XWiki Context
@@ -3080,10 +3023,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Verify if the <code>XWiki.XWikiUsers</code> page exists and that it contains all the required
-   * configuration
-   * properties to make the user feature work properly. If some properties are missing they are
-   * created and saved in
-   * the database.
+   * configuration properties to make the user feature work properly. If some properties are missing
+   * they are created and saved in the database.
    *
    * @param context
    *          the XWiki Context
@@ -3139,10 +3080,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Verify if the <code>XWiki.GlobalRedirect</code> page exists and that it contains all the
-   * required configuration
-   * properties to make the redirection feature work properly. If some properties are missing they
-   * are created and
-   * saved in the database.
+   * required configuration properties to make the redirection feature work properly. If some
+   * properties are missing they are created and saved in the database.
    *
    * @param context
    *          the XWiki Context
@@ -3174,10 +3113,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Verify if the <code>XWiki.XWikiPreferences</code> page exists and that it contains all the
-   * required configuration
-   * properties to make XWiki work properly. If some properties are missing they are created and
-   * saved in the
-   * database.
+   * required configuration properties to make XWiki work properly. If some properties are missing
+   * they are created and saved in the database.
    *
    * @param context
    *          the XWiki Context
@@ -3655,8 +3592,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       mailSenderClass = Class.forName("com.xpn.xwiki.plugin.mailsender.MailSenderPluginApi");
 
       // public int sendRawMessage(String from, String to, String rawMessage)
-      mailSenderSendRaw = mailSenderClass.getMethod("sendRawMessage", new Class[] { String.class,
-          String.class, String.class });
+      mailSenderSendRaw = mailSenderClass.getMethod("sendRawMessage", String.class, String.class,
+          String.class);
     } catch (Exception e) {
       LOG.error("Problem getting MailSender via Reflection. Using the old sendMessage mechanism.",
           e);
@@ -3898,10 +3835,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Prepares the localized resources, according to the selected language. From any point in the
-   * code (java, velocity
-   * or groovy) the "msg" parameter holds an instance of the localized resource bundle, and the
-   * "locale" parameter
-   * holds the current locale settings.
+   * code (java, velocity or groovy) the "msg" parameter holds an instance of the localized resource
+   * bundle, and the "locale" parameter holds the current locale settings.
    *
    * @param context
    *          The request context.
@@ -4017,8 +3952,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
             return "Cannot make recursive include";
           }
           includedDocs.add(prefixedTopic);
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
 
         // Get document to include
         doc = getDocument(((XWikiDocument) context.get("doc")).getSpace(), localTopic, context);
@@ -4081,8 +4015,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         if (includedDocs != null) {
           includedDocs.remove(prefixedTopic);
         }
-      } catch (Exception e) {
-      }
+      } catch (Exception e) {}
       return result;
     } finally {
       if (database != null) {
@@ -4124,10 +4057,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Render content from the passed included document, setting the correct security doc (sdoc) and
-   * including doc
-   * (idoc). Note that this is needed for 2.0 syntax only since in 1.0 syntax the idoc and sdoc are
-   * set by
-   * {@link com.xpn.xwiki.render.XWikiRenderingEngine#renderText}.
+   * including doc (idoc). Note that this is needed for 2.0 syntax only since in 1.0 syntax the idoc
+   * and sdoc are set by {@link com.xpn.xwiki.render.XWikiRenderingEngine#renderText}.
    *
    * @since 2.2M2
    */
@@ -4671,7 +4602,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       }
 
       // User is not active
-      if (!(userdoc.getIntValue("XWiki.XWikiUsers", "active") == 1)) {
+      if ((userdoc.getIntValue("XWiki.XWikiUsers", "active") != 1)) {
         if (LOG.isErrorEnabled()) {
           LOG.error("Wiki creation (" + wikiName + "," + wikiUrl + "," + wikiAdmin + ") failed: "
               + "user is not active");
@@ -5075,12 +5006,10 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Helper method, removes a predefined path segment (the context path or the servel path) from the
-   * start of the
-   * requested URI and returns the remainder. This method is needed because special characters in
-   * the path can be
-   * URL-encoded, depending on whether the request is forwarded through the request dispatcher or
-   * not, and also
-   * depending on the client (some browsers encode -, while some don't).
+   * start of the requested URI and returns the remainder. This method is needed because special
+   * characters in the path can be URL-encoded, depending on whether the request is forwarded
+   * through the request dispatcher or not, and also depending on the client (some browsers encode
+   * -, while some don't).
    *
    * @param path
    *          the path, as taken from the requested URI
@@ -5148,14 +5077,15 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
       String action = context.getAction();
       /*
        * Allow inactive users to see skins, ressources, SSX, JSX and downloads they could have seen
-       * as guest. The
-       * rational behind this behaviour is that inactive users should be able to access the same UI
-       * that guests
-       * are used to see, including custom icons, panels, and so on...
+       * as guest. The rational behind this behaviour is that inactive users should be able to
+       * access the same UI that guests are used to see, including custom icons, panels, and so
+       * on...
        */
       if ((action.equals("skin") && (doc.getSpace().equals("skins") || doc.getSpace().equals(
-          "resources"))) || ((action.equals("skin") || action.equals("download") || action.equals(
-              "ssx") || action.equals("jsx")) && getRightService().hasAccessLevel("view",
+          "resources"))) || ((action.equals("skin") || action.equals("download")
+              || action.equals(
+                  "ssx")
+              || action.equals("jsx")) && getRightService().hasAccessLevel("view",
                   XWikiRightService.GUEST_USER_FULLNAME, doc.getPrefixedFullName(), context))
           || ((action.equals("view") && doc.getFullName().equals("XWiki.AccountValidation")))) {
         allow = true;
@@ -5411,8 +5341,9 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
                 LOG.debug("Using custom URLFactory Service Class [" + urlFactoryServiceClass + "]");
               }
               factoryService = (XWikiURLFactoryService) Class.forName(
-                  urlFactoryServiceClass).getConstructor(new Class<?>[] {
-                      XWiki.class }).newInstance(new Object[] { this });
+                  urlFactoryServiceClass).getConstructor(
+                      XWiki.class)
+                  .newInstance(this);
             } catch (Exception e) {
               factoryService = null;
               LOG.warn("Failed to initialize URLFactory Service [" + urlFactoryServiceClass + "]",
@@ -5520,8 +5451,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
           }
         }
       }
-    } catch (Exception e) {
-    }
+    } catch (Exception e) {}
 
     String result = referer.substring(referer.indexOf("://") + 3);
     if (result.endsWith("/")) {
@@ -5691,8 +5621,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
       try {
         sdf.setTimeZone(TimeZone.getTimeZone(getUserTimeZone(context)));
-      } catch (Exception e) {
-      }
+      } catch (Exception e) {}
 
       return sdf.format(date);
     } catch (Exception e) {
@@ -6035,7 +5964,6 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     }
   }
 
-
   /**
    * @deprecated since 4.4 instead use ModelUtils#getAllDocsForSpace
    */
@@ -6120,8 +6048,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     try {
       // refreshes all Links of each doc of the wiki
       List<String> docs = getStore().getQueryManager().getNamedQuery("getAllDocuments").execute();
-      for (int i = 0; i < docs.size(); i++) {
-        XWikiDocument myDoc = this.getDocument(docs.get(i), context);
+      for (String doc : docs) {
+        XWikiDocument myDoc = this.getDocument(doc, context);
         myDoc.getStore().saveLinks(myDoc, context, true);
       }
     } catch (QueryException ex) {
@@ -6277,8 +6205,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Indicates whether deleted attachments are stored in a recycle bin or not. This can be
-   * configured using the key
-   * <var>storage.attachment.recyclebin</var>.
+   * configured using the key <var>storage.attachment.recyclebin</var>.
    *
    * @param context
    *          The current {@link XWikiContext context}, maybe will be useful.
@@ -6356,8 +6283,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Privileged API to retrieve an object instantiated from groovy code in a String. Note that
-   * Groovy scripts
-   * compilation is cached.
+   * Groovy scripts compilation is cached.
    *
    * @param script
    *          the Groovy class definition string (public class MyClass { ... })
@@ -6375,9 +6301,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Privileged API to retrieve an object instantiated from groovy code in a String, using a
-   * classloader including all
-   * JAR files located in the passed page as attachments. Note that Groovy scripts compilation is
-   * cached
+   * classloader including all JAR files located in the passed page as attachments. Note that Groovy
+   * scripts compilation is cached
    *
    * @param script
    *          the Groovy class definition string (public class MyClass { ... })
@@ -6422,8 +6347,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
     try {
       macrosmapping = getResourceContent(MACROS_FILE);
-    } catch (IOException e) {
-    }
+    } catch (IOException e) {}
 
     macrosmapping += "\r\n" + xwiki.getXWikiPreference("macros_mapping", "", context);
 
@@ -6477,8 +6401,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * @return The maximum section depth for which section editing is available. This can be
-   *         customized through the
-   *         {@code xwiki.section.depth} configuration property. Defaults to 2 when not defined.
+   *         customized through the {@code xwiki.section.depth} configuration property. Defaults to
+   *         2 when not defined.
    */
   public long getSectionEditingDepth() {
     return ParamAsLong("xwiki.section.depth", 2);
@@ -6536,10 +6460,12 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
     temp = temp.replaceAll("[\u00f1\u0144\u0146\u0148\u0149\u014b\u01f9\u0235]", "n");
     temp = temp.replaceAll(
         "[\u00d2\u00d3\u00d4\u00d5\u00d6\u00d8\u014c\u014e\u0150\u01d1\u01ea\u01ec\u01fe\u020c\u020e\u022a\u022c"
-            + "\u022e\u0230]", "O");
+            + "\u022e\u0230]",
+        "O");
     temp = temp.replaceAll(
         "[\u00f2\u00f3\u00f4\u00f5\u00f6\u00f8\u014d\u014f\u0151\u01d2\u01eb\u01ed\u01ff\u020d\u020f\u022b\u022d"
-            + "\u022f\u0231]", "o");
+            + "\u022f\u0231]",
+        "o");
     temp = temp.replaceAll("[\u0156\u0158\u0210\u0212]", "R");
     temp = temp.replaceAll("[\u0157\u0159\u0211\u0213]", "r");
     temp = temp.replaceAll("[\u015a\u015c\u015e\u0160\u0218]", "S");
@@ -7046,8 +6972,9 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
         for (XWikiAttachment attachmentToRestore : toRestore) {
           // There might be multiple versions of the attachment in the trash, search for the right
           // one
-          List<DeletedAttachment> deletedVariants = getAttachmentRecycleBinStore().getAllDeletedAttachments(
-              attachmentToRestore, context, true);
+          List<DeletedAttachment> deletedVariants = getAttachmentRecycleBinStore()
+              .getAllDeletedAttachments(
+                  attachmentToRestore, context, true);
           DeletedAttachment correctVariant = null;
           for (DeletedAttachment variant : deletedVariants) { // Reverse chronological order
             if (variant.getDate().before(rolledbackDoc.getDate())) {
@@ -7129,10 +7056,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * Set the fields of the class document passed as parameter. Can generate content for both XWiki
-   * Syntax 1.0 and
-   * XWiki Syntax 2.0. If new documents are set to be created in XWiki Syntax 1.0 then generate
-   * XWiki 1.0 Syntax
-   * otherwise generate XWiki Syntax 2.0.
+   * Syntax 1.0 and XWiki Syntax 2.0. If new documents are set to be created in XWiki Syntax 1.0
+   * then generate XWiki 1.0 Syntax otherwise generate XWiki Syntax 2.0.
    *
    * @param title
    *          the page title to set
@@ -7175,14 +7100,12 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
    * Get the syntax of the document currently being executed.
    * <p>
    * The document currently being executed is not the same than the context document since when
-   * including a page with
-   * velocity #includeForm(), method for example the context doc is the includer document even if
-   * includeForm() fully
-   * execute and render the included document before insert it in the includer document.
+   * including a page with velocity #includeForm(), method for example the context doc is the
+   * includer document even if includeForm() fully execute and render the included document before
+   * insert it in the includer document.
    * <p>
    * If the current document can't be found, the method assume that the executed document is the
-   * context document
-   * (it's generally the case when a document is directly rendered with
+   * context document (it's generally the case when a document is directly rendered with
    * {@link XWikiDocument#getRenderedContent(XWikiContext)} for example).
    *
    * @param defaultSyntaxId
@@ -7203,14 +7126,12 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
    * Get the syntax of the document currently being executed.
    * <p>
    * The document currently being executed is not the same than the context document since when
-   * including a page with
-   * velocity #includeForm(), method for example the context doc is the includer document even if
-   * includeForm() fully
-   * execute and render the included document before insert it in the includer document.
+   * including a page with velocity #includeForm(), method for example the context doc is the
+   * includer document even if includeForm() fully execute and render the included document before
+   * insert it in the includer document.
    * <p>
    * If the current document can't be found, the method assume that the executed document is the
-   * context document
-   * (it's generally the case when a document is directly rendered with
+   * context document (it's generally the case when a document is directly rendered with
    * {@link XWikiDocument#getRenderedContent(XWikiContext)} for example).
    *
    * @return the syntax identifier
@@ -7242,10 +7163,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * @return true if title handling should be using the compatibility mode or not. When the
-   *         compatibility mode is
-   *         active, if the document's content first header (level 1 or level 2) matches the
-   *         document's title the
-   *         first header is stripped.
+   *         compatibility mode is active, if the document's content first header (level 1 or level
+   *         2) matches the document's title the first header is stripped.
    */
   public boolean isTitleInCompatibilityMode() {
     return "1".equals(Param("xwiki.title.compatibility", "0"));
@@ -7310,8 +7229,8 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /*
    * --------------------------------------------------------------------------------------------
-   * following only deprecated methods copied from XWikiCompatibilityAspect, since 3.1
-   * FIXME find and delete unused methods
+   * following only deprecated methods copied from XWikiCompatibilityAspect, since 3.1 FIXME find
+   * and delete unused methods
    * --------------------------------------------------------------------------------------------
    */
 
@@ -7450,8 +7369,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
   /**
    * @deprecated replaced by
    *             {@link XWiki#copySpaceBetweenWikis(String, String, String, String, XWikiContext)}
-   *             since
-   *             2.3M1
+   *             since 2.3M1
    */
   @Deprecated
   public int copyWikiWeb(String space, String sourceWiki, String targetWiki, String language,
@@ -7462,8 +7380,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
   /**
    * @deprecated replaced by
    *             {@link XWiki#copySpaceBetweenWikis(String, String, String, String, boolean, XWikiContext)}
-   *             since
-   *             2.3M1
+   *             since 2.3M1
    */
   @Deprecated
   public int copyWikiWeb(String space, String sourceWiki, String targetWiki, String language,
@@ -7489,8 +7406,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * @deprecated use {@link XWikiMessageTool#get(String, List)} instead. You can access message tool
-   *             using
-   *             {@link XWikiContext#getMessageTool()}.
+   *             using {@link XWikiContext#getMessageTool()}.
    */
   @Deprecated
   public String getMessage(String item, XWikiContext context) {
@@ -7504,8 +7420,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * @deprecated use {@link XWikiMessageTool#get(String, List)} instead. You can access message tool
-   *             using
-   *             {@link XWikiContext#getMessageTool()}.
+   *             using {@link XWikiContext#getMessageTool()}.
    */
   @Deprecated
   public String parseMessage(String id, XWikiContext context) {
@@ -7516,8 +7431,7 @@ public class XWiki implements XWikiDocChangeNotificationInterface, EventListener
 
   /**
    * @deprecated use {@link XWikiMessageTool#get(String, List)} instead. You can access message tool
-   *             using
-   *             {@link XWikiContext#getMessageTool()}.
+   *             using {@link XWikiContext#getMessageTool()}.
    */
   @Deprecated
   public String parseMessage(XWikiContext context) {

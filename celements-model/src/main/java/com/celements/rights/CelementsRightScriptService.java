@@ -22,7 +22,7 @@ import com.xpn.xwiki.user.api.XWikiRightService;
 @Deprecated
 public class CelementsRightScriptService implements ScriptService {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(CelementsRightScriptService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CelementsRightScriptService.class);
 
   @Requirement(RightsAccessScriptService.NAME)
   private ScriptService rightsAccess;

@@ -21,7 +21,7 @@ package org.xwiki.component.internal;
 
 import org.xwiki.component.manager.ComponentManager;
 
-public interface Composable
-{
-    void compose(ComponentManager componentManager);
+public interface Composable {
+
+  void compose(ComponentManager componentManager);
 }

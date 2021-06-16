@@ -19,38 +19,35 @@
  */
 package org.xwiki.component.descriptor;
 
-public class DefaultComponentRole<T> implements ComponentRole<T>
-{
-    private Class< T > role;
+public class DefaultComponentRole<T> implements ComponentRole<T> {
 
-    private String roleHint = "default";
+  private Class<T> role;
 
-    public void setRole(Class< T > role)
-    {
-        this.role = role;
-    }
+  private String roleHint = "default";
 
-    public Class< T > getRole()
-    {
-        return this.role;
-    }
+  public void setRole(Class<T> role) {
+    this.role = role;
+  }
 
-    public void setRoleHint(String roleHint)
-    {
-        this.roleHint = roleHint;
-    }
+  @Override
+  public Class<T> getRole() {
+    return this.role;
+  }
 
-    public String getRoleHint()
-    {
-        return roleHint;
-    }
-    
-    @Override
-    public String toString()
-    {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("role = [").append(getRole().getName()).append("]");
-        buffer.append(" hint = [").append(getRoleHint()).append("]");
-        return buffer.toString();
-    }
+  public void setRoleHint(String roleHint) {
+    this.roleHint = roleHint;
+  }
+
+  @Override
+  public String getRoleHint() {
+    return roleHint;
+  }
+
+  @Override
+  public String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.append("role = [").append(getRole().getName()).append("]");
+    buffer.append(" hint = [").append(getRoleHint()).append("]");
+    return buffer.toString();
+  }
 }

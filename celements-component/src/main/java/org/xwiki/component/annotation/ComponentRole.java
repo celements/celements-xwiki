@@ -20,8 +20,8 @@
  */
 package org.xwiki.component.annotation;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.*;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
@@ -38,6 +38,4 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(TYPE)
 @Inherited
-public @interface ComponentRole
-{
-}
+public @interface ComponentRole {}

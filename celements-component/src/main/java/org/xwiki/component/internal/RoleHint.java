@@ -21,73 +21,68 @@ package org.xwiki.component.internal;
 
 /**
  * Represent the unique identifier of a Component (pair Role/Hint).
- * 
+ *
  * @version $Id$
  * @since 2.0M1
  */
-public class RoleHint<T>
-{
-    private Class<T> role;
+public class RoleHint<T> {
 
-    private String hint;
+  private Class<T> role;
 
-    public RoleHint(Class<T> role)
-    {
-        this(role, null);
+  private String hint;
+
+  public RoleHint(Class<T> role) {
+    this(role, null);
+  }
+
+  public RoleHint(Class<T> role, String hint) {
+    this.role = role;
+    this.hint = hint;
+    if (this.hint == null) {
+      this.hint = "default";
+    }
+  }
+
+  public Class<T> getRole() {
+    return this.role;
+  }
+
+  public String getHint() {
+    return this.hint;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
 
-    public RoleHint(Class<T> role, String hint)
-    {
-        this.role = role;
-        this.hint = hint;
-        if (this.hint == null) {
-            this.hint = "default";
-        }
+    if ((obj == null) || (obj.getClass() != this.getClass())) {
+      return false;
     }
 
-    public Class<T> getRole()
-    {
-        return this.role;
-    }
+    RoleHint<T> rolehint = (RoleHint<T>) obj;
 
-    public String getHint()
-    {
-        return this.hint;
-    }
+    // It's possible Class reference are not the same when it coming for different ClassLoader so we
+    // compare class
+    // names
+    return ((getRole() == rolehint.getRole()) || ((getRole() != null) && getRole().getName().equals(
+        rolehint.getRole().getName())))
+        && ((getHint() == rolehint.getHint())
+            || ((getHint() != null) && getHint().equals(rolehint.getHint())));
+  }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public boolean equals(Object obj)
-    {
-        if (this == obj) {
-            return true;
-        }
+  @Override
+  public int hashCode() {
+    int hash = 8;
+    hash = (31 * hash) + (null == getRole() ? 0 : getRole().getName().hashCode());
+    hash = (31 * hash) + (null == getHint() ? 0 : getHint().hashCode());
+    return hash;
+  }
 
-        if ((obj == null) || (obj.getClass() != this.getClass())) {
-            return false;
-        }
-
-        RoleHint<T> rolehint = (RoleHint<T>) obj;
-
-        // It's possible Class reference are not the same when it coming for different ClassLoader so we compare class
-        // names
-        return (getRole() == rolehint.getRole() || (getRole() != null && getRole().getName().equals(
-            rolehint.getRole().getName())))
-            && (getHint() == rolehint.getHint() || (getHint() != null && getHint().equals(rolehint.getHint())));
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int hash = 8;
-        hash = 31 * hash + (null == getRole() ? 0 : getRole().getName().hashCode());
-        hash = 31 * hash + (null == getHint() ? 0 : getHint().hashCode());
-        return hash;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "role = [" + getRole().getName() + "] hint = [" + getHint() + "]";
-    }
+  @Override
+  public String toString() {
+    return "role = [" + getRole().getName() + "] hint = [" + getHint() + "]";
+  }
 }
