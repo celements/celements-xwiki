@@ -24,7 +24,7 @@ import com.xpn.xwiki.user.api.XWikiUser;
 @Component
 public class DefaultRightsAccessFacade implements IRightsAccessFacadeRole {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(DefaultRightsAccessFacade.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRightsAccessFacade.class);
 
   @Requirement
   IEntityReferenceRandomCompleterRole randomCompleter;
