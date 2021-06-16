@@ -40,180 +40,169 @@ import com.xpn.xwiki.web.Utils;
  */
 // TODO: shouldn't this be abstract? toFormString and toText
 // will never work unless getValue is overriden
-public class BaseProperty extends BaseElement implements PropertyInterface, Serializable, Cloneable
-{
-    private BaseCollection object;
+public class BaseProperty extends BaseElement
+    implements PropertyInterface, Serializable, Cloneable {
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.PropertyInterface#getObject()
-     */
-    public BaseCollection getObject()
-    {
-        return this.object;
+  private BaseCollection object;
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see com.xpn.xwiki.objects.PropertyInterface#getObject()
+   */
+  @Override
+  public BaseCollection getObject() {
+    return this.object;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see com.xpn.xwiki.objects.PropertyInterface#setObject(com.xpn.xwiki.objects.BaseCollection)
+   */
+  @Override
+  public void setObject(BaseCollection object) {
+    this.object = object;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see com.xpn.xwiki.objects.BaseElement#equals(java.lang.Object)
+   */
+  @Override
+  public boolean equals(Object el) {
+    // Same Java object, they sure are equal
+    if (this == el) {
+      return true;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.PropertyInterface#setObject(com.xpn.xwiki.objects.BaseCollection)
-     */
-    public void setObject(BaseCollection object)
-    {
-        this.object = object;
+    // I hate this.. needed for hibernate to find the object
+    // when loading the collections..
+    if ((this.object == null) || (((BaseProperty) el).getObject() == null)) {
+      return (hashCode() == el.hashCode());
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseElement#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object el)
-    {
-        // Same Java object, they sure are equal
-        if (this == el) {
-            return true;
-        }
-
-        // I hate this.. needed for hibernate to find the object
-        // when loading the collections..
-        if ((this.object == null) || ((BaseProperty) el).getObject() == null) {
-            return (hashCode() == el.hashCode());
-        }
-
-        if (!super.equals(el)) {
-            return false;
-        }
-
-        return (getId() == ((BaseProperty) el).getId());
+    if (!super.equals(el)) {
+      return false;
     }
 
-    @Override
-    public long getId() {
-      return getObject() != null ? getObject().getId() : super.getId();
+    return (getId() == ((BaseProperty) el).getId());
+  }
+
+  @Override
+  public long getId() {
+    return getObject() != null ? getObject().getId() : super.getId();
+  }
+
+  // needed for properties because access=field not possible (composite id)
+  public void setId(long id) {
+    setId(id, IdVersion.CELEMENTS_3);
+  }
+
+  @Override
+  public boolean hasValidId() {
+    return getObject() != null ? getObject().hasValidId() : super.hasValidId();
+  }
+
+  @Override
+  public IdVersion getIdVersion() {
+    return getObject() != null ? getObject().getIdVersion() : super.getIdVersion();
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see java.lang.Object#hashCode()
+   */
+  @Override
+  public int hashCode() {
+    // I hate this.. needed for hibernate to find the object
+    // when loading the collections..
+    return ("" + getId() + getName()).hashCode();
+  }
+
+  public String getClassType() {
+    return getClass().getName();
+  }
+
+  public void setClassType(String type) {}
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see com.xpn.xwiki.objects.BaseElement#clone()
+   */
+  @Override
+  public Object clone() {
+    BaseProperty property = (BaseProperty) super.clone();
+    property.setObject(getObject());
+    return property;
+  }
+
+  public Object getValue() {
+    return null;
+  }
+
+  public void setValue(Object value) {}
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see com.xpn.xwiki.objects.PropertyInterface#toXML()
+   */
+  @Override
+  public Element toXML() {
+    Element el = new DOMElement(getName());
+    Object value = getValue();
+    el.setText((value == null) ? "" : value.toString());
+
+    return el;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see com.xpn.xwiki.objects.PropertyInterface#toFormString()
+   */
+  @Override
+  public String toFormString() {
+    return Utils.formEncode(toText());
+  }
+
+  public String toText() {
+    Object value = getValue();
+
+    return (value == null) ? "" : value.toString();
+  }
+
+  public String toXMLString() {
+    Document doc = new DOMDocument();
+    doc.setRootElement(toXML());
+    OutputFormat outputFormat = new OutputFormat("", true);
+    StringWriter out = new StringWriter();
+    XMLWriter writer = new XMLWriter(out, outputFormat);
+    try {
+      writer.write(doc);
+
+      return out.toString();
+    } catch (IOException e) {
+      e.printStackTrace();
+
+      return "";
     }
-    
-    // needed for properties because access=field not possible (composite id)
-    public void setId(long id) {
-      setId(id, IdVersion.CELEMENTS_3);
+  }
+
+  @Override
+  public String toString(boolean withDefinition) {
+    String ret = super.toString(withDefinition);
+    if (getObject() != null) {
+      ret += " " + getObject().toString(false);
     }
+    return ret;
+  }
 
-    @Override
-    public boolean hasValidId() {
-      return getObject() != null ? getObject().hasValidId() : super.hasValidId();
-    }
-
-    @Override
-    public IdVersion getIdVersion() {
-      return getObject() != null ? getObject().getIdVersion() : super.getIdVersion();
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode()
-    {
-        // I hate this.. needed for hibernate to find the object
-        // when loading the collections..
-        return ("" + getId() + getName()).hashCode();
-    }
-
-    public String getClassType()
-    {
-        return getClass().getName();
-    }
-
-    public void setClassType(String type)
-    {
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseElement#clone()
-     */
-    @Override
-    public Object clone()
-    {
-        BaseProperty property = (BaseProperty) super.clone();
-        property.setObject(getObject());
-        return property;
-    }
-
-    public Object getValue()
-    {
-        return null;
-    }
-
-    public void setValue(Object value)
-    {
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.PropertyInterface#toXML()
-     */
-    public Element toXML()
-    {
-        Element el = new DOMElement(getName());
-        Object value = getValue();
-        el.setText((value == null) ? "" : value.toString());
-
-        return el;
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.PropertyInterface#toFormString()
-     */
-    public String toFormString()
-    {
-        return Utils.formEncode(toText());
-    }
-
-    public String toText()
-    {
-        Object value = getValue();
-
-        return (value == null) ? "" : value.toString();
-    }
-
-    public String toXMLString()
-    {
-        Document doc = new DOMDocument();
-        doc.setRootElement(toXML());
-        OutputFormat outputFormat = new OutputFormat("", true);
-        StringWriter out = new StringWriter();
-        XMLWriter writer = new XMLWriter(out, outputFormat);
-        try {
-            writer.write(doc);
-
-            return out.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-
-            return "";
-        }
-    }
-
-    @Override
-    public String toString(boolean withDefinition) {
-      String ret = super.toString(withDefinition);
-      if (getObject() != null) {
-        ret += " " + getObject().toString(false);
-      }
-      return ret;
-    }
-
-    public Object getCustomMappingValue()
-    {
-        return getValue();
-    }
+  public Object getCustomMappingValue() {
+    return getValue();
+  }
 }

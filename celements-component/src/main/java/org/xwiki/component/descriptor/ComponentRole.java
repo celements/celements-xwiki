@@ -20,9 +20,9 @@
  */
 package org.xwiki.component.descriptor;
 
-public interface ComponentRole<T>
-{
-    Class< T > getRole();
+public interface ComponentRole<T> {
 
-    String getRoleHint();
+  Class<T> getRole();
+
+  String getRoleHint();
 }

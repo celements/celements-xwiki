@@ -20,8 +20,8 @@
  */
 package org.xwiki.component.annotation;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.*;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 
 /**
- * Defines the instantiation strategy for this component (Singleton, per lookup). 
+ * Defines the instantiation strategy for this component (Singleton, per lookup).
  *
  * @version $Id$
  * @since 1.8.1
@@ -40,10 +40,10 @@ import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 @Retention(RUNTIME)
 @Target(TYPE)
 @Inherited
-public @interface InstantiationStrategy
-{
-    /**
-     * The instantiation strategy to use, see {@link ComponentInstantiationStrategy}.
-     */
-    ComponentInstantiationStrategy value();
+public @interface InstantiationStrategy {
+
+  /**
+   * The instantiation strategy to use, see {@link ComponentInstantiationStrategy}.
+   */
+  ComponentInstantiationStrategy value();
 }

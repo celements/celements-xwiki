@@ -24,19 +24,19 @@ import org.xwiki.observation.event.Event;
 
 /**
  * Base interface for all components descriptor events.
- * 
+ *
  * @version $Id$
  * @since 2.6RC2
  */
-public interface ComponentDescriptorEvent extends Event
-{
-    /**
-     * @return the role of the component
-     */
-    Class< ? > getRole();
+public interface ComponentDescriptorEvent extends Event {
 
-    /**
-     * @return the role hint of the component
-     */
-    String getRoleHint();
+  /**
+   * @return the role of the component
+   */
+  Class<?> getRole();
+
+  /**
+   * @return the role hint of the component
+   */
+  String getRoleHint();
 }
