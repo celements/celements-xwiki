@@ -22,26 +22,26 @@ package org.xwiki.component.descriptor;
 
 /**
  * Represents a component dependency.
- * 
+ *
  * @version $Id$
  * @since 1.7M1
  */
-public interface ComponentDependency<T> extends ComponentRole<T>
-{
-    /**
-     * @return the name of the injection point (can be the name of the field for field injection or the name
-     *         of the method for method injection
-     */
-    String getName();
-    
-    /**
-     * @return the class of the type for the injection (java.lang.String, java.util.List, etc)
-     */
-    Class< ? > getMappingType();
+public interface ComponentDependency<T> extends ComponentRole<T> {
 
-    /**
-     * @return a list of hints used when the mapping type is a collection or map so that only component implementations
-     *         matching passed hints are injected
-     */
-    String[] getHints();
+  /**
+   * @return the name of the injection point (can be the name of the field for field injection or
+   *         the name of the method for method injection
+   */
+  String getName();
+
+  /**
+   * @return the class of the type for the injection (java.lang.String, java.util.List, etc)
+   */
+  Class<?> getMappingType();
+
+  /**
+   * @return a list of hints used when the mapping type is a collection or map so that only
+   *         component implementations matching passed hints are injected
+   */
+  String[] getHints();
 }

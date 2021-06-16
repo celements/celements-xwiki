@@ -13,7 +13,7 @@ import com.xpn.xwiki.web.Utils;
 
 public class CelementsRightServiceImpl extends XWikiRightServiceImpl {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(CelementsRightServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CelementsRightServiceImpl.class);
 
   /*
    * Adds an optional check for publish and unpublish dates to determine whether or not a

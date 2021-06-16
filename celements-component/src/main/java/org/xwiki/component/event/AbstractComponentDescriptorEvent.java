@@ -21,87 +21,90 @@ package org.xwiki.component.event;
 
 /**
  * Base class for events about components descriptors.
- * 
+ *
  * @version $Id$
  * @since 2.6RC2
  */
-public abstract class AbstractComponentDescriptorEvent implements ComponentDescriptorEvent
-{
-    /**
-     * Component role.
-     */
-    private Class< ? > role;
+public abstract class AbstractComponentDescriptorEvent implements ComponentDescriptorEvent {
 
-    /**
-     * Component role hint.
-     */
-    private String roleHint;
+  /**
+   * Component role.
+   */
+  private Class<?> role;
 
-    /**
-     * Watches all roles (whenever a component is added it'll trigger this event).
-     */
-    public AbstractComponentDescriptorEvent()
-    {
-        this.role = null;
-    }
+  /**
+   * Component role hint.
+   */
+  private String roleHint;
 
-    /**
-     * @param role the component role to watch (all components matching this role will trigger this event)
-     */
-    public AbstractComponentDescriptorEvent(Class< ? > role)
-    {
-        this.role = role;
-    }
+  /**
+   * Watches all roles (whenever a component is added it'll trigger this event).
+   */
+  public AbstractComponentDescriptorEvent() {
+    this.role = null;
+  }
 
-    /**
-     * @param role the component role to watch
-     * @param roleHint the component rolehint to watch
-     */
-    public AbstractComponentDescriptorEvent(Class< ? > role, String roleHint)
-    {
-        this.role = role;
-        this.roleHint = roleHint;
-    }
+  /**
+   * @param role
+   *          the component role to watch (all components matching this role will trigger this
+   *          event)
+   */
+  public AbstractComponentDescriptorEvent(Class<?> role) {
+    this.role = role;
+  }
 
-    /**
-     * @return the component's role being watched or null if all components registrations are watched
-     */
-    public Class< ? > getRole()
-    {
-        return this.role;
-    }
+  /**
+   * @param role
+   *          the component role to watch
+   * @param roleHint
+   *          the component rolehint to watch
+   */
+  public AbstractComponentDescriptorEvent(Class<?> role, String roleHint) {
+    this.role = role;
+    this.roleHint = roleHint;
+  }
 
-    /**
-     * @return the component's role hint being watched or null if all role's components registrations are watched
-     */
-    public String getRoleHint()
-    {
-        return this.roleHint;
-    }
+  /**
+   * @return the component's role being watched or null if all components registrations are watched
+   */
+  @Override
+  public Class<?> getRole() {
+    return this.role;
+  }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.observation.event.Event#matches(java.lang.Object)
-     */
-    public boolean matches(Object otherEvent)
-    {
-        boolean result = false;
+  /**
+   * @return the component's role hint being watched or null if all role's components registrations
+   *         are watched
+   */
+  @Override
+  public String getRoleHint() {
+    return this.roleHint;
+  }
 
-        if (otherEvent instanceof AbstractComponentDescriptorEvent) {
-            // If we're watching all roles return a match
-            if (getRole() == null) {
-                result = true;
-            } else {
-                ComponentDescriptorEvent event = (ComponentDescriptorEvent) otherEvent;
-                // It's possible Class reference are not the same when it coming for different ClassLoader so we
-                // compare class names
-                if (getRole().getName().equals(event.getRole().getName())) {
-                    result = getRoleHint() == null || getRoleHint().equals(event.getRoleHint());
-                }
-            }
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.xwiki.observation.event.Event#matches(java.lang.Object)
+   */
+  @Override
+  public boolean matches(Object otherEvent) {
+    boolean result = false;
+
+    if (otherEvent instanceof AbstractComponentDescriptorEvent) {
+      // If we're watching all roles return a match
+      if (getRole() == null) {
+        result = true;
+      } else {
+        ComponentDescriptorEvent event = (ComponentDescriptorEvent) otherEvent;
+        // It's possible Class reference are not the same when it coming for different ClassLoader
+        // so we
+        // compare class names
+        if (getRole().getName().equals(event.getRole().getName())) {
+          result = (getRoleHint() == null) || getRoleHint().equals(event.getRoleHint());
         }
-
-        return result;
+      }
     }
+
+    return result;
+  }
 }

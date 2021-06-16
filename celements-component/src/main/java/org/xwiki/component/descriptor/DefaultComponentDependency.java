@@ -22,45 +22,43 @@ package org.xwiki.component.descriptor;
 
 /**
  * Default implementation of {@link ComponentDependency}.
- * 
+ *
  * @version $Id$
  * @since 1.7M1
  */
-public class DefaultComponentDependency< T > extends DefaultComponentRole< T > implements ComponentDependency< T >
-{
-    private Class< ? > mappingType;
-    
-    private String name;
+public class DefaultComponentDependency<T> extends DefaultComponentRole<T>
+    implements ComponentDependency<T> {
 
-    private String[] hints;
-    
-    public Class< ? > getMappingType()
-    {
-        return this.mappingType;
-    }
+  private Class<?> mappingType;
 
-    public String getName()
-    {
-        return this.name;
-    }
-    
-    public void setMappingType(Class< ? > mappingType)
-    {
-        this.mappingType = mappingType;
-    }
-    
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-    
-    public void setHints(String[] hints)
-    {
-        this.hints = hints;
-    }
-    
-    public String[] getHints()
-    {
-        return this.hints;
-    }
+  private String name;
+
+  private String[] hints;
+
+  @Override
+  public Class<?> getMappingType() {
+    return this.mappingType;
+  }
+
+  @Override
+  public String getName() {
+    return this.name;
+  }
+
+  public void setMappingType(Class<?> mappingType) {
+    this.mappingType = mappingType;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setHints(String[] hints) {
+    this.hints = hints;
+  }
+
+  @Override
+  public String[] getHints() {
+    return this.hints;
+  }
 }

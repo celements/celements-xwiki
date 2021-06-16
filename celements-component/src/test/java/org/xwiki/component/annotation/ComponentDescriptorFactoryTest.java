@@ -33,176 +33,162 @@ import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 
 /**
  * Unit tests for {@link ComponentDescriptorFactory}.
- * 
+ *
  * @version $Id$
  * @since 1.8.1
  */
-public class ComponentDescriptorFactoryTest
-{
-    @ComponentRole
-    public interface FieldRole
-    {
-    }
+public class ComponentDescriptorFactoryTest {
 
-    @Component
-    public class FieldroleImpl implements FieldRole
-    {
-    }
-    
-    @Component("special")
-    public class SpecialFieldRoleImpl implements FieldRole
-    {
-    }
+  @ComponentRole
+  public interface FieldRole {}
 
-    @ComponentRole
-    public interface Role
-    {
-    }
+  @Component
+  public class FieldroleImpl implements FieldRole {}
 
-    @ComponentRole
-    public interface ExtendedRole extends Role
-    {
-    }
+  @Component("special")
+  public class SpecialFieldRoleImpl implements FieldRole {}
 
-    @Component
-    public class RoleImpl implements ExtendedRole
-    {
-        @Requirement
-        private FieldRole fieldRole;
-        
-        @Requirement("special")
-        private FieldRole specialFieldRole;
+  @ComponentRole
+  public interface Role {}
 
-        /**
-         * Inject all implementation of the FieldRole role. 
-         */
-        @Requirement(role = FieldRole.class)
-        private List<FieldRole> deprecatedRoles;
-        
-        /**
-         * Inject all implementation of the FieldRole role. 
-         */
-        @Requirement
-        private List<FieldRole> roles;
+  @ComponentRole
+  public interface ExtendedRole extends Role {}
 
-        /**
-         * Only inject FieldRole implementation with a "special" hint.
-         */
-        @Requirement(role = FieldRole.class, hints = {"special"})
-        private List<FieldRole> deprecatedSpecialRoles;
-        /**
-         * Only inject FieldRole implementation with a "special" hint.
-         */
-        @Requirement(hints = {"special"})
-        private List<FieldRole> specialRoles;
-        
-        /**
-         * Inject all implementation of the FieldRole role. 
-         */
-        @Requirement
-        private Map<String, FieldRole> mapRoles;
-    }
+  @Component
+  public class RoleImpl implements ExtendedRole {
 
-    @Component
-    public class SuperRoleImpl extends RoleImpl
-    {
-        @Requirement("other")
-        private FieldRole fieldRole;
-    }
+    @Requirement
+    private FieldRole fieldRole;
+
+    @Requirement("special")
+    private FieldRole specialFieldRole;
 
     /**
-     * Test that we can have a component implementing several roles.
+     * Inject all implementation of the FieldRole role.
      */
-    @Component(hints = {"hint1", "hint2"})
-    public class MultipleRolesImpl implements Role
-    {
-    }
+    @Requirement(role = FieldRole.class)
+    private List<FieldRole> deprecatedRoles;
 
-    @Test
-    public void testCreateComponentDescriptor()
-    {
-        assertComponentDescriptor(RoleImpl.class, "default");
-    }
-    
     /**
-     * Verify that we get the same result when we use a class that extends another class (i.e. inheritance
-     * works).
+     * Inject all implementation of the FieldRole role.
      */
-    @Test
-    public void testCreateComponentDescriptorWhenClassExtension()
-    {
-        assertComponentDescriptor(SuperRoleImpl.class, "other");
-    }
+    @Requirement
+    private List<FieldRole> roles;
 
-    @Test
-    public void testMultipleRolesForComponent()
-    {
-        ComponentDescriptorFactory factory = new ComponentDescriptorFactory();
-        List<ComponentDescriptor> descriptors = 
-            factory.createComponentDescriptors(MultipleRolesImpl.class, Role.class);
-               
-        Assert.assertEquals(2, descriptors.size());
-        Assert.assertEquals("hint1", descriptors.get(0).getRoleHint());
-        Assert.assertEquals("hint2", descriptors.get(1).getRoleHint());
-    }
+    /**
+     * Only inject FieldRole implementation with a "special" hint.
+     */
+    @Requirement(role = FieldRole.class, hints = { "special" })
+    private List<FieldRole> deprecatedSpecialRoles;
+    /**
+     * Only inject FieldRole implementation with a "special" hint.
+     */
+    @Requirement(hints = { "special" })
+    private List<FieldRole> specialRoles;
 
-    private void assertComponentDescriptor(Class< ? > componentClass, String fieldRoleName)
-    {
-        ComponentDescriptorFactory factory = new ComponentDescriptorFactory();
-        List<ComponentDescriptor> descriptors = factory.createComponentDescriptors(componentClass, ExtendedRole.class);
-        
-        Assert.assertEquals(1, descriptors.size());
-        ComponentDescriptor descriptor = descriptors.get(0);
-        
-        Assert.assertEquals(componentClass.getName(), descriptor.getImplementation().getName());
-        Assert.assertEquals(ExtendedRole.class.getName(), descriptor.getRole().getName());
-        Assert.assertEquals("default", descriptor.getRoleHint());
-        Assert.assertEquals(ComponentInstantiationStrategy.SINGLETON, descriptor.getInstantiationStrategy());
+    /**
+     * Inject all implementation of the FieldRole role.
+     */
+    @Requirement
+    private Map<String, FieldRole> mapRoles;
+  }
 
-        Collection<ComponentDependency> deps = descriptor.getComponentDependencies(); 
-        Assert.assertEquals(7, deps.size());
-        Iterator<ComponentDependency> it = deps.iterator();
+  @Component
+  public class SuperRoleImpl extends RoleImpl {
 
-        ComponentDependency dep = it.next(); 
-        Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
-        Assert.assertEquals(fieldRoleName, dep.getRoleHint());
-        Assert.assertEquals(FieldRole.class.getName(), dep.getMappingType().getName());
-        Assert.assertEquals("fieldRole", dep.getName());
-        
-        dep = it.next();
-        Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
-        Assert.assertEquals("special", dep.getRoleHint());
-        Assert.assertEquals(FieldRole.class.getName(), dep.getMappingType().getName());
-        Assert.assertEquals("specialFieldRole", dep.getName());
-        
-        dep = it.next();
-        Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
-        Assert.assertEquals("default", dep.getRoleHint());
-        Assert.assertEquals(List.class.getName(), dep.getMappingType().getName());
-        Assert.assertEquals("deprecatedRoles", dep.getName());
-        
-        dep = it.next();
-        Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
-        Assert.assertEquals("default", dep.getRoleHint());
-        Assert.assertEquals(List.class.getName(), dep.getMappingType().getName());
-        Assert.assertEquals("roles", dep.getName());
+    @Requirement("other")
+    private FieldRole fieldRole;
+  }
 
-        dep = it.next();
-        Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
-        Assert.assertEquals("default", dep.getRoleHint());
-        Assert.assertEquals(List.class.getName(), dep.getMappingType().getName());
-        Assert.assertEquals("deprecatedSpecialRoles", dep.getName());
-        
-        dep = it.next();
-        Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
-        Assert.assertEquals("default", dep.getRoleHint());
-        Assert.assertEquals(List.class.getName(), dep.getMappingType().getName());
-        Assert.assertEquals("specialRoles", dep.getName());
-        
-        dep = it.next();
-        Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
-        Assert.assertEquals("default", dep.getRoleHint());
-        Assert.assertEquals(Map.class.getName(), dep.getMappingType().getName());
-        Assert.assertEquals("mapRoles", dep.getName());
-    }
+  /**
+   * Test that we can have a component implementing several roles.
+   */
+  @Component(hints = { "hint1", "hint2" })
+  public class MultipleRolesImpl implements Role {}
+
+  @Test
+  public void testCreateComponentDescriptor() {
+    assertComponentDescriptor(RoleImpl.class, "default");
+  }
+
+  /**
+   * Verify that we get the same result when we use a class that extends another class (i.e.
+   * inheritance works).
+   */
+  @Test
+  public void testCreateComponentDescriptorWhenClassExtension() {
+    assertComponentDescriptor(SuperRoleImpl.class, "other");
+  }
+
+  @Test
+  public void testMultipleRolesForComponent() {
+    ComponentDescriptorFactory factory = new ComponentDescriptorFactory();
+    List<ComponentDescriptor> descriptors = factory
+        .createComponentDescriptors(MultipleRolesImpl.class, Role.class);
+
+    Assert.assertEquals(2, descriptors.size());
+    Assert.assertEquals("hint1", descriptors.get(0).getRoleHint());
+    Assert.assertEquals("hint2", descriptors.get(1).getRoleHint());
+  }
+
+  private void assertComponentDescriptor(Class<?> componentClass, String fieldRoleName) {
+    ComponentDescriptorFactory factory = new ComponentDescriptorFactory();
+    List<ComponentDescriptor> descriptors = factory.createComponentDescriptors(componentClass,
+        ExtendedRole.class);
+
+    Assert.assertEquals(1, descriptors.size());
+    ComponentDescriptor descriptor = descriptors.get(0);
+
+    Assert.assertEquals(componentClass.getName(), descriptor.getImplementation().getName());
+    Assert.assertEquals(ExtendedRole.class.getName(), descriptor.getRole().getName());
+    Assert.assertEquals("default", descriptor.getRoleHint());
+    Assert.assertEquals(ComponentInstantiationStrategy.SINGLETON,
+        descriptor.getInstantiationStrategy());
+
+    Collection<ComponentDependency> deps = descriptor.getComponentDependencies();
+    Assert.assertEquals(7, deps.size());
+    Iterator<ComponentDependency> it = deps.iterator();
+
+    ComponentDependency dep = it.next();
+    Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
+    Assert.assertEquals(fieldRoleName, dep.getRoleHint());
+    Assert.assertEquals(FieldRole.class.getName(), dep.getMappingType().getName());
+    Assert.assertEquals("fieldRole", dep.getName());
+
+    dep = it.next();
+    Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
+    Assert.assertEquals("special", dep.getRoleHint());
+    Assert.assertEquals(FieldRole.class.getName(), dep.getMappingType().getName());
+    Assert.assertEquals("specialFieldRole", dep.getName());
+
+    dep = it.next();
+    Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
+    Assert.assertEquals("default", dep.getRoleHint());
+    Assert.assertEquals(List.class.getName(), dep.getMappingType().getName());
+    Assert.assertEquals("deprecatedRoles", dep.getName());
+
+    dep = it.next();
+    Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
+    Assert.assertEquals("default", dep.getRoleHint());
+    Assert.assertEquals(List.class.getName(), dep.getMappingType().getName());
+    Assert.assertEquals("roles", dep.getName());
+
+    dep = it.next();
+    Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
+    Assert.assertEquals("default", dep.getRoleHint());
+    Assert.assertEquals(List.class.getName(), dep.getMappingType().getName());
+    Assert.assertEquals("deprecatedSpecialRoles", dep.getName());
+
+    dep = it.next();
+    Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
+    Assert.assertEquals("default", dep.getRoleHint());
+    Assert.assertEquals(List.class.getName(), dep.getMappingType().getName());
+    Assert.assertEquals("specialRoles", dep.getName());
+
+    dep = it.next();
+    Assert.assertEquals(FieldRole.class.getName(), dep.getRole().getName());
+    Assert.assertEquals("default", dep.getRoleHint());
+    Assert.assertEquals(Map.class.getName(), dep.getMappingType().getName());
+    Assert.assertEquals("mapRoles", dep.getName());
+  }
 }

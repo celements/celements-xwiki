@@ -26,63 +26,59 @@ import java.util.List;
 
 /**
  * Default implementation of {@link ComponentDescriptor}.
- * 
+ *
  * @version $Id$
  * @since 1.7M1
  */
-public class DefaultComponentDescriptor<T> extends DefaultComponentRole<T> implements ComponentDescriptor<T>
-{
-    private Class< ? extends T> implementation;
+public class DefaultComponentDescriptor<T> extends DefaultComponentRole<T>
+    implements ComponentDescriptor<T> {
 
-    private ComponentInstantiationStrategy instantiationStrategy = ComponentInstantiationStrategy.SINGLETON;
+  private Class<? extends T> implementation;
 
-    private List<ComponentDependency<?>> componentDependencies = new ArrayList<ComponentDependency<?>>();
+  private ComponentInstantiationStrategy instantiationStrategy = ComponentInstantiationStrategy.SINGLETON;
 
-    public void setImplementation(Class< ? extends T> implementation)
-    {
-        this.implementation = implementation;
-    }
+  private List<ComponentDependency<?>> componentDependencies = new ArrayList<>();
 
-    public Class<? extends T> getImplementation()
-    {
-        return implementation;
-    }
+  public void setImplementation(Class<? extends T> implementation) {
+    this.implementation = implementation;
+  }
 
-    public void setInstantiationStrategy(ComponentInstantiationStrategy instantiationStrategy)
-    {
-        this.instantiationStrategy = instantiationStrategy;
-    }
+  @Override
+  public Class<? extends T> getImplementation() {
+    return implementation;
+  }
 
-    public ComponentInstantiationStrategy getInstantiationStrategy()
-    {
-        return this.instantiationStrategy;
-    }
+  public void setInstantiationStrategy(ComponentInstantiationStrategy instantiationStrategy) {
+    this.instantiationStrategy = instantiationStrategy;
+  }
 
-    public Collection<ComponentDependency<?>> getComponentDependencies()
-    {
-        return this.componentDependencies;
-    }
+  @Override
+  public ComponentInstantiationStrategy getInstantiationStrategy() {
+    return this.instantiationStrategy;
+  }
 
-    public void addComponentDependency(ComponentDependency<?> componentDependency)
-    {
-        this.componentDependencies.add(componentDependency);
-    }
+  @Override
+  public Collection<ComponentDependency<?>> getComponentDependencies() {
+    return this.componentDependencies;
+  }
 
-    public <TT> void addComponentDependency(Class< TT > role, String roleHint)
-    {
-        DefaultComponentDependency< TT > componentDependency = new DefaultComponentDependency< TT >();
-        componentDependency.setRole(role);
-        componentDependency.setRoleHint(roleHint);
+  public void addComponentDependency(ComponentDependency<?> componentDependency) {
+    this.componentDependencies.add(componentDependency);
+  }
 
-        this.componentDependencies.add(componentDependency);
-    }
+  public <TT> void addComponentDependency(Class<TT> role, String roleHint) {
+    DefaultComponentDependency<TT> componentDependency = new DefaultComponentDependency<>();
+    componentDependency.setRole(role);
+    componentDependency.setRoleHint(roleHint);
 
-    @Override
-    public String toString()
-    {
-        StringBuffer buffer = new StringBuffer(super.toString());
-        buffer.append(" implementation = [").append(getImplementation().getName()).append("]");
-        buffer.append(" instantiation = [").append(getInstantiationStrategy()).append("]");
-        return buffer.toString();
-    }
+    this.componentDependencies.add(componentDependency);
+  }
+
+  @Override
+  public String toString() {
+    StringBuffer buffer = new StringBuffer(super.toString());
+    buffer.append(" implementation = [").append(getImplementation().getName()).append("]");
+    buffer.append(" instantiation = [").append(getInstantiationStrategy()).append("]");
+    return buffer.toString();
+  }
 }

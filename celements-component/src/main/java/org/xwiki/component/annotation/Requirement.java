@@ -20,8 +20,8 @@
  */
 package org.xwiki.component.annotation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.*;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
@@ -29,9 +29,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Defines a field or method that needs to be injected with a component.
- * A hint can be specified to choose which implementation to use.
- * 
+ * Defines a field or method that needs to be injected with a component. A hint can be specified to
+ * choose which implementation to use.
+ *
  * @version $Id$
  * @since 1.8.1
  */
@@ -39,25 +39,26 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(FIELD)
 @Inherited
-public @interface Requirement
-{
-    /**
-     * The hint value selecting a specific component implementation to use.
-     */
-    String value() default "";
+public @interface Requirement {
 
-    /**
-     * The role for the component to inject. Note that the role can usually be guessed from the field
-     * type or method parameter type. However, for Lists or Maps we need to pass it since Java doesn't
-     * allow getting it using reflection.
-     * @deprecated since 2.7RC1 generic types are guessed too
-     */
-    @Deprecated
-    Class< ? > role() default Object.class;
+  /**
+   * The hint value selecting a specific component implementation to use.
+   */
+  String value() default "";
 
-    /**
-     * When injecting a Collection of requirements, allows specifying a discrete list of hints to use. If these are
-     * not specified, then all implementations for the specified role will be injected.
-     */
-    String[] hints() default { };
+  /**
+   * The role for the component to inject. Note that the role can usually be guessed from the field
+   * type or method parameter type. However, for Lists or Maps we need to pass it since Java doesn't
+   * allow getting it using reflection.
+   *
+   * @deprecated since 2.7RC1 generic types are guessed too
+   */
+  @Deprecated
+  Class<?> role() default Object.class;
+
+  /**
+   * When injecting a Collection of requirements, allows specifying a discrete list of hints to use.
+   * If these are not specified, then all implementations for the specified role will be injected.
+   */
+  String[] hints() default {};
 }

@@ -23,25 +23,25 @@ import org.xwiki.component.annotation.ComponentRole;
 import org.xwiki.component.manager.ComponentManager;
 
 /**
- * Return {@link ComponentManager} implementations. If you want to implement your own version of component manager
- * handling for XWiki you'd need to implement this interface. This is the top level interface used to configure
- * XWiki's component system. For example:
- * <code><pre>
+ * Return {@link ComponentManager} implementations. If you want to implement your own version of
+ * component manager handling for XWiki you'd need to implement this interface. This is the top
+ * level interface used to configure XWiki's component system. For example: <code><pre>
  * ComponentManagerFactory factory = new EmbeddableComponentManagerFactory();
  * ComponentAnnotationLoader loader = new ComponentAnnotationLoader();
  * loader.initialize(factory.createComponentManager(), classLoader);
  * </pre></code>
- *  
+ *
  * @version $Id$
  * @since 2.1RC1
  */
 @ComponentRole
-public interface ComponentManagerFactory
-{
-    /**
-     * @param parentComponentManager the parent Component Manager of the Component Manager to create. Can be null to
-     *        create a Root Component Manager. See also {@link ComponentManager#getParent()}
-     * @return a {@link ComponentManager} implementation
-     */
-    ComponentManager createComponentManager(ComponentManager parentComponentManager);
+public interface ComponentManagerFactory {
+
+  /**
+   * @param parentComponentManager
+   *          the parent Component Manager of the Component Manager to create. Can be null to create
+   *          a Root Component Manager. See also {@link ComponentManager#getParent()}
+   * @return a {@link ComponentManager} implementation
+   */
+  ComponentManager createComponentManager(ComponentManager parentComponentManager);
 }
