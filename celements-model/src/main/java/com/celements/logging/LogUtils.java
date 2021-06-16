@@ -180,6 +180,15 @@ public final class LogUtils {
   }
 
   /**
+   * helper if argument type inference is failing
+   *
+   * @see #log(Predicate)
+   */
+  public static <T> LogPredicate<T> logP(Predicate<T> predicate) {
+    return log(predicate);
+  }
+
+  /**
    * Simplifies logging with lambda expressions. Logs object mapping.
    *
    * @deprecated use {@link #log(Function)} with {@link LogFunction} setters
@@ -204,6 +213,15 @@ public final class LogUtils {
   }
 
   /**
+   * helper if argument type inference is failing
+   *
+   * @see #log(Function)
+   */
+  public static <T, R> LogFunction<T, R> logF(Function<T, R> function) {
+    return log(function);
+  }
+
+  /**
    * Simplifies logging with lambda expressions in e.g. {@code forEach} methods. Usage sample:
    *
    * <pre>
@@ -217,6 +235,15 @@ public final class LogUtils {
   }
 
   /**
+   * helper if argument type inference is failing
+   *
+   * @see #log(Consumer)
+   */
+  public static <T> LogConsumer<T> logC(Consumer<T> consumer) {
+    return log(consumer);
+  }
+
+  /**
    * Simplifies logging with lambda expressions in e.g. {@code orElseGet} methods. Usage sample:
    *
    * <pre>
@@ -227,6 +254,15 @@ public final class LogUtils {
    */
   public static <T> LogSupplier<T> log(Supplier<T> supplier) {
     return new LogSupplier<>(supplier);
+  }
+
+  /**
+   * helper if argument type inference is failing
+   *
+   * @see #log(Supplier)
+   */
+  public static <T> LogSupplier<T> logS(Supplier<T> supplier) {
+    return log(supplier);
   }
 
   public static <T> Supplier<String> format(final Supplier<T> supplier, final Object... args) {

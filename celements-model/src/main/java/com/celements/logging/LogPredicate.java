@@ -21,6 +21,14 @@ public class LogPredicate<T> extends Loggable<T, LogPredicate<T>> implements Pre
     return this;
   }
 
+  public LogPredicate<T> lvlPass(LogLevel level) {
+    return lvlDefault(level);
+  }
+
+  public LogPredicate<T> lvlFail(LogLevel level) {
+    return lvlReduced(level);
+  }
+
   @Override
   public boolean test(T t) {
     boolean ret = delegate.test(t);

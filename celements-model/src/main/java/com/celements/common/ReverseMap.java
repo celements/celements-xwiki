@@ -8,6 +8,10 @@ import javax.validation.constraints.NotNull;
 
 import com.google.common.base.Optional;
 
+/**
+ * @deprecated since 5.2, instead use {@link com.google.common.collect.BiMap};
+ */
+@Deprecated
 public class ReverseMap<K extends ValueGetter<V>, V> {
 
   private final Map<V, K> reverseMap = new HashMap<>();
