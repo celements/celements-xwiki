@@ -28,6 +28,13 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-core-shared-tests</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <!-- TODO causes exception ??? -->
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- This dependency introduces a cycle:
             ->{celements-common-test, celements-xwiki-core, celements-component}
