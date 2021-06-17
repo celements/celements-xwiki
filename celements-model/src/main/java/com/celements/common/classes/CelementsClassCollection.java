@@ -19,20 +19,24 @@
  */
 package com.celements.common.classes;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
- * Extend CelementsClassCollection and make the implementor a named component. Celements
- * then will call your initClasses method on system start once or if it is explicitly
- * asked for.
+ * Extend CelementsClassCollection and make the implementor a named component. Celements then will
+ * call your initClasses method on system start once or if it is explicitly asked for.
  *
  * @author fabian pichler since 2.11.0
  * @deprecated since 2.18.0 instead use AbstractClassCollection
  */
 @Deprecated
 public abstract class CelementsClassCollection implements ICelementsClassCollection {
+
+  protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
   @Override
   final public void runUpdate(XWikiContext context) throws XWikiException {
