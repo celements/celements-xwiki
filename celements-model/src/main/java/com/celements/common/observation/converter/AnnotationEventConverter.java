@@ -24,7 +24,7 @@ import com.xpn.xwiki.internal.observation.remote.converter.AbstractXWikiEventCon
 @Component("Annotation")
 public class AnnotationEventConverter extends AbstractXWikiEventConverter {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(AnnotationEventConverter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AnnotationEventConverter.class);
 
   public static final String CONTEXT_WIKI = "contextwiki";
   public static final String CONTEXT_USER = "contextuser";

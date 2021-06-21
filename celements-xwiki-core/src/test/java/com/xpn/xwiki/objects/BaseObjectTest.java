@@ -35,158 +35,155 @@ import com.xpn.xwiki.test.AbstractBridgedComponentTestCase;
  *
  * @version $Id$
  */
-public class BaseObjectTest extends AbstractBridgedComponentTestCase
-{
-    @Test
-    public void testSetWikiSetName() throws Exception
-    {
-        BaseObject baseObject = new BaseObject();
+public class BaseObjectTest extends AbstractBridgedComponentTestCase {
 
-        baseObject.setWiki("otherwiki");
+  @Test
+  public void testSetWikiSetName() throws Exception {
+    BaseObject baseObject = new BaseObject();
 
-        assertEquals("otherwiki", baseObject.getWiki());
-        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        assertEquals("Main", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        assertEquals("WebHome", baseObject.getDocumentReference().getName());
+    baseObject.setWiki("otherwiki");
 
-        baseObject.setName("space.page");
+    assertEquals("otherwiki", baseObject.getWiki());
+    assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+    assertEquals("Main", baseObject.getDocumentReference().getLastSpaceReference().getName());
+    assertEquals("WebHome", baseObject.getDocumentReference().getName());
 
-        assertEquals("otherwiki", baseObject.getWiki());
-        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        assertEquals("page", baseObject.getDocumentReference().getName());
+    baseObject.setName("space.page");
+
+    assertEquals("otherwiki", baseObject.getWiki());
+    assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+    assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+    assertEquals("page", baseObject.getDocumentReference().getName());
+  }
+
+  @Test
+  public void testSetNameSetWiki() throws Exception {
+    String database = getContext().getDatabase();
+    BaseObject baseObject = new BaseObject();
+
+    baseObject.setName("space.page");
+
+    assertEquals(database, baseObject.getWiki());
+    assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
+    assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+    assertEquals("page", baseObject.getDocumentReference().getName());
+
+    baseObject.setWiki("otherwiki");
+
+    assertEquals("otherwiki", baseObject.getWiki());
+    assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+    assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+    assertEquals("page", baseObject.getDocumentReference().getName());
+  }
+
+  @Test
+  public void testSetNameAloneWithChangingContext() throws Exception {
+    String database = getContext().getDatabase();
+    BaseObject baseObject = new BaseObject();
+
+    baseObject.setName("space.page");
+
+    try {
+      getContext().setDatabase("otherwiki");
+
+      assertEquals(database, baseObject.getWiki());
+      assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
+      assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+      assertEquals("page", baseObject.getDocumentReference().getName());
+
+      baseObject.setName("otherspace.otherpage");
+    } finally {
+      getContext().setDatabase(database);
     }
 
-    @Test
-    public void testSetNameSetWiki() throws Exception
-    {
-        String database = getContext().getDatabase();
-        BaseObject baseObject = new BaseObject();
+    assertEquals(database, baseObject.getWiki());
+    assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
+    assertEquals("otherspace", baseObject.getDocumentReference().getLastSpaceReference().getName());
+    assertEquals("otherpage", baseObject.getDocumentReference().getName());
 
-        baseObject.setName("space.page");
-
-        assertEquals(database, baseObject.getWiki());
-        assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
-        assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        assertEquals("page", baseObject.getDocumentReference().getName());
-
-        baseObject.setWiki("otherwiki");
-
-        assertEquals("otherwiki", baseObject.getWiki());
-        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        assertEquals("page", baseObject.getDocumentReference().getName());
+    baseObject = new BaseObject();
+    try {
+      getContext().setDatabase("otherwiki");
+      baseObject.setName("space.page");
+    } finally {
+      getContext().setDatabase(database);
     }
 
-    @Test
-    public void testSetNameAloneWithChangingContext() throws Exception
-    {
-        String database = getContext().getDatabase();
-        BaseObject baseObject = new BaseObject();
+    assertEquals("otherwiki", baseObject.getWiki());
+    assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+    assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
+    assertEquals("page", baseObject.getDocumentReference().getName());
 
-        baseObject.setName("space.page");
+    baseObject.setName("otherspace.otherpage");
 
-        try {
-            getContext().setDatabase("otherwiki");
+    assertEquals("otherwiki", baseObject.getWiki());
+    assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
+    assertEquals("otherspace", baseObject.getDocumentReference().getLastSpaceReference().getName());
+    assertEquals("otherpage", baseObject.getDocumentReference().getName());
+  }
 
-            assertEquals(database, baseObject.getWiki());
-            assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
-            assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-            assertEquals("page", baseObject.getDocumentReference().getName());
+  @Test
+  public void test_clone() {
+    BaseObject obj = new BaseObject();
+    obj.setId(5, IdVersion.XWIKI_2);
+    BaseObject clone = (BaseObject) obj.clone();
+    assertEquals(obj.getGuid(), clone.getGuid());
+    assertTrue(clone.hasValidId());
+    assertEquals(obj.getId(), clone.getId());
+    assertEquals(obj.getIdVersion(), clone.getIdVersion());
+  }
 
-            baseObject.setName("otherspace.otherpage");
-        } finally {
-            getContext().setDatabase(database);
-        }
+  @Test
+  public void test_duplicate() {
+    BaseObject obj = new BaseObject();
+    obj.setId(5, IdVersion.XWIKI_2);
+    BaseObject duplicate = obj.duplicate();
+    assertNotNull(duplicate.getGuid());
+    assertNotEquals(obj.getGuid(), duplicate.getGuid());
+    assertFalse(duplicate.hasValidId());
+    assertEquals(0, duplicate.getId());
+  }
 
-        assertEquals(database, baseObject.getWiki());
-        assertEquals(database, baseObject.getDocumentReference().getWikiReference().getName());
-        assertEquals("otherspace", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        assertEquals("otherpage", baseObject.getDocumentReference().getName());
+  @Test
+  public void test_docRef_immutability() {
+    BaseObject obj = new BaseObject();
+    DocumentReference docRef = new DocumentReference("db", "space", "doc");
+    DocumentReference docRefClone = new DocumentReference("db", "space", "doc");
+    obj.setDocumentReference(docRef);
+    destroyDocRefIntegrity(docRef);
+    destroyDocRefIntegrity(obj.getDocumentReference());
+    assertEquals(docRefClone, obj.getDocumentReference());
+  }
 
-        baseObject = new BaseObject();
-        try {
-            getContext().setDatabase("otherwiki");
-            baseObject.setName("space.page");
-        } finally {
-            getContext().setDatabase(database);
-        }
+  @Test
+  public void test_classRef_immutability() {
+    BaseObject obj = new BaseObject();
+    obj.setDocumentReference(new DocumentReference("db", "space", "doc"));
+    DocumentReference classDocRef = new DocumentReference("db", "space", "class");
+    DocumentReference classDocRefClone = new DocumentReference("db", "space", "class");
+    obj.setXClassReference(classDocRef);
+    destroyDocRefIntegrity(classDocRef);
+    destroyDocRefIntegrity(obj.getXClassReference());
+    assertEquals(classDocRefClone, obj.getXClassReference());
+  }
 
-        assertEquals("otherwiki", baseObject.getWiki());
-        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        assertEquals("space", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        assertEquals("page", baseObject.getDocumentReference().getName());
+  private void destroyDocRefIntegrity(DocumentReference docRef) {
+    docRef.setName("changed");
+    docRef.getWikiReference().setName("changed");
+    docRef.getWikiReference().setChild(null);
+    docRef.getLastSpaceReference().setName("changed");
+    docRef.getLastSpaceReference().setChild(null);
+    docRef.getLastSpaceReference().setParent(new WikiReference("changed"));
+    docRef.setName("changed");
+    docRef.setParent(new SpaceReference("changed", new WikiReference("space")));
+  }
 
-        baseObject.setName("otherspace.otherpage");
+  @Test
+  public void test_classRef_relativity() {
+    BaseObject obj = new BaseObject();
+    obj.setDocumentReference(new DocumentReference("db", "space", "doc"));
+    obj.setXClassReference(new DocumentReference("otherdb", "space", "class"));
+    assertEquals("db", obj.getXClassReference().getWikiReference().getName());
+  }
 
-        assertEquals("otherwiki", baseObject.getWiki());
-        assertEquals("otherwiki", baseObject.getDocumentReference().getWikiReference().getName());
-        assertEquals("otherspace", baseObject.getDocumentReference().getLastSpaceReference().getName());
-        assertEquals("otherpage", baseObject.getDocumentReference().getName());
-    }
-
-    @Test
-    public void test_clone() {
-      BaseObject obj = new BaseObject();
-      obj.setId(5, IdVersion.XWIKI_2);
-      BaseObject clone = (BaseObject) obj.clone();
-      assertEquals(obj.getGuid(), clone.getGuid());
-      assertTrue(clone.hasValidId());
-      assertEquals(obj.getId(), clone.getId());
-      assertEquals(obj.getIdVersion(), clone.getIdVersion());
-    }
-
-    @Test
-    public void test_duplicate() {
-      BaseObject obj = new BaseObject();
-      obj.setId(5, IdVersion.XWIKI_2);
-      BaseObject duplicate = obj.duplicate();
-      assertNotNull(duplicate.getGuid());
-      assertNotEquals(obj.getGuid(), duplicate.getGuid());
-      assertFalse(duplicate.hasValidId());
-      assertEquals(0, duplicate.getId());
-    }
-
-    @Test
-    public void test_docRef_immutability() {
-      BaseObject obj = new BaseObject();
-      DocumentReference docRef = new DocumentReference("db", "space", "doc");
-      DocumentReference docRefClone = new DocumentReference("db", "space", "doc");
-      obj.setDocumentReference(docRef);
-      destroyDocRefIntegrity(docRef);
-      destroyDocRefIntegrity(obj.getDocumentReference());
-      assertEquals(docRefClone, obj.getDocumentReference());
-    }
-
-    @Test
-    public void test_classRef_immutability() {
-      BaseObject obj = new BaseObject();
-      obj.setDocumentReference(new DocumentReference("db", "space", "doc"));
-      DocumentReference classDocRef = new DocumentReference("db", "space", "class");
-      DocumentReference classDocRefClone = new DocumentReference("db", "space", "class");
-      obj.setXClassReference(classDocRef);
-      destroyDocRefIntegrity(classDocRef);
-      destroyDocRefIntegrity(obj.getXClassReference());
-      assertEquals(classDocRefClone, obj.getXClassReference());
-    }
-
-    private void destroyDocRefIntegrity(DocumentReference docRef) {
-      docRef.setName("changed");
-      docRef.getWikiReference().setName("changed");
-      docRef.getWikiReference().setChild(null);
-      docRef.getLastSpaceReference().setName("changed");
-      docRef.getLastSpaceReference().setChild(null);
-      docRef.getLastSpaceReference().setParent(new WikiReference("changed"));
-      docRef.setName("changed");
-      docRef.setParent(new SpaceReference("changed", new WikiReference("space")));
-    }
-
-    @Test
-    public void test_classRef_relativity() {
-      BaseObject obj = new BaseObject();
-      obj.setDocumentReference(new DocumentReference("db", "space", "doc"));
-      obj.setXClassReference(new DocumentReference("otherdb", "space", "class"));
-      assertEquals("db", obj.getXClassReference().getWikiReference().getName());
-    }
-    
 }

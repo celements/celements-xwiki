@@ -178,19 +178,16 @@ public class XWikiDocument implements DocumentModelBridge {
    * Reference to this document's parent.
    * <p>
    * Note that we're saving the parent reference as a relative reference instead of an absolute one
-   * because We want
-   * the ability (for example) to create a parent reference relative to the current space or wiki so
-   * that a copy of
-   * this XWikiDocument object would retain that relativity. This is for example useful when copying
-   * a Wiki into
-   * another Wiki so that the copied XWikiDcoument's parent reference points to the new wiki.
+   * because We want the ability (for example) to create a parent reference relative to the current
+   * space or wiki so that a copy of this XWikiDocument object would retain that relativity. This is
+   * for example useful when copying a Wiki into another Wiki so that the copied XWikiDcoument's
+   * parent reference points to the new wiki.
    */
   private EntityReference parentReference;
 
   /**
    * Cache the parent reference resolved as an absolute reference for improved performance (so that
-   * we don't have to
-   * resolve the relative reference every time getParentReference() is called.
+   * we don't have to resolve the relative reference every time getParentReference() is called.
    */
   private DocumentReference parentReferenceCache;
 
@@ -214,12 +211,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * The last user that has changed the document's content (ie not object, attachments). The Content
-   * author is only
-   * changed when the document content changes. Note that Content Author is used to check
-   * programming rights on a
-   * document and this is the reason we need to know the last author who's modified the content
-   * since programming
-   * rights depend on this.
+   * author is only changed when the document content changes. Note that Content Author is used to
+   * check programming rights on a document and this is the reason we need to know the last author
+   * who's modified the content since programming rights depend on this.
    */
   private String contentAuthor;
 
@@ -256,10 +250,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Indicates whether the document is 'hidden', meaning that it should not be returned in public
-   * search results.
-   * WARNING: this is a temporary hack until the new data model is designed and implemented. No code
-   * should rely on or
-   * use this property, since it will be replaced with a generic metadata.
+   * search results. WARNING: this is a temporary hack until the new data model is designed and
+   * implemented. No code should rely on or use this property, since it will be replaced with a
+   * generic metadata.
    */
   private boolean hidden = false;
 
@@ -270,12 +263,10 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Wiki syntax supported by this document. This is used to support different syntaxes inside the
-   * same wiki. For
-   * example a page can use the Confluence 2.0 syntax while another one uses the XWiki 1.0 syntax.
-   * In practice our
-   * first need is to support the new rendering component. To use the old rendering implementation
-   * specify a
-   * "xwiki/1.0" syntaxId and use a "xwiki/2.0" syntaxId for using the new rendering component.
+   * same wiki. For example a page can use the Confluence 2.0 syntax while another one uses the
+   * XWiki 1.0 syntax. In practice our first need is to support the new rendering component. To use
+   * the old rendering implementation specify a "xwiki/1.0" syntaxId and use a "xwiki/2.0" syntaxId
+   * for using the new rendering component.
    */
   private Syntax syntax;
 
@@ -319,10 +310,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Map holding document objects indexed by XClass references (i.e. Document References since a
-   * XClass reference
-   * points to a document). The map is not synchronized, and uses a TreeMap implementation to
-   * preserve index ordering
-   * (consistent sorted order for output to XML, rendering in velocity, etc.)
+   * XClass reference points to a document). The map is not synchronized, and uses a TreeMap
+   * implementation to preserve index ordering (consistent sorted order for output to XML, rendering
+   * in velocity, etc.)
    */
   private Map<DocumentReference, List<BaseObject>> xObjects = new TreeMap<>();
 
@@ -346,8 +336,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * We are using a SoftReference which will allow the archive to be discarded by the Garbage
-   * collector as long as the
-   * context is closed (usually during the request)
+   * collector as long as the context is closed (usually during the request)
    */
   private SoftReference<XWikiDocumentArchive> archive;
 
@@ -360,16 +349,14 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * The document structure expressed as a tree of Block objects. We store it for performance
-   * reasons since parsing is
-   * a costly operation that we don't want to repeat whenever some code ask for the XDOM
-   * information.
+   * reasons since parsing is a costly operation that we don't want to repeat whenever some code ask
+   * for the XDOM information.
    */
   private XDOM xdom;
 
   /**
    * Used to resolve a string into a proper Document Reference using the current document's
-   * reference to fill the
-   * blanks.
+   * reference to fill the blanks.
    */
   private DocumentReferenceResolver<String> currentDocumentReferenceResolver = Utils.getComponent(
       DocumentReferenceResolver.class, "current");
@@ -385,10 +372,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Used to resolve a string into a proper Document Reference using the current document's
-   * reference to fill the
-   * blanks, except for the page name for which the default page name is used instead and for the
-   * wiki name for which
-   * the current wiki is used instead of the current document reference's wiki.
+   * reference to fill the blanks, except for the page name for which the default page name is used
+   * instead and for the wiki name for which the current wiki is used instead of the current
+   * document reference's wiki.
    */
   private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver = Utils
       .getComponent(
@@ -410,8 +396,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Used to resolve parent references in the way they are stored externally (database, xml, etc),
-   * ie relative or
-   * absolute.
+   * ie relative or absolute.
    */
   private EntityReferenceResolver<String> relativeEntityReferenceResolver = Utils.getComponent(
       EntityReferenceResolver.class, "relative");
@@ -430,8 +415,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Used to convert a Document Reference to string (compact form without the wiki part if it
-   * matches the current
-   * wiki).
+   * matches the current wiki).
    */
   private EntityReferenceSerializer<String> compactWikiEntityReferenceSerializer = Utils
       .getComponent(
@@ -475,8 +459,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Constructor that specifies the local document identifier: space name, document name.
-   * {@link #setDatabase(String)}
-   * must be called afterwards to specify the wiki name.
+   * {@link #setDatabase(String)} must be called afterwards to specify the wiki name.
    *
    * @param space
    *          the space this document belongs to
@@ -653,11 +636,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * @return the copy of this XWikiDocument instance before any modification was made to it. It is
-   *         reset to the actual
-   *         values when the document is saved in the database. This copy is used for finding out
-   *         differences made to
-   *         this document (useful for example to send the correct notifications to document change
-   *         listeners).
+   *         reset to the actual values when the document is saved in the database. This copy is
+   *         used for finding out differences made to this document (useful for example to send the
+   *         correct notifications to document change listeners).
    */
   @Override
   public XWikiDocument getOriginalDocument() {
@@ -667,8 +648,7 @@ public class XWikiDocument implements DocumentModelBridge {
   /**
    * @param originalDocument
    *          the original document representing this document instance before any change was made
-   *          to
-   *          it, prior to the last time it was saved
+   *          to it, prior to the last time it was saved
    * @see #getOriginalDocument()
    */
   public void setOriginalDocument(XWikiDocument originalDocument) {
@@ -697,8 +677,7 @@ public class XWikiDocument implements DocumentModelBridge {
    * XWikiDocument.
    *
    * @return the parent reference stored in the database, which is relative to this document, or an
-   *         empty string ("")
-   *         if the parent is not set
+   *         empty string ("") if the parent is not set
    * @see #getParentReference()
    * @deprecated since 2.2M1 use {@link #getParentReference()} instead
    */
@@ -740,8 +719,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Convert a full document reference into the proper relative document reference (wiki part is
-   * removed if it's the
-   * same as document wiki) to store as parent.
+   * removed if it's the same as document wiki) to store as parent.
    *
    * @deprecated since 2.2.3 use
    *             {@link #setParentReference(org.xwiki.model.reference.EntityReference)} instead
@@ -1106,8 +1084,7 @@ public class XWikiDocument implements DocumentModelBridge {
   /**
    * @since 2.2M1
    * @deprecated since 2.2.3 don't change the reference of a document once it's been constructed.
-   *             Instead you can
-   *             clone the doc, rename it or copy it.
+   *             Instead you can clone the doc, rename it or copy it.
    */
   @Deprecated
   public void setDocumentReference(DocumentReference reference) {
@@ -1205,10 +1182,9 @@ public class XWikiDocument implements DocumentModelBridge {
    *          the XWiki context used to get access to the com.xpn.xwiki.render.XWikiRenderingEngine
    *          object
    * @return the document title. If a title has not been provided, look for a section title in the
-   *         document's content
-   *         and if not found return the page name. The returned title is also interpreted which
-   *         means it's allowed to
-   *         use Velocity, Groovy, etc syntax within a title.
+   *         document's content and if not found return the page name. The returned title is also
+   *         interpreted which means it's allowed to use Velocity, Groovy, etc syntax within a
+   *         title.
    * @deprecated use {@link #getRenderedTitle(Syntax, XWikiContext)} instead
    */
   @Deprecated
@@ -1249,8 +1225,7 @@ public class XWikiDocument implements DocumentModelBridge {
    * <li>xwiki/1.0: the first found first or second level header content is rendered with
    * {@link com.xpn.xwiki.render.XWikiRenderingEngine#interpretText(String, XWikiDocument, XWikiContext)}</li>
    * <li>xwiki/2.0: the first found first or second level content is executed and rendered with
-   * renderer for the
-   * provided syntax</li>
+   * renderer for the provided syntax</li>
    * </ul>
    *
    * @param outputSyntax
@@ -1704,8 +1679,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Create a new protected {@link com.xpn.xwiki.api.Document} public API to access page information
-   * and actions from
-   * scripting.
+   * and actions from scripting.
    *
    * @param customClassName
    *          the name of the custom {@link com.xpn.xwiki.api.Document} class of the object to
@@ -1713,8 +1687,7 @@ public class XWikiDocument implements DocumentModelBridge {
    * @param context
    *          the XWiki context.
    * @return a wrapped version of an XWikiDocument. Prefer this function instead of new
-   *         Document(XWikiDocument,
-   *         XWikiContext)
+   *         Document(XWikiDocument, XWikiContext)
    */
   public com.xpn.xwiki.api.Document newDocument(String customClassName, XWikiContext context) {
     if (((customClassName != null) && !customClassName.equals(""))) {
@@ -1730,16 +1703,14 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Create a new protected {@link com.xpn.xwiki.api.Document} public API to access page information
-   * and actions from
-   * scripting.
+   * and actions from scripting.
    *
    * @param customClass
    *          the custom {@link com.xpn.xwiki.api.Document} class the object to create.
    * @param context
    *          the XWiki context.
    * @return a wrapped version of an XWikiDocument. Prefer this function instead of new
-   *         Document(XWikiDocument,
-   *         XWikiContext)
+   *         Document(XWikiDocument, XWikiContext)
    */
   public com.xpn.xwiki.api.Document newDocument(Class<?> customClass, XWikiContext context) {
     if (customClass != null) {
@@ -1774,8 +1745,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * @return the {@link XWikiDocumentArchive} for this document. If it is not stored in the
-   *         document, null is
-   *         returned.
+   *         document, null is returned.
    */
   public XWikiDocumentArchive getDocumentArchive() {
     // If there is a soft reference, return it.
@@ -1787,8 +1757,8 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * @return the {@link XWikiDocumentArchive} for this document. If it is not stored in the
-   *         document, we get it using
-   *         the current context. If there is an exception, null is returned.
+   *         document, we get it using the current context. If there is an exception, null is
+   *         returned.
    */
   public XWikiDocumentArchive loadDocumentArchive() {
     if (getDocumentArchive() != null) {
@@ -1916,8 +1886,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * @return Is this version the most recent one. False if and only if there are newer versions of
-   *         this document in
-   *         the database.
+   *         this document in the database.
    */
   public boolean isMostRecent() {
     return this.mostRecent;
@@ -1978,10 +1947,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * @deprecated since 2.2M1 use {@link #getXObjects()} instead. Warning: if you used to modify the
-   *             returned Map note
-   *             that since 2.2M1 this will no longer work and you'll need to call the setXObject
-   *             methods instead (or
-   *             setxWikiObjects()). Obviously the best is to move to the new API.
+   *             returned Map note that since 2.2M1 this will no longer work and you'll need to call
+   *             the setXObject methods instead (or setxWikiObjects()). Obviously the best is to
+   *             move to the new API.
    */
   @Deprecated
   public Map<String, Vector<BaseObject>> getxWikiObjects() {
@@ -2446,8 +2414,7 @@ public class XWikiDocument implements DocumentModelBridge {
    *          the document to copy
    * @param keepsIdentity
    *          if true it does an exact java copy, otherwise it duplicate objects with the new
-   *          document
-   *          name (and new class names)
+   *          document name (and new class names)
    */
   private void cloneXObjects(XWikiDocument templatedoc, boolean keepsIdentity) {
     // clean map
@@ -2720,8 +2687,7 @@ public class XWikiDocument implements DocumentModelBridge {
    *          the object containing the field to display
    * @param wrappingSyntaxId
    *          the syntax of the content in which the result will be included. This to take care of
-   *          some
-   *          escaping depending of the syntax.
+   *          some escaping depending of the syntax.
    * @param context
    *          the XWiki context
    * @return the rendered field
@@ -2762,8 +2728,7 @@ public class XWikiDocument implements DocumentModelBridge {
    *          the object containing the field to display
    * @param wrappingSyntaxId
    *          the syntax of the content in which the result will be included. This to take care of
-   *          some
-   *          escaping depending of the syntax.
+   *          some escaping depending of the syntax.
    * @param context
    *          the XWiki context
    * @return the rendered field
@@ -3412,9 +3377,8 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Clone attachments from another document. This implementation expects that this document is the
-   * same as the other
-   * document and thus attachments will be saved in the database in the same place as the ones which
-   * they are cloning.
+   * same as the other document and thus attachments will be saved in the database in the same place
+   * as the ones which they are cloning.
    *
    * @param sourceDocument
    *          an XWikiDocument to copy attachments from
@@ -3435,9 +3399,8 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Copy attachments from one document to another. This implementation expects that you are copying
-   * the attachment
-   * from one document to another and thus it should be saved seperately from the original in the
-   * database.
+   * the attachment from one document to another and thus it should be saved seperately from the
+   * original in the database.
    *
    * @param sourceDocument
    *          an XWikiDocument to copy attachments from
@@ -3609,8 +3572,7 @@ public class XWikiDocument implements DocumentModelBridge {
    * Convert a {@link Document} into an XML string. You should prefer
    * {@link #toXML(OutputStream, boolean, boolean, boolean, boolean, XWikiContext)} or
    * {@link #toXML(com.xpn.xwiki.internal.xml.XMLWriter, boolean, boolean, boolean, boolean, XWikiContext)}
-   * when
-   * possible to avoid memory load.
+   * when possible to avoid memory load.
    *
    * @param doc
    *          the {@link Document} to convert to a String
@@ -3636,12 +3598,10 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Retrieve the document in the current context language as an XML string. The rendrered document
-   * content and all
-   * XObjects are included. Document attachments and archived versions are excluded. You should
-   * prefer
-   * toXML(OutputStream, true, true, false, false, XWikiContext)} or
-   * toXML(com.xpn.xwiki.util.XMLWriter, true, true,
-   * false, false, XWikiContext) on the translated document when possible to reduce memory load.
+   * content and all XObjects are included. Document attachments and archived versions are excluded.
+   * You should prefer toXML(OutputStream, true, true, false, false, XWikiContext)} or
+   * toXML(com.xpn.xwiki.util.XMLWriter, true, true, false, false, XWikiContext) on the translated
+   * document when possible to reduce memory load.
    *
    * @param context
    *          current XWikiContext
@@ -3657,11 +3617,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Retrieve the document as an XML string. All XObject are included. Rendered content, attachments
-   * and archived
-   * version are excluded. You should prefer toXML(OutputStream, true, false, false, false,
-   * XWikiContext)} or
-   * toXML(com.xpn.xwiki.util.XMLWriter, true, false, false, false, XWikiContext) when possible to
-   * reduce memory load.
+   * and archived version are excluded. You should prefer toXML(OutputStream, true, false, false,
+   * false, XWikiContext)} or toXML(com.xpn.xwiki.util.XMLWriter, true, false, false, false,
+   * XWikiContext) when possible to reduce memory load.
    *
    * @param context
    *          current XWikiContext
@@ -3675,11 +3633,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Retrieve the document as an XML string. All XObjects attachments and archived version are
-   * included. Rendered
-   * content is excluded. You should prefer toXML(OutputStream, true, false, true, true,
-   * XWikiContext)} or
-   * toXML(com.xpn.xwiki.util.XMLWriter, true, false, true, true, XWikiContext) when possible to
-   * reduce memory load.
+   * included. Rendered content is excluded. You should prefer toXML(OutputStream, true, false,
+   * true, true, XWikiContext)} or toXML(com.xpn.xwiki.util.XMLWriter, true, false, true, true,
+   * XWikiContext) when possible to reduce memory load.
    *
    * @param context
    *          current XWikiContext
@@ -3693,8 +3649,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Serialize the document into a new entry of an ZipOutputStream in XML format. All XObjects and
-   * attachments are
-   * included. Rendered content is excluded.
+   * attachments are included. Rendered content is excluded.
    *
    * @param zos
    *          the ZipOutputStream to write to
@@ -3721,9 +3676,8 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Serialize the document into a new entry of an ZipOutputStream in XML format. The new entry is
-   * named
-   * 'LastSpaceName/DocumentName'. All XObjects and attachments are included. Rendered content is
-   * excluded.
+   * named 'LastSpaceName/DocumentName'. All XObjects and attachments are included. Rendered content
+   * is excluded.
    *
    * @param zos
    *          the ZipOutputStream to write to
@@ -3751,10 +3705,8 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Serialize the document into a new entry of an ZipOutputStream in XML format. The new entry is
-   * named
-   * 'LastSpaceName/DocumentName'. All XObjects, attachments and archived versions are included.
-   * Rendered content is
-   * excluded.
+   * named 'LastSpaceName/DocumentName'. All XObjects, attachments and archived versions are
+   * included. Rendered content is excluded.
    *
    * @param zos
    *          the ZipOutputStream to write to
@@ -3775,8 +3727,7 @@ public class XWikiDocument implements DocumentModelBridge {
    * Serialize the document to an XML string. You should prefer
    * {@link #toXML(OutputStream, boolean, boolean, boolean, boolean, XWikiContext)} or
    * {@link #toXML(com.xpn.xwiki.internal.xml.XMLWriter, boolean, boolean, boolean, boolean, XWikiContext)}
-   * when
-   * possible to reduce memory load.
+   * when possible to reduce memory load.
    *
    * @param bWithObjects
    *          include XObjects
@@ -3806,11 +3757,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Serialize the document to an XML {@link DOMDocument}. All XObject are included. Rendered
-   * content, attachments and
-   * archived version are excluded. You should prefer toXML(OutputStream, true, false, false, false,
-   * XWikiContext)} or
-   * toXML(com.xpn.xwiki.util.XMLWriter, true, false, false, false, XWikiContext) when possible to
-   * reduce memory load.
+   * content, attachments and archived version are excluded. You should prefer toXML(OutputStream,
+   * true, false, false, false, XWikiContext)} or toXML(com.xpn.xwiki.util.XMLWriter, true, false,
+   * false, false, XWikiContext) when possible to reduce memory load.
    *
    * @param context
    *          current XWikiContext
@@ -3826,8 +3775,7 @@ public class XWikiDocument implements DocumentModelBridge {
    * Serialize the document to an XML {@link DOMDocument}. You should prefer
    * {@link #toXML(OutputStream, boolean, boolean, boolean, boolean, XWikiContext)} or
    * {@link #toXML(com.xpn.xwiki.internal.xml.XMLWriter, boolean, boolean, boolean, boolean, XWikiContext)}
-   * when
-   * possible to reduce memory load.
+   * when possible to reduce memory load.
    *
    * @param bWithObjects
    *          include XObjects
@@ -4435,8 +4383,8 @@ public class XWikiDocument implements DocumentModelBridge {
    * Get the wiki document references pointing to this document.
    * <p>
    * Theses links are stored to the database when documents are saved. You can use "backlinks" in
-   * XWikiPreferences or
-   * "xwiki.backlinks" in xwiki.cfg file to enable links storage in the database.
+   * XWikiPreferences or "xwiki.backlinks" in xwiki.cfg file to enable links storage in the
+   * database.
    *
    * @param context
    *          the XWiki context.
@@ -4463,10 +4411,8 @@ public class XWikiDocument implements DocumentModelBridge {
    * <p>
    * <ul>
    * <li>1.0 content: get the unique links associated to document from database. This is stored when
-   * the document is
-   * saved. You can use "backlinks" in XWikiPreferences or "xwiki.backlinks" in xwiki.cfg file to
-   * enable links storage
-   * in the database.</li>
+   * the document is saved. You can use "backlinks" in XWikiPreferences or "xwiki.backlinks" in
+   * xwiki.cfg file to enable links storage in the database.</li>
    * <li>Other content: call {@link #getUniqueLinkedPages(XWikiContext)} and generate the List</li>.
    * </ul>
    *
@@ -4501,8 +4447,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Extract all the unique static (i.e. not generated by macros) wiki links (pointing to wiki page)
-   * from this 1.0
-   * document's content to others documents.
+   * from this 1.0 document's content to others documents.
    *
    * @param context
    *          the XWiki context.
@@ -4584,8 +4529,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Extract all the unique static (i.e. not generated by macros) wiki links (pointing to wiki page)
-   * from this
-   * document's content to others documents.
+   * from this document's content to others documents.
    *
    * @param context
    *          the XWiki context.
@@ -5502,9 +5446,8 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Return the object differences between two document versions. There is no hard requirement on
-   * the order of the two
-   * versions, but the results are semantically correct only if the two versions are given in the
-   * right order.
+   * the order of the two versions, but the results are semantically correct only if the two
+   * versions are given in the right order.
    *
    * @param fromDoc
    *          The old ('before') version of the document.
@@ -5513,12 +5456,9 @@ public class XWikiDocument implements DocumentModelBridge {
    * @param context
    *          The {@link com.xpn.xwiki.XWikiContext context}.
    * @return The object differences. The returned list's elements are other lists, one for each
-   *         changed object. The
-   *         inner lists contain {@link ObjectDiff} elements, one object for each changed property
-   *         of the object.
-   *         Additionally, if the object was added or removed, then the first entry in the list will
-   *         be an
-   *         "object-added" or "object-removed" marker.
+   *         changed object. The inner lists contain {@link ObjectDiff} elements, one object for
+   *         each changed property of the object. Additionally, if the object was added or removed,
+   *         then the first entry in the list will be an "object-added" or "object-removed" marker.
    * @throws XWikiException
    *           If there's an error computing the differences.
    */
@@ -5643,8 +5583,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Rename the current document and all the backlinks leading to it. Will also change parent field
-   * in all documents
-   * which list the document we are renaming as their parent.
+   * in all documents which list the document we are renaming as their parent.
    * <p>
    * See {@link #rename(String, java.util.List, com.xpn.xwiki.XWikiContext)} for more details.
    *
@@ -5671,10 +5610,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Rename the current document and all the links pointing to it in the list of passed backlink
-   * documents. The
-   * renaming algorithm takes into account the fact that there are several ways to write a link to a
-   * given page and
-   * all those forms need to be renamed. For example the following links all point to the same page:
+   * documents. The renaming algorithm takes into account the fact that there are several ways to
+   * write a link to a given page and all those forms need to be renamed. For example the following
+   * links all point to the same page:
    * <ul>
    * <li>[Page]</li>
    * <li>[Page?param=1]</li>
@@ -5684,15 +5622,15 @@ public class XWikiDocument implements DocumentModelBridge {
    * </ul>
    * <p>
    * Note: links without a space are renamed with the space added and all documents which have the
-   * document being
-   * renamed as parent have their parent field set to "currentwiki:CurrentSpace.Page".
+   * document being renamed as parent have their parent field set to
+   * "currentwiki:CurrentSpace.Page".
    * </p>
    *
    * @param newDocumentReference
    *          the new document reference
    * @param backlinkDocumentReferences
-   *          the list of references of documents to parse and for which links will be
-   *          modified to point to the new document reference
+   *          the list of references of documents to parse and for which links will be modified to
+   *          point to the new document reference
    * @param context
    *          the ubiquitous XWiki Context
    * @throws XWikiException
@@ -5719,17 +5657,16 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Same as {@link #rename(String, List, XWikiContext)} but the list of documents having the
-   * current document as
-   * their parent is passed in parameter.
+   * current document as their parent is passed in parameter.
    *
    * @param newDocumentReference
    *          the new document reference
    * @param backlinkDocumentReferences
-   *          the list of references of documents to parse and for which links will be
-   *          modified to point to the new document reference
+   *          the list of references of documents to parse and for which links will be modified to
+   *          point to the new document reference
    * @param childDocumentReferences
-   *          the list of references of document whose parent field will be set to the new
-   *          document reference
+   *          the list of references of document whose parent field will be set to the new document
+   *          reference
    * @param context
    *          the ubiquitous XWiki Context
    * @throws XWikiException
@@ -6653,8 +6590,7 @@ public class XWikiDocument implements DocumentModelBridge {
    * @param object
    *          the object to remove
    * @return {@code true} if the object was successfully removed, {@code false} if the object was
-   *         not found in the
-   *         current document.
+   *         not found in the current document.
    * @since 2.2M1
    */
   public boolean removeXObject(BaseObject object) {
@@ -6697,8 +6633,7 @@ public class XWikiDocument implements DocumentModelBridge {
    * @param object
    *          the object to remove
    * @return {@code true} if the object was successfully removed, {@code false} if the object was
-   *         not found in the
-   *         current document.
+   *         not found in the current document.
    * @deprecated since 2.2M1, use {@link #removeXObject(com.xpn.xwiki.objects.BaseObject)} instead
    */
   @Deprecated
@@ -6708,16 +6643,14 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Remove all the objects of a given type (XClass) from the document. The object counter is left
-   * unchanged, so that
-   * future objects will have new (different) numbers. However, on some storage engines the counter
-   * will be reset if
-   * the document is removed from the cache and reloaded from the persistent storage.
+   * unchanged, so that future objects will have new (different) numbers. However, on some storage
+   * engines the counter will be reset if the document is removed from the cache and reloaded from
+   * the persistent storage.
    *
    * @param classReference
    *          The XClass reference of the XObjects to be removed.
    * @return {@code true} if the objects were successfully removed, {@code false} if no object from
-   *         the target class
-   *         was in the current document.
+   *         the target class was in the current document.
    * @since 2.2M1
    */
   public boolean removeXObjects(DocumentReference classReference) {
@@ -6744,16 +6677,14 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Remove all the objects of a given type (XClass) from the document. The object counter is left
-   * unchanged, so that
-   * future objects will have new (different) numbers. However, on some storage engines the counter
-   * will be reset if
-   * the document is removed from the cache and reloaded from the persistent storage.
+   * unchanged, so that future objects will have new (different) numbers. However, on some storage
+   * engines the counter will be reset if the document is removed from the cache and reloaded from
+   * the persistent storage.
    *
    * @param className
    *          The class name of the objects to be removed.
    * @return {@code true} if the objects were successfully removed, {@code false} if no object from
-   *         the target class
-   *         was in the current document.
+   *         the target class was in the current document.
    * @deprecated since 2.2M1 use
    *             {@link #removeXObjects(org.xwiki.model.reference.DocumentReference)} instead
    */
@@ -7046,8 +6977,7 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Computes a document hash, taking into account all document data: content, objects, attachments,
-   * metadata... TODO:
-   * cache the hash value, update only on modification.
+   * metadata... TODO: cache the hash value, update only on modification.
    */
   public String getVersionHashCode(XWikiContext context) {
     MessageDigest md5 = null;
@@ -7370,10 +7300,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Indicates whether the document should be 'hidden' or not, meaning that it should not be
-   * returned in public search
-   * results. WARNING: this is a temporary hack until the new data model is designed and
-   * implemented. No code should
-   * rely on or use this property, since it will be replaced with a generic metadata.
+   * returned in public search results. WARNING: this is a temporary hack until the new data model
+   * is designed and implemented. No code should rely on or use this property, since it will be
+   * replaced with a generic metadata.
    *
    * @param hidden
    *          The new value of the {@link #hidden} property.
@@ -7388,10 +7317,9 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Indicates whether the document is 'hidden' or not, meaning that it should not be returned in
-   * public search
-   * results. WARNING: this is a temporary hack until the new data model is designed and
-   * implemented. No code should
-   * rely on or use this property, since it will be replaced with a generic metadata.
+   * public search results. WARNING: this is a temporary hack until the new data model is designed
+   * and implemented. No code should rely on or use this property, since it will be replaced with a
+   * generic metadata.
    *
    * @return <code>true</code> if the document is hidden and does not appear among the results of
    *         {@link com.xpn.xwiki.api.XWiki#searchDocuments(String)}, <code>false</code> otherwise.
@@ -7705,14 +7633,11 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * Backward-compatibility method to use in order to resolve a class reference passed as a String
-   * into a
-   * DocumentReference proper.
+   * into a DocumentReference proper.
    *
    * @return the resolved class reference but using this document's wiki if the passed String
-   *         doesn't specify a wiki,
-   *         the "XWiki" space if the passed String doesn't specify a space and this document's page
-   *         if the passed
-   *         String doesn't specify a page.
+   *         doesn't specify a wiki, the "XWiki" space if the passed String doesn't specify a space
+   *         and this document's page if the passed String doesn't specify a page.
    */
   public DocumentReference resolveClassReference(String documentName) {
     DocumentReference defaultReference = new DocumentReference(
@@ -7733,9 +7658,8 @@ public class XWikiDocument implements DocumentModelBridge {
 
   /**
    * @return the relative parent reference, this method should stay private since this the relative
-   *         saving of the
-   *         parent reference is an implementation detail and from the outside we should only see
-   *         absolute references
+   *         saving of the parent reference is an implementation detail and from the outside we
+   *         should only see absolute references
    * @since 2.2.3
    */
   protected EntityReference getRelativeParentReference() {

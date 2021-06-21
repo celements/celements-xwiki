@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
-import com.celements.logging.LogSupplier;
 import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -37,6 +36,11 @@ public final class MoreObjectsCel {
   /**
    * When the returned {@code Function} is passed as an argument to {@link Stream#flatMap}, the
    * result is a stream of instances of {@code targetClass}.
+   *
+   * <pre>
+   *   Stream<SourceType> streamSource = ...
+   *   Stream<TargetType> streamTarget = streamSource.flatMap(tryCast(TargetType.class))
+   * </pre>
    */
   @NotNull
   public static <F, T> Function<F, Stream<T>> tryCast(@NotNull Class<T> targetClass) {
@@ -46,28 +50,32 @@ public final class MoreObjectsCel {
   }
 
   /**
-   * Allows fore more concise guava to java util optional conversion in lambas. Usage sample:
-   *
-   * <pre>
-   * stream.map(optToJavaUtil(GuavaStuff::returningOptional))
-   * </pre>
-   *
-   * @see LogSupplier
+   * @deprecated since 5.2, instead use {@link MoreOptional#toJavaUtil}
    */
+  @Deprecated
+  @NotNull
   public static <F, T> Function<F, Optional<T>> optToJavaUtil(
-      Function<F, com.google.common.base.Optional<T>> func) {
-    return x -> func.apply(x).toJavaUtil();
+      @NotNull Function<F, com.google.common.base.Optional<T>> func) {
+    return MoreOptional.toJavaUtil(func);
   }
 
-  public static Optional<String> asOptNonBlank(String str) {
-    return ((str == null) || str.trim().isEmpty()) ? Optional.empty() : Optional.of(str);
+  /**
+   * @deprecated since 5.2, instead use {@link MoreOptional#asNonBlank}
+   */
+  @Deprecated
+  @NotNull
+  public static Optional<String> asOptNonBlank(@Nullable String str) {
+    return MoreOptional.asNonBlank(str);
   }
 
+  /**
+   * @deprecated since 5.2, instead use {@link MoreOptional#findFirstPresent(Supplier...)}
+   */
+  @Deprecated
+  @NotNull
   @SafeVarargs
-  public static <T> Optional<T> findFirstPresent(Supplier<Optional<T>>... suppliers) {
-    return Stream.of(suppliers).map(Supplier::get)
-        .filter(Optional::isPresent).map(Optional::get)
-        .findFirst();
+  public static <T> Optional<T> findFirstPresent(@NotNull Supplier<Optional<T>>... suppliers) {
+    return MoreOptional.findFirstPresent(suppliers);
   }
 
   /**

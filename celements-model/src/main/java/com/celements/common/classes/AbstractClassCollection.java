@@ -19,8 +19,6 @@
  */
 package com.celements.common.classes;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Requirement;
@@ -111,11 +109,6 @@ public abstract class AbstractClassCollection implements IClassCollectionRole {
   }
 
   abstract protected void initClasses() throws XWikiException;
-
-  @Deprecated
-  protected Log getLogger() {
-    return LogFactory.getFactory().getInstance(this.getClass());
-  }
 
   protected final boolean addBooleanField(BaseClass bclass, String name, String prettyName,
       String displayType, int defaultValue) {

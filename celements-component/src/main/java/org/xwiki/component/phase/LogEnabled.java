@@ -22,7 +22,7 @@ package org.xwiki.component.phase;
 
 import org.xwiki.component.logging.Logger;
 
-public interface LogEnabled
-{
-    void enableLogging(Logger logger);
+public interface LogEnabled {
+
+  void enableLogging(Logger logger);
 }
