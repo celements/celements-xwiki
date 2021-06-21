@@ -1,5 +1,7 @@
 package com.celements.spring;
 
+import java.util.function.Supplier;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.xwiki.component.annotation.ComponentAnnotationLoader;
@@ -16,8 +18,16 @@ public final class SpringContextManager {
     // context.refresh();
   }
 
+  public AnnotationConfigApplicationContext getContext() {
+    return this.context;
+  }
+
+  public static Supplier<GenericApplicationContext> supply() {
+    return INSTANCE::getContext;
+  }
+
   public static GenericApplicationContext get() {
-    return INSTANCE.context;
+    return INSTANCE.getContext();
   }
 
   @SuppressWarnings("unused")

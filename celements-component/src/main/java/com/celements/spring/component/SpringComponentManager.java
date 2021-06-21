@@ -2,11 +2,16 @@ package com.celements.spring.component;
 
 import static java.util.stream.Collectors.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Stream;
+
+import javax.inject.Inject;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -14,9 +19,9 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Service;
 import org.xwiki.component.annotation.ComponentAnnotationLoader;
-import org.xwiki.component.annotation.ComponentDescriptorFactory;
 import org.xwiki.component.descriptor.ComponentDescriptor;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
+import org.xwiki.component.descriptor.DefaultComponentRole;
 import org.xwiki.component.embed.EmbeddableComponentManager;
 import org.xwiki.component.logging.CommonsLoggingLogger;
 import org.xwiki.component.manager.ComponentEventManager;
@@ -26,116 +31,104 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.manager.ComponentManagerInitializer;
 import org.xwiki.component.manager.ComponentRepositoryException;
 
-import com.celements.spring.SpringContextManager;
-
 /**
  * TODO compare class with {@link EmbeddableComponentManager} and analyse missing stuff
  */
-@Service // TODO test if working as spring service
+@Service(SpringComponentManager.NAME)
 public class SpringComponentManager implements ComponentManager {
+
+  public static final String NAME = "springify";
+
+  private final AtomicBoolean initialised = new AtomicBoolean(false);
+
+  private Map<String, ComponentDescriptor<?>> descriptors = new ConcurrentHashMap<>();
 
   private final GenericApplicationContext springContext;
 
-  private final ComponentDescriptorFactory factory;
-  private final ComponentAnnotationLoader loader;
+  private final ComponentAnnotationLoader descriptorLoader;
 
   private ComponentEventManager eventManager;
 
-  public SpringComponentManager() {
-    springContext = SpringContextManager.get();
-    this.factory = new ComponentDescriptorFactory();
-    this.loader = new ComponentAnnotationLoader();
+  @Inject
+  public SpringComponentManager(GenericApplicationContext context) {
+    springContext = context;
+    descriptorLoader = new ComponentAnnotationLoader();
+    descriptorLoader.enableLogging(new CommonsLoggingLogger(SpringComponentManager.class));
   }
 
-  // TODO review: is this working here?
   /**
    * Load all component annotations and register them as components.
    */
-  public void initialize(ClassLoader classLoader) {
-    loader.enableLogging(new CommonsLoggingLogger(loader.getClass()));
-    loader.initialize(this, classLoader);
-    // Extension point to allow component to manipulate ComponentManager initialized state.
-    // TODO needed?
-    try {
-      List<ComponentManagerInitializer> initializers = this
-          .lookupList(ComponentManagerInitializer.class);
-      for (ComponentManagerInitializer initializer : initializers) {
-        initializer.initialize(this);
+  // TODO Post
+  public void initialize() {
+    if (!initialised.getAndSet(true)) {
+      try {
+        ClassLoader classLoader = this.getClass().getClassLoader();
+        for (ComponentDescriptor<?> descriptor : descriptorLoader
+            .loadDeclaredDescriptors(classLoader)) {
+          registerComponent(descriptor);
+        }
+        // Extension point to allow component to manipulate ComponentManager initialized state.
+        lookupList(ComponentManagerInitializer.class).stream()
+            .forEach(initializer -> initializer.initialize(this));
+        // springContext.refresh(); TODO not allowed?
+      } catch (ClassNotFoundException | IOException | ComponentLookupException
+          | ComponentRepositoryException | BeansException exc) {
+        throw new RuntimeException("failed to initialise component manager", exc);
       }
-    } catch (ComponentLookupException e) {
-      // Should never happen
-      // logger.error("Failed to lookup ComponentManagerInitializer components", e);
+    } else {
+      throw new IllegalStateException("already initialised");
     }
   }
 
   @Override
   public <T> boolean hasComponent(Class<T> role) {
-    return hasComponent(role, "default");
+    return hasComponent(role, null);
   }
 
   @Override
   public <T> boolean hasComponent(Class<T> role, String hint) {
-    return getPossibleLookupBeanNames(role, hint).anyMatch(beanName -> {
-      try {
-        return springContext.getBean(beanName, role) != null;
-      } catch (BeansException exc) {
-        return false;
-      }
-    });
+    return hasComponent(uniqueBeanName(role, hint));
+  }
+
+  private boolean hasComponent(String beanName) {
+    return descriptors.containsKey(beanName);
   }
 
   @Override
   public <T> T lookup(Class<T> role) throws ComponentLookupException {
-    try {
-      return springContext.getBean(role);
-    } catch (BeansException exc) {
-      throw new ComponentLookupException("lookup - failed for role [" + role + "]", exc);
-    }
+    return lookup(role, null);
   }
 
   @Override
   public <T> T lookup(Class<T> role, String hint) throws ComponentLookupException {
     Throwable cause = null;
-    for (String value : getPossibleLookupBeanNames(role, hint).collect(toList())) {
+    String beanName = uniqueBeanName(role, hint);
+    if (hasComponent(beanName)) {
       try {
-        return springContext.getBean(value, role);
+        return springContext.getBean(beanName, role);
       } catch (BeansException exc) {
-        if (cause == null) {
-          cause = exc;
-        }
+        cause = exc;
       }
     }
     throw new ComponentLookupException("lookup - failed for role [" + role
         + "] and hint [" + hint + "]", cause);
   }
 
-  private Stream<String> getPossibleLookupBeanNames(Class<?> role, String hint) {
-    if ((hint == null) || hint.isEmpty() || hint.equals("default")) {
-      return Stream.of(uniqueBeanName(role, "default"));
-    } else {
-      return Stream.of(
-          uniqueBeanName(role, hint), // default bean name for xwiki components
-          hint); // fallback in case we look up spring beans over this interface
-    }
+  private <T> T lookup(ComponentDescriptor<T> descriptor) throws ComponentLookupException {
+    return lookup(descriptor.getRole(), descriptor.getRoleHint());
   }
 
   @Override
   public <T> Map<String, T> lookupMap(Class<T> role) throws ComponentLookupException {
-    boolean includeNonSingletons = false; // TODO ?
-    boolean allowEagerInit = false; // TODO ?
-    try {
-      return springContext.getBeansOfType(role, includeNonSingletons, allowEagerInit);
-    } catch (BeansException exc) {
-      throw new ComponentLookupException("lookupMap - failed for role [" + role + "]", exc);
-    }
+    return streamDescriptors(role).collect(toMap(
+        ComponentDescriptor::getRoleHint,
+        rethrow(this::lookup)));
   }
 
   @Override
   public <T> List<T> lookupList(Class<T> role) throws ComponentLookupException {
-    // TODO is returned map ordered? otherwise maybe use ctx.getBeanNamesForType(role)
-    // @Order annotation exists in spring
-    // XWiki component priority?
-    return lookupMap(role).values().stream().collect(Collectors.toList());
+    return streamDescriptors(role).map(rethrow(this::lookup)).collect(toList());
   }
 
   @Override
@@ -168,7 +161,8 @@ public class SpringComponentManager implements ComponentManager {
         // org.xwiki.component.embed.EmbeddableComponentManager.createInstance(ComponentDescriptor<T>)
         springContext.registerBeanDefinition(beanName, builder.getBeanDefinition());
       }
-      springContext.refresh(); // TODO required?
+      // springContext.refresh(); // TODO not allowed?
+      descriptors.put(beanName, descriptor);
       getEventManager().ifPresent(em -> em.notifyComponentRegistered(descriptor));
     } catch (BeansException exc) {
       throw new ComponentRepositoryException("registerComponent - failed for descriptor ["
@@ -191,15 +185,16 @@ public class SpringComponentManager implements ComponentManager {
 
   @Override
   public void unregisterComponent(Class<?> role, String hint) {
-    try {
-      springContext.removeBeanDefinition(uniqueBeanName(role, hint));
-      springContext.refresh(); // TODO required?
-      ComponentDescriptor<?> descriptor = getComponentDescriptor(role, hint);
-      if (descriptor != null) {
-        getEventManager().ifPresent(em -> em.notifyComponentUnregistered(descriptor));
+    String beanName = uniqueBeanName(role, hint);
+    ComponentDescriptor<?> descriptor = descriptors.remove(beanName);
+    if (descriptor != null) {
+      try {
+        springContext.removeBeanDefinition(beanName);
+        // springContext.refresh(); // TODO not allowed?
+      } catch (BeansException exc) {
+        // TODO log
       }
-    } catch (BeansException exc) {
-      // TODO log
+      getEventManager().ifPresent(em -> em.notifyComponentUnregistered(descriptor));
     }
   }
 
@@ -216,7 +211,7 @@ public class SpringComponentManager implements ComponentManager {
         // .map(this::uniqueBeanName)
         // .filter(beanName -> ctx.getBean(beanName) == component)
         // .forEach(beanName -> ctx.getDefaultListableBeanFactory().destroySingleton(beanName));
-        springContext.refresh(); // TODO required?
+        // springContext.refresh(); // TODO not allowed?
       } catch (BeansException exc) {
         throw new ComponentLifecycleException("release - failed for class ["
             + component.getClass() + "]", exc);
@@ -224,35 +219,22 @@ public class SpringComponentManager implements ComponentManager {
     }
   }
 
-  // TODO component descriptors don't work with spring beans -> fast fail if annotations missing?
   @Override
+  @SuppressWarnings("unchecked")
   public <T> ComponentDescriptor<T> getComponentDescriptor(Class<T> role, String hint) {
-    try {
-      BeanDefinition beanDef = springContext.getBeanDefinition(uniqueBeanName(role, hint));
-      return factory.createComponentDescriptor(getComponentClass(lookup(role, hint)), role, hint);
-    } catch (ComponentLookupException exc) {
-      return null;
-    }
+    return (ComponentDescriptor<T>) descriptors.get(uniqueBeanName(role, hint));
   }
 
-  // TODO component descriptors don't work with spring beans -> fast fail if annotations missing?
   @Override
   public <T> List<ComponentDescriptor<T>> getComponentDescriptorList(Class<T> role) {
-    Stream<ComponentDescriptor<T>> descriptors;
-    try {
-      descriptors = lookupList(role).stream()
-          .flatMap(component -> factory.createComponentDescriptorsAsStream(
-              getComponentClass(component), role))
-          .filter(descriptor -> hasComponent(descriptor.getRole(), descriptor.getRoleHint()));
-    } catch (ComponentLookupException exc) {
-      descriptors = Stream.empty();
-    }
-    return descriptors.collect(toList());
+    return streamDescriptors(role).collect(toList());
   }
 
   @SuppressWarnings("unchecked")
-  private <T> Class<? extends T> getComponentClass(T component) {
-    return (Class<? extends T>) component.getClass();
+  private <T> Stream<ComponentDescriptor<T>> streamDescriptors(Class<T> role) {
+    return descriptors.values().stream()
+        .filter(descriptor -> descriptor.getRole().equals(role))
+        .map(descriptor -> (ComponentDescriptor<T>) descriptor);
   }
 
   @Override
@@ -281,13 +263,39 @@ public class SpringComponentManager implements ComponentManager {
     }
   }
 
-  private String uniqueBeanName(ComponentDescriptor<?> descriptor) {
+  public String uniqueBeanName(ComponentDescriptor<?> descriptor) {
     return uniqueBeanName(descriptor.getRole(), descriptor.getRoleHint());
   }
 
-  // TODO long naming :(
-  private String uniqueBeanName(Class<?> role, String hint) {
-    return role.getName() + "-" + hint;
+  public String uniqueBeanName(Class<?> role, String hint) {
+    if ((hint == null) || hint.trim().isEmpty()) {
+      hint = DefaultComponentRole.HINT;
+    }
+    return role.getName() + "_" + hint;
+  }
+
+  // TODO move to celements-commons
+  @FunctionalInterface
+  public interface ThrowingFunction<T, R, E extends Exception> {
+
+    R apply(T t) throws E;
+  }
+
+  public static <T, R, E extends Exception> Function<T, R> rethrow(
+      ThrowingFunction<T, R, E> function) throws E {
+    return t -> {
+      try {
+        return function.apply(t);
+      } catch (Exception exception) {
+        sneakyThrow(exception);
+        throw new RuntimeException("sneakyThrow always throws");
+      }
+    };
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <E extends Throwable> void sneakyThrow(Exception exception) throws E {
+    throw (E) exception;
   }
 
 }

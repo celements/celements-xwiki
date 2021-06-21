@@ -34,6 +34,7 @@ import org.xwiki.component.descriptor.ComponentDescriptor;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.component.descriptor.DefaultComponentDependency;
 import org.xwiki.component.descriptor.DefaultComponentDescriptor;
+import org.xwiki.component.descriptor.DefaultComponentRole;
 import org.xwiki.component.util.ReflectionUtils;
 
 /**
@@ -61,9 +62,8 @@ public class ComponentDescriptorFactory {
   @Deprecated
   public List<ComponentDescriptor> createComponentDescriptors(Class<?> componentClass,
       Class<?> componentRoleClass) {
-    return createComponentDescriptorsAsStream(
-        (Class<Object>) componentClass, (Class<Object>) componentRoleClass)
-            .collect(Collectors.toList());
+    return streamDescriptors((Class<Object>) componentClass, (Class<Object>) componentRoleClass)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -77,7 +77,7 @@ public class ComponentDescriptorFactory {
    *          the component role class
    * @return the component descriptors with resolved component dependencies
    */
-  public <T> Stream<ComponentDescriptor<T>> createComponentDescriptorsAsStream(
+  public <T> Stream<ComponentDescriptor<T>> streamDescriptors(
       Class<? extends T> componentClass, Class<T> componentRoleClass) {
     // If the Component annotation has several hints specified ignore the default hint value and for
     // each specified hint create a Component Descriptor
@@ -89,10 +89,10 @@ public class ComponentDescriptorFactory {
       if ((component != null) && (component.value().trim().length() > 0)) {
         hints = Stream.of(component.value().trim());
       } else {
-        hints = Stream.of("default");
+        hints = Stream.of(DefaultComponentRole.HINT);
       }
     }
-    return hints.map(hint -> createComponentDescriptor(componentClass, componentRoleClass, hint));
+    return hints.map(hint -> create(componentClass, componentRoleClass, hint));
   }
 
   /**
@@ -107,7 +107,7 @@ public class ComponentDescriptorFactory {
    *          the component role class
    * @return the component descriptor with resolved component dependencies
    */
-  public <T> ComponentDescriptor<T> createComponentDescriptor(Class<? extends T> componentClass,
+  public <T> ComponentDescriptor<T> create(Class<? extends T> componentClass,
       Class<T> componentRoleClass, String hint) {
     DefaultComponentDescriptor<T> descriptor = new DefaultComponentDescriptor<>();
     descriptor.setRole(componentRoleClass);
