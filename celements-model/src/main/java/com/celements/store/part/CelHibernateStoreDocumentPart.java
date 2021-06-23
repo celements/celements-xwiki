@@ -58,7 +58,7 @@ public class CelHibernateStoreDocumentPart {
     try {
       DocumentSavePreparationCommand savePrepCmd = new DocumentSavePreparationCommand(
           doc, store, context);
-      Session session = savePrepCmd.execute(bTransaction);
+      savePrepCmd.execute(bTransaction);
 
       if (doc.hasElement(XWikiDocument.HAS_ATTACHMENTS)) {
         store.saveAttachmentList(doc, context, false);
@@ -100,6 +100,7 @@ public class CelHibernateStoreDocumentPart {
         }
       }
 
+      Session session = savePrepCmd.getSession();
       if (!savePrepCmd.hasExistingDoc()) {
         session.save(doc);
       } else {
