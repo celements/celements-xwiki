@@ -1,5 +1,6 @@
 package com.celements.store.id;
 
+import static com.celements.common.lambda.LambdaExceptionUtil.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Verify.*;
 
@@ -8,6 +9,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
@@ -65,6 +68,14 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   }
 
   @Override
+  public Stream<Long> computeAllDocumentIds(DocumentReference docRef, String lang)
+      throws IdComputationException {
+    return IntStream.rangeClosed(0, getMaxCollisionCount())
+        .mapToObj(byte.class::cast)
+        .map(rethrowFunction(collisionCount -> computeDocumentId(docRef, lang, collisionCount)));
+  }
+
+  @Override
   public long computeDocumentId(XWikiDocument doc) throws IdComputationException {
     return computeId(doc, 0);
   }
@@ -84,7 +95,8 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     return StreamEx.of(XWikiObjectEditor.on(doc).fetch().stream())
         .append(doc.getXObjectsToRemove())
         .filter(Objects::nonNull)
-        .filter(obj -> obj.hasValidId() && (obj.getIdVersion() == getIdVersion()))
+        .filter(BaseObject::hasValidId)
+        .filter(obj -> obj.getIdVersion() == getIdVersion())
         .map(BaseObject::getId)
         .toImmutableSet();
   }
@@ -99,7 +111,8 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   }
 
   private byte extractCollisionCount(long id) {
-    return (byte) ((id >> BITS_OBJECT_COUNT) & getMaxCollisionCount());
+    // & 0xff (255) to prevent accidental value conversions, see Sonar S3034
+    return (byte) ((id >> BITS_OBJECT_COUNT) & (getMaxCollisionCount() & 0xff));
   }
 
   private byte getMaxCollisionCount() {
