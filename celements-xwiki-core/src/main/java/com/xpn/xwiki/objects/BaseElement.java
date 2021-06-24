@@ -87,8 +87,10 @@ public abstract class BaseElement implements ElementInterface, Serializable {
   }
 
   public void setId(long id, IdVersion idVersion) {
-    this.id = id;
-    this.idVersion = idVersion;
+    if (idVersion != null) {
+      this.id = id;
+      this.idVersion = idVersion;
+    }
     verifyIdVersion();
   }
 

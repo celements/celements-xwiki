@@ -543,9 +543,20 @@ public class XWikiDocument implements DocumentModelBridge {
     return this.id;
   }
 
+  @Deprecated
+  public int calculateXWikiId() {
+    String uniqueName = localEntityReferenceSerializer.serialize(getDocumentReference());
+    if ((language != null) && !language.trim().isEmpty()) {
+      uniqueName += ":" + language;
+    }
+    return uniqueName.hashCode();
+  }
+
   public void setId(long id, IdVersion idVersion) {
-    this.id = id;
-    this.idVersion = idVersion;
+    if (idVersion != null) {
+      this.id = id;
+      this.idVersion = idVersion;
+    }
     verifyIdVersion();
   }
 
