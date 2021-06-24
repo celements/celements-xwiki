@@ -16,7 +16,6 @@ import org.junit.Test;
 import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.common.test.AbstractComponentTest;
-import com.celements.model.util.ModelUtils;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer;
 import com.celements.store.id.IdVersion;
@@ -39,7 +38,6 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     expect(getWikiMock().getStore()).andReturn(storeMock).anyTimes();
     expect(storeMock.getIdComputer()).andReturn(Utils.getComponent(CelementsIdComputer.class,
         UniqueHashIdComputer.NAME)).anyTimes();
-    expect(storeMock.getModelUtils()).andReturn(Utils.getComponent(ModelUtils.class)).anyTimes();
     sessionMock = createMockAndAddToDefault(Session.class);
     sessionMock.setFlushMode(FlushMode.COMMIT);
     expectLastCall().anyTimes();

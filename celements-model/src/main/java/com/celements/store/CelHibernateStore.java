@@ -286,8 +286,12 @@ public class CelHibernateStore extends XWikiHibernateStore {
     }
   }
 
+  public ModelUtils getModelUtils() {
+    return modelUtils;
+  }
+
   public String serialize(DocumentReference docRef, ReferenceSerializationMode mode) {
-    return modelUtils.serializeRef(docRef, mode);
+    return getModelUtils().serializeRef(docRef, mode);
   }
 
   public String serialize(XWikiDocument doc, ReferenceSerializationMode mode) {

@@ -1,6 +1,5 @@
 package com.celements.store.part;
 
-import static com.celements.model.util.ReferenceSerializationMode.*;
 import static com.google.common.base.Preconditions.*;
 import static com.xpn.xwiki.XWikiException.*;
 
@@ -118,7 +117,7 @@ class DocumentSavePreparationCommand {
   }
 
   private long computeNextFreeDocId() throws IdComputationException, HibernateException {
-    String fullName = store.serialize(doc, LOCAL);
+    String fullName = doc.getFullName();
     long docId;
     String existingFullName;
     byte collisionCount = -1;

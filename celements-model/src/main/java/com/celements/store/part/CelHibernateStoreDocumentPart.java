@@ -238,8 +238,9 @@ public class CelHibernateStoreDocumentPart {
       throws XWikiException {
     if (!doc.getDocumentReference().equals(expectedDocRef)) {
       throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_READING_DOC,
-          "loadXWikiDoc - collision detected: loading doc [" + expectedDocRef
-              + "] returned doc [" + doc.getDocumentReference() + "]");
+          "loadXWikiDoc - collision detected: loading doc ["
+              + store.serialize(expectedDocRef, GLOBAL) + "] returned doc ["
+              + store.serialize(doc, GLOBAL) + "]");
     }
   }
 

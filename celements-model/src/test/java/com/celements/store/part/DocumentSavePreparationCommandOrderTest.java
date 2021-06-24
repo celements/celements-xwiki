@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.common.test.AbstractComponentTest;
-import com.celements.model.util.ModelUtils;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer;
 import com.celements.store.id.UniqueHashIdComputer;
@@ -50,7 +49,6 @@ public class DocumentSavePreparationCommandOrderTest extends AbstractComponentTe
         .andReturn(true);
     expect(storeStrictMock.getSession(getContext())).andReturn(sessionMock);
     expectSaveDocExists(sessionMock, ImmutableMap.of());
-    expect(storeStrictMock.getModelUtils()).andReturn(Utils.getComponent(ModelUtils.class));
     expect(storeStrictMock.getIdComputer()).andReturn(Utils.getComponent(CelementsIdComputer.class,
         UniqueHashIdComputer.NAME)).times(2);
     expect(storeStrictMock.exists(anyObject(XWikiDocument.class), same(getContext())))
