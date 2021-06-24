@@ -559,11 +559,15 @@ public class XWikiDocument implements DocumentModelBridge {
     if (hasValidId()) {
       throw new IllegalStateException("id override not permitted");
     } else if (idVersion != null) {
-      this.id = id;
-      this.idVersion = idVersion;
+      setIdInternal(id, idVersion);
     } else {
       verifyIdVersion();
     }
+  }
+
+  private void setIdInternal(long id, IdVersion idVersion) {
+    this.id = id;
+    this.idVersion = idVersion;
   }
 
   public boolean hasValidId() {
@@ -3270,9 +3274,13 @@ public class XWikiDocument implements DocumentModelBridge {
    * @throws XWikiException
    *           in case of error
    */
-  private void clone(XWikiDocument document) throws XWikiException {
+  private void assumeIdentity(XWikiDocument document) throws XWikiException {
     setDocumentReference(document.getDocumentReference());
-    setId(document.getId(), document.getIdVersion());
+    if (document.hasValidId()) {
+      setIdInternal(document.getId(), document.getIdVersion());
+    } else {
+      setIdInternal(0, null);
+    }
     setRCSVersion(document.getRCSVersion());
     setDocumentArchive(document.getDocumentArchive());
     setAuthor(document.getAuthor());
@@ -5799,9 +5807,8 @@ public class XWikiDocument implements DocumentModelBridge {
     xwiki.deleteDocument(this, context);
 
     // Step 6: The current document needs to point to the renamed document as otherwise it's
-    // pointing to an
-    // invalid XWikiDocument object as it's been deleted...
-    clone(newDocument);
+    // pointing to an invalid XWikiDocument object as it's been deleted...
+    this.assumeIdentity(newDocument);
   }
 
   /**
