@@ -1,7 +1,7 @@
 package com.celements.store.part;
 
-import static com.celements.common.MoreObjectsCel.*;
 import static com.celements.logging.LogUtils.*;
+import static com.celements.model.util.ReferenceSerializationMode.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 import static com.xpn.xwiki.XWikiException.*;
@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -30,7 +29,6 @@ import org.xwiki.model.reference.WikiReference;
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
 import com.celements.model.reference.RefBuilder;
-import com.celements.model.util.ReferenceSerializationMode;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer;
 import com.celements.store.id.IdVersion;
@@ -98,7 +96,7 @@ public class CelHibernateStoreDocumentPart {
             }
           } catch (XWikiException xwe) {
             LOGGER.debug("saveXWikiDoc - this is a non critical error: {} {}",
-                doc.getId(), defer(() -> serialize(doc)), xwe);
+                doc.getId(), defer(() -> store.serialize(doc, GLOBAL)), xwe);
           }
         }
       }
@@ -155,9 +153,13 @@ public class CelHibernateStoreDocumentPart {
 
       DocumentReference docRefToLoad = RefBuilder.from(doc.getDocumentReference())
           .build(DocumentReference.class);
-      determineDocId(session, doc.getDocumentReference(), doc.getLanguage())
-          .ifPresent(docId -> session.load(doc, docId));
-      validateLoadedDoc(doc, docRefToLoad);
+      Long docId = determineDocId(session, doc.getDocumentReference(), doc.getLanguage());
+      if (docId != null) {
+        session.load(doc, docId);
+        validateLoadedDoc(doc, docRefToLoad);
+      } else {
+        LOGGER.warn("loadXWikiDoc - no id found [{}]", defer(() -> store.serialize(doc, GLOBAL)));
+      }
       sanitizeDoc(doc);
 
       // Loading the attachment list
@@ -184,7 +186,7 @@ public class CelHibernateStoreDocumentPart {
           BaseObject loadedObject = objIter.next();
           if (!loadedObject.getDocumentReference().equals(doc.getDocumentReference())) {
             LOGGER.warn("loadXWikiDoc - skipping obj [{}], doc [{}] not matching",
-                loadedObject, defer(() -> serialize(doc)));
+                loadedObject, defer(() -> store.serialize(doc, GLOBAL)));
             continue;
           }
           BaseObject object = copyToNewXObject(doc, loadedObject, context);
@@ -223,14 +225,13 @@ public class CelHibernateStoreDocumentPart {
    * This method may use {@link CelementsIdComputer#computeDocumentId} after completion of
    * [CELDEV-605] XWikiDocument id migration
    */
-  Optional<Long> determineDocId(Session session, DocumentReference docRef, String language) {
+  Long determineDocId(Session session, DocumentReference docRef, String language) {
     // TODO test different languages
-    return Optional.ofNullable(session
+    return (Long) session
         .createQuery("select id from XWikiDocument where fullName = :fn and language = :lang")
-        .setString("fn", store.getModelUtils().serializeRefLocal(docRef))
+        .setString("fn", store.serialize(docRef, LOCAL))
         .setString("lang", language)
-        .uniqueResult())
-        .flatMap(obj -> tryCast(obj, Long.class));
+        .uniqueResult();
   }
 
   private void validateLoadedDoc(XWikiDocument doc, DocumentReference expectedDocRef)
@@ -257,7 +258,7 @@ public class CelHibernateStoreDocumentPart {
   private Iterator<BaseObject> loadXObjects(XWikiDocument doc, XWikiContext context) {
     String hql = "from BaseObject as obj where obj.name = :name order by obj.className, obj.number";
     Query query = store.getSession(context).createQuery(hql);
-    query.setText("name", serialize(doc, ReferenceSerializationMode.LOCAL));
+    query.setText("name", store.serialize(doc, LOCAL));
     return query.iterate();
   }
 
@@ -292,7 +293,7 @@ public class CelHibernateStoreDocumentPart {
         + "where obj.name = :name and obj.className = 'XWiki.XWikiGroups' and obj.id = prop.id.id "
         + "and prop.id.name = 'member'";
     Query query = store.getSession(context).createQuery(hql);
-    query.setText("name", serialize(doc, ReferenceSerializationMode.LOCAL));
+    query.setText("name", store.serialize(doc, LOCAL));
     Iterator<?> dataIter = query.iterate();
     while (dataIter.hasNext()) {
       Object[] row = (Object[]) dataIter.next();
@@ -359,14 +360,6 @@ public class CelHibernateStoreDocumentPart {
     checkArgument(docWiki.equals(providedContextWiki) && docWiki.equals(executionContextWiki),
         "wikis not matching for doc [%s], providedContextWiki [%s], executionContextWiki [%s]",
         doc.getDocumentReference(), providedContextWiki, executionContextWiki);
-  }
-
-  private String serialize(XWikiDocument doc) {
-    return serialize(doc, ReferenceSerializationMode.GLOBAL);
-  }
-
-  private String serialize(XWikiDocument doc, ReferenceSerializationMode mode) {
-    return store.getModelUtils().serializeRef(doc.getDocumentReference(), mode);
   }
 
 }

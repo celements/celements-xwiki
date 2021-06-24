@@ -1,5 +1,6 @@
 package com.celements.store;
 
+import static com.celements.model.util.ReferenceSerializationMode.*;
 import static com.xpn.xwiki.XWikiException.*;
 
 import java.text.MessageFormat;
@@ -13,11 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
+import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.logging.LogLevel;
 import com.celements.logging.LogUtils;
 import com.celements.model.context.ModelContext;
 import com.celements.model.util.ModelUtils;
+import com.celements.model.util.ReferenceSerializationMode;
 import com.celements.store.id.CelementsIdComputer;
 import com.celements.store.id.UniqueHashIdComputer;
 import com.celements.store.part.CelHibernateStoreCollectionPart;
@@ -274,7 +277,7 @@ public class CelHibernateStore extends XWikiHibernateStore {
     if (obj instanceof XWikiDocument) {
       XWikiDocument doc = (XWikiDocument) obj;
       return MessageFormat.format("{0}: {1} {2}", msg, Long.toString(doc.getId()),
-          modelUtils.serializeRef(doc.getDocumentReference()));
+          serialize(doc, GLOBAL));
     } else if (obj instanceof PropertyInterface) {
       PropertyInterface property = (PropertyInterface) obj;
       return MessageFormat.format("{0}: {1} {2}", msg, Long.toString(property.getId()), property);
@@ -283,8 +286,12 @@ public class CelHibernateStore extends XWikiHibernateStore {
     }
   }
 
-  public ModelUtils getModelUtils() {
-    return modelUtils;
+  public String serialize(DocumentReference docRef, ReferenceSerializationMode mode) {
+    return modelUtils.serializeRef(docRef, mode);
+  }
+
+  public String serialize(XWikiDocument doc, ReferenceSerializationMode mode) {
+    return serialize(doc.getDocumentReference(), mode);
   }
 
   public ModelContext getModelContext() {
