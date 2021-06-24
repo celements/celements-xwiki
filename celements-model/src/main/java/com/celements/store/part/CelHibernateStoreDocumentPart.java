@@ -1,5 +1,6 @@
 package com.celements.store.part;
 
+import static com.celements.common.MoreObjectsCel.*;
 import static com.celements.logging.LogUtils.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
@@ -11,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -153,10 +155,10 @@ public class CelHibernateStoreDocumentPart {
 
       DocumentReference docRefToLoad = RefBuilder.from(doc.getDocumentReference())
           .build(DocumentReference.class);
-      Long docId = determineDocId(session, doc.getDocumentReference(), doc.getLanguage());
-      session.load(doc, docId);
+      determineDocId(session, doc.getDocumentReference(), doc.getLanguage())
+          .ifPresent(docId -> session.load(doc, docId));
       validateLoadedDoc(doc, docRefToLoad);
-      prepareLoadedDoc(doc);
+      sanitizeDoc(doc);
 
       // Loading the attachment list
       if (doc.hasElement(XWikiDocument.HAS_ATTACHMENTS)) {
@@ -221,14 +223,14 @@ public class CelHibernateStoreDocumentPart {
    * This method may use {@link CelementsIdComputer#computeDocumentId} after completion of
    * [CELDEV-605] XWikiDocument id migration
    */
-  private Long determineDocId(Session session, DocumentReference docRef, String language) {
+  Optional<Long> determineDocId(Session session, DocumentReference docRef, String language) {
     // TODO test different languages
-    // TODO test loading non existent document
-    return (Long) session
+    return Optional.ofNullable(session
         .createQuery("select id from XWikiDocument where fullName = :fn and language = :lang")
         .setString("fn", store.getModelUtils().serializeRefLocal(docRef))
         .setString("lang", language)
-        .uniqueResult();
+        .uniqueResult())
+        .flatMap(obj -> tryCast(obj, Long.class));
   }
 
   private void validateLoadedDoc(XWikiDocument doc, DocumentReference expectedDocRef)
@@ -240,7 +242,7 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  private void prepareLoadedDoc(XWikiDocument doc) {
+  private void sanitizeDoc(XWikiDocument doc) {
     // ensure document reference immutability
     doc.setDocumentReference(new ImmutableDocumentReference(doc.getDocumentReference()));
     // convert java.sql.Timestamp to java.util.Date
