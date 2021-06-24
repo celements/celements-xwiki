@@ -86,12 +86,18 @@ public abstract class BaseElement implements ElementInterface, Serializable {
     return id;
   }
 
+  /**
+   * IMPORTANT: must NEVER to be called outside of store logic
+   */
   public void setId(long id, IdVersion idVersion) {
-    if (idVersion != null) {
+    if (hasValidId()) {
+      throw new IllegalStateException("id override not permitted");
+    } else if (idVersion != null) {
       this.id = id;
       this.idVersion = idVersion;
+    } else {
+      verifyIdVersion();
     }
-    verifyIdVersion();
   }
 
   public boolean hasValidId() {
