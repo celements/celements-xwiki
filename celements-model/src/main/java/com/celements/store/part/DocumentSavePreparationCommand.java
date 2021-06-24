@@ -64,27 +64,26 @@ class DocumentSavePreparationCommand {
     return hasExistingDoc;
   }
 
-  void execute(boolean bTransaction) throws HibernateException, XWikiException {
+  DocumentSavePreparationCommand execute(boolean bTransaction)
+      throws HibernateException, XWikiException {
     doc.setStore(store);
     ensureDatabaseConsistency();
     prepareSession(bTransaction);
     try {
-      if (!doc.hasValidId()) {
-        doc.setId(computeNextFreeId(), store.getIdComputer().getIdVersion());
-      }
+      prepareDocId();
+      doc.setElement(XWikiDocument.HAS_OBJECTS, false);
+      doc.setElement(XWikiDocument.HAS_ATTACHMENTS, false);
       if (doc.getTranslation() == 0) {
         updateBaseClassXml(doc, context);
         doc.setElement(XWikiDocument.HAS_OBJECTS, XWikiObjectFetcher.on(doc).exists());
         doc.setElement(XWikiDocument.HAS_ATTACHMENTS, !doc.getAttachmentList().isEmpty());
         new XObjectPreparer(doc, context).execute();
-      } else {
-        doc.setElement(XWikiDocument.HAS_OBJECTS, false);
-        doc.setElement(XWikiDocument.HAS_ATTACHMENTS, false);
       }
     } catch (IdComputationException exc) {
       throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
           "saveXWikiDoc - [" + getDatabase() + "] failed to compute id for [" + doc + "]", exc);
     }
+    return this;
   }
 
   private void prepareSession(boolean bTransaction) throws XWikiException {
@@ -109,20 +108,29 @@ class DocumentSavePreparationCommand {
     }
   }
 
-  private long computeNextFreeId() throws IdComputationException, HibernateException {
+  private void prepareDocId() throws IdComputationException, HibernateException {
     checkState(hasExistingDoc == null, "command already executed");
+    if (doc.hasValidId()) {
+      hasExistingDoc = true;
+    } else {
+      doc.setId(computeNextFreeDocId(), store.getIdComputer().getIdVersion());
+    }
+  }
+
+  private long computeNextFreeDocId() throws IdComputationException, HibernateException {
+    String fullName = store.getModelUtils().serializeRefLocal(doc.getDocumentReference());
     long docId;
-    String existingFN;
+    String existingFullName;
     byte collisionCount = -1;
     do {
       collisionCount++;
       docId = store.getIdComputer().computeDocumentId(
           doc.getDocumentReference(), doc.getLanguage(), collisionCount);
-      existingFN = loadExistingDocForId(docId);
-    } while ((existingFN != null) && hasCollision(existingFN, docId));
+      existingFullName = loadExistingDocForId(docId);
+    } while ((existingFullName != null) && hasCollision(fullName, existingFullName, docId));
     LOGGER.debug("saveXWikiDoc - [{}] computed doc id [{}] for [{}] with collision count [{}]",
-        getDatabase(), doc.getId(), doc, collisionCount);
-    hasExistingDoc = (existingFN != null);
+        getDatabase(), doc.getId(), fullName, collisionCount);
+    hasExistingDoc = fullName.equals(existingFullName);
     return docId;
   }
 
@@ -133,11 +141,10 @@ class DocumentSavePreparationCommand {
         .uniqueResult();
   }
 
-  private boolean hasCollision(String existingFN, long docId) {
-    String fullName = store.getModelUtils().serializeRefLocal(doc.getDocumentReference());
-    if (!fullName.equals(existingFN)) {
+  private boolean hasCollision(String fullName, String existingFullName, long docId) {
+    if (!fullName.equals(existingFullName)) {
       LOGGER.warn("saveXWikiDoc - [{}] collision detected: id [{}], doc [{}], existing doc [{}]",
-          getDatabase(), docId, fullName, existingFN);
+          getDatabase(), docId, fullName, existingFullName);
       return true;
     }
     return false;

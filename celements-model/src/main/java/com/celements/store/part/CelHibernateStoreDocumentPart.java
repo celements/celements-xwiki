@@ -27,10 +27,11 @@ import org.xwiki.model.reference.WikiReference;
 
 import com.celements.model.classes.ClassDefinition;
 import com.celements.model.object.xwiki.XWikiObjectEditor;
+import com.celements.model.reference.RefBuilder;
 import com.celements.model.util.ReferenceSerializationMode;
-import com.celements.model.util.References;
 import com.celements.store.CelHibernateStore;
-import com.celements.store.id.CelementsIdComputer.IdComputationException;
+import com.celements.store.id.CelementsIdComputer;
+import com.celements.store.id.IdVersion;
 import com.celements.web.classes.oldcore.XWikiGroupsClass;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -150,12 +151,11 @@ public class CelHibernateStoreDocumentPart {
       Session session = store.getSession(context);
       session.setFlushMode(FlushMode.MANUAL);
 
-      DocumentReference docRefToLoad = References.cloneRef(doc.getDocumentReference(),
-          DocumentReference.class);
-      byte collisionCount = 0;
-      do {
-        session.load(doc, computeDocId(doc, collisionCount++));
-      } while (!docRefToLoad.equals(doc.getDocumentReference()));
+      DocumentReference docRefToLoad = RefBuilder.from(doc.getDocumentReference())
+          .build(DocumentReference.class);
+      Long docId = determineDocId(session, doc.getDocumentReference(), doc.getLanguage());
+      session.load(doc, docId);
+      validateLoadedDoc(doc, docRefToLoad);
       prepareLoadedDoc(doc);
 
       // Loading the attachment list
@@ -214,15 +214,30 @@ public class CelHibernateStoreDocumentPart {
     return doc;
   }
 
-  private Long computeDocId(XWikiDocument doc, byte collisionCount) throws XWikiException {
-    try {
-      return store.getIdComputer().computeDocumentId(
-          doc.getDocumentReference(), doc.getLanguage(), collisionCount);
-    } catch (IdComputationException exc) {
-      String msg = format("unable to compute id for doc [{}] with id [{}] and collisionCount [{}]",
-          serialize(doc), doc.getId(), collisionCount).get();
+  /**
+   * loads the doc id for fullName and language. this is required since we don't know at this point
+   * which {@link IdVersion} we have to load.
+   *
+   * This method may use {@link CelementsIdComputer#computeDocumentId} after completion of
+   * [CELDEV-605] XWikiDocument id migration
+   */
+  private Long determineDocId(Session session, DocumentReference docRef, String language) {
+    // TODO test different languages
+    // TODO test loading non existent document
+    return (Long) session
+        .createQuery("select id from XWikiDocument where fullName = :fn and language = :lang")
+        .setString("fn", store.getModelUtils().serializeRefLocal(docRef))
+        .setString("lang", language)
+        .uniqueResult();
+  }
+
+  private void validateLoadedDoc(XWikiDocument doc, DocumentReference expectedDocRef)
+      throws XWikiException {
+    if (!doc.getDocumentReference().equals(expectedDocRef)) {
+      LOGGER.error("loadXWikiDoc - collision detected: loading doc [{}] returned doc [{}]",
+          expectedDocRef, doc.getDocumentReference());
       throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_READING_DOC,
-          msg, exc);
+          "loadXWikiDoc - collision detected");
     }
   }
 
