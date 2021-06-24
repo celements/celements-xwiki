@@ -134,7 +134,7 @@ class DocumentSavePreparationCommand {
   }
 
   private String loadExistingDocForId(long docId) throws HibernateException {
-    return (String) session
+    return (String) getSession()
         .createQuery("select fullName from XWikiDocument where id = :id")
         .setLong("id", docId)
         .uniqueResult();

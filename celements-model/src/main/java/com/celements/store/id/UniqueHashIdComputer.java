@@ -68,6 +68,7 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   }
 
   @Override
+  // TODO test -> IdComputationException
   public Stream<Long> computeAllDocumentIds(DocumentReference docRef, String lang)
       throws IdComputationException {
     return IntStream.rangeClosed(0, getMaxCollisionCount())

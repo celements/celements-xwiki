@@ -1,6 +1,7 @@
 package com.celements.store.part;
 
 import static com.celements.common.test.CelementsTestUtils.*;
+import static com.celements.store.TestHibernateQuery.*;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
@@ -15,11 +16,12 @@ import org.junit.Test;
 import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.common.test.AbstractComponentTest;
-import com.celements.common.test.ExceptionAsserter;
+import com.celements.model.util.ModelUtils;
 import com.celements.store.CelHibernateStore;
 import com.celements.store.id.CelementsIdComputer;
 import com.celements.store.id.IdVersion;
 import com.celements.store.id.UniqueHashIdComputer;
+import com.google.common.collect.ImmutableMap;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -27,8 +29,6 @@ import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.web.Utils;
 
 public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
-
-  private DocumentSavePreparationCommand savePrepCmd;
 
   private CelHibernateStore storeMock;
   private Session sessionMock;
@@ -39,11 +39,15 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     expect(getWikiMock().getStore()).andReturn(storeMock).anyTimes();
     expect(storeMock.getIdComputer()).andReturn(Utils.getComponent(CelementsIdComputer.class,
         UniqueHashIdComputer.NAME)).anyTimes();
+    expect(storeMock.getModelUtils()).andReturn(Utils.getComponent(ModelUtils.class)).anyTimes();
     sessionMock = createMockAndAddToDefault(Session.class);
     sessionMock.setFlushMode(FlushMode.COMMIT);
     expectLastCall().anyTimes();
     expect(storeMock.getSession(getContext())).andReturn(sessionMock).anyTimes();
-    savePrepCmd = new DocumentSavePreparationCommand(storeMock);
+  }
+
+  private DocumentSavePreparationCommand newCommand(XWikiDocument doc) {
+    return new DocumentSavePreparationCommand(doc, storeMock, getContext());
   }
 
   @Test
@@ -51,9 +55,10 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     XWikiDocument doc = createDoc(false);
 
     replayDefault();
-    Session ret = savePrepCmd.execute(doc, false, getContext());
+    DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
     verifyDefault();
-    assertSame(sessionMock, ret);
+    assertSame(sessionMock, cmd.getSession());
+    assertTrue("doc with id already set must stem from db", cmd.hasExistingDoc());
     assertSame("store should be set", storeMock, doc.getStore());
     assertEquals("doc should be set to context db", getContext().getDatabase(),
         doc.getDocumentReference().getWikiReference().getName());
@@ -73,9 +78,84 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     expect(storeMock.beginTransaction(same(sfactoryMock), same(getContext()))).andReturn(true);
 
     replayDefault();
-    Session ret = savePrepCmd.execute(doc, true, getContext());
+    DocumentSavePreparationCommand cmd = newCommand(doc).execute(true);
     verifyDefault();
-    assertSame(sessionMock, ret);
+    assertSame(sessionMock, cmd.getSession());
+  }
+
+  @Test
+  public void test_execute_setId_alreadyExists() throws Exception {
+    long docId = -974136870929809408L;
+    XWikiDocument doc = createDoc(false, null);
+    expectSaveDocExists(sessionMock, ImmutableMap.of(docId, doc.getFullName()));
+
+    replayDefault();
+    DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
+    verifyDefault();
+    assertTrue(cmd.hasExistingDoc());
+    assertEquals(docId, doc.getId());
+    assertSame(IdVersion.CELEMENTS_3, doc.getIdVersion());
+  }
+
+  @Test
+  public void test_execute_setId_notExists() throws Exception {
+    long docId = -974136870929809408L;
+    XWikiDocument doc = createDoc(false, null);
+    expectSaveDocExists(sessionMock, ImmutableMap.of());
+
+    replayDefault();
+    DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
+    verifyDefault();
+    assertFalse(cmd.hasExistingDoc());
+    assertEquals(docId, doc.getId());
+    assertSame(IdVersion.CELEMENTS_3, doc.getIdVersion());
+  }
+
+  @Test
+  public void test_execute_setId_collision_notExists() throws Exception {
+    long docId = -974136870929801216L;
+    XWikiDocument doc = createDoc(false, null);
+    expectSaveDocExists(sessionMock, ImmutableMap.of(
+        -974136870929809408L, "space.other1",
+        -974136870929805312L, "space.other2"));
+
+    replayDefault();
+    DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
+    verifyDefault();
+    assertFalse(cmd.hasExistingDoc());
+    assertEquals(docId, doc.getId());
+    assertSame(IdVersion.CELEMENTS_3, doc.getIdVersion());
+  }
+
+  @Test
+  public void test_execute_setId_collision_alreadyExists() throws Exception {
+    long docId = -974136870929801216L;
+    XWikiDocument doc = createDoc(false, null);
+    expectSaveDocExists(sessionMock, ImmutableMap.of(
+        -974136870929809408L, "space.other1",
+        -974136870929805312L, "space.other2",
+        docId, doc.getFullName()));
+
+    replayDefault();
+    DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
+    verifyDefault();
+    assertTrue(cmd.hasExistingDoc());
+    assertEquals(docId, doc.getId());
+    assertSame(IdVersion.CELEMENTS_3, doc.getIdVersion());
+  }
+
+  @Test
+  public void test_execute_setId_collision_countExhausted() throws Exception {
+    XWikiDocument doc = createDoc(false, null);
+    expectSaveDocExists(sessionMock, ImmutableMap.of(
+        -974136870929809408L, "space.other1",
+        -974136870929805312L, "space.other2",
+        -974136870929801216L, "space.other3",
+        -974136870929797120L, "space.other4"));
+
+    replayDefault();
+    assertThrows(XWikiException.class, () -> newCommand(doc).execute(false));
+    verifyDefault();
   }
 
   @Test
@@ -88,7 +168,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     assertTrue(obj.getGuid().isEmpty());
     assertEquals(0, obj.getId());
     replayDefault();
-    savePrepCmd.execute(doc, false, getContext());
+    newCommand(doc).execute(false);
     verifyDefault();
     assertTrue(doc.hasElement(XWikiDocument.HAS_OBJECTS));
     assertFalse(obj.getGuid().isEmpty());
@@ -103,7 +183,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     BaseObject obj = addObject(doc);
 
     replayDefault();
-    savePrepCmd.execute(doc, false, getContext());
+    newCommand(doc).execute(false);
     verifyDefault();
     assertFalse(doc.hasElement(XWikiDocument.HAS_OBJECTS));
     assertTrue(obj.getGuid().isEmpty());
@@ -123,7 +203,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
         same(getContext()))).andReturn(origDoc);
 
     replayDefault();
-    savePrepCmd.execute(doc, false, getContext());
+    newCommand(doc).execute(false);
     verifyDefault();
     assertEquals(origObj.getId(), obj.getId());
   }
@@ -138,7 +218,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
         same(getContext()))).andReturn(createDoc(false));
 
     replayDefault();
-    savePrepCmd.execute(doc, false, getContext());
+    newCommand(doc).execute(false);
     verifyDefault();
     assertEquals(-974136870929809407L, obj.getId());
   }
@@ -151,7 +231,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
         getContext()))).andReturn(false).once();
 
     replayDefault();
-    savePrepCmd.execute(doc, false, getContext());
+    newCommand(doc).execute(false);
     verifyDefault();
     assertEquals(-974136870929809407L, obj.getId());
   }
@@ -165,13 +245,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
         getContext()))).andThrow(cause);
 
     replayDefault();
-    new ExceptionAsserter<XWikiException>(XWikiException.class, cause) {
-
-      @Override
-      protected void execute() throws Exception {
-        savePrepCmd.execute(doc, false, getContext());
-      }
-    }.evaluate();
+    assertThrows(XWikiException.class, () -> newCommand(doc).execute(false));
     verifyDefault();
   }
 
@@ -190,15 +264,22 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     doc.setAttachmentList(Arrays.asList(new XWikiAttachment(doc, "file")));
 
     replayDefault();
-    savePrepCmd.execute(doc, false, getContext());
+    newCommand(doc).execute(false);
     verifyDefault();
     assertTrue(doc.hasElement(XWikiDocument.HAS_ATTACHMENTS));
   }
 
   private XWikiDocument createDoc(boolean isNew) {
+    return createDoc(isNew, 1L);
+  }
+
+  private XWikiDocument createDoc(boolean isNew, Long id) {
     DocumentReference docRef = new DocumentReference("xwikidb", "space", "doc");
     XWikiDocument doc = new XWikiDocument(docRef);
     doc.setNew(isNew);
+    if (id != null) {
+      doc.setId(id, IdVersion.XWIKI_2);
+    }
     return doc;
   }
 
