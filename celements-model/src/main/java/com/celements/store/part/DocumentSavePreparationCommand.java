@@ -71,13 +71,11 @@ class DocumentSavePreparationCommand {
     prepareSession(bTransaction);
     try {
       prepareDocId();
-      doc.setElement(XWikiDocument.HAS_OBJECTS, false);
-      doc.setElement(XWikiDocument.HAS_ATTACHMENTS, false);
       if (doc.getTranslation() == 0) {
-        updateBaseClassXml(doc, context);
-        doc.setElement(XWikiDocument.HAS_OBJECTS, XWikiObjectFetcher.on(doc).exists());
-        doc.setElement(XWikiDocument.HAS_ATTACHMENTS, !doc.getAttachmentList().isEmpty());
-        new XObjectPreparer(doc, context).execute();
+        prepareMainDoc();
+      } else {
+        doc.setElement(XWikiDocument.HAS_OBJECTS, false);
+        doc.setElement(XWikiDocument.HAS_ATTACHMENTS, false);
       }
     } catch (IdComputationException exc) {
       throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
@@ -111,6 +109,7 @@ class DocumentSavePreparationCommand {
   private void prepareDocId() throws IdComputationException, HibernateException {
     checkState(hasExistingDoc == null, "command already executed");
     if (doc.hasValidId()) {
+      // documents with valid id have been loaded from the store, thus no id computation needed
       hasExistingDoc = true;
     } else {
       doc.setId(computeNextFreeDocId(), store.getIdComputer().getIdVersion());
@@ -148,6 +147,13 @@ class DocumentSavePreparationCommand {
       return true;
     }
     return false;
+  }
+
+  private void prepareMainDoc() throws IdComputationException, XWikiException {
+    updateBaseClassXml(doc, context);
+    doc.setElement(XWikiDocument.HAS_OBJECTS, XWikiObjectFetcher.on(doc).exists());
+    doc.setElement(XWikiDocument.HAS_ATTACHMENTS, !doc.getAttachmentList().isEmpty());
+    new XObjectPreparer(doc, context).execute();
   }
 
   private void updateBaseClassXml(XWikiDocument doc, XWikiContext context) {
