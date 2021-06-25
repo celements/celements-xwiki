@@ -1,6 +1,7 @@
 package com.celements.store.part;
 
 import static com.celements.logging.LogUtils.*;
+import static com.celements.model.util.EntityTypeUtil.*;
 import static com.celements.model.util.ReferenceSerializationMode.*;
 import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
@@ -21,6 +22,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.ClassReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.ImmutableDocumentReference;
@@ -54,7 +56,7 @@ public class CelHibernateStoreDocumentPart {
 
   public void saveXWikiDoc(XWikiDocument doc, XWikiContext context, boolean bTransaction)
       throws XWikiException, HibernateException {
-    validateWikis(doc, context);
+    validateDocRef(doc.getDocumentReference(), context);
     boolean commit = false;
     try {
       DocumentSavePreparationCommand savePrepCmd = new DocumentSavePreparationCommand(
@@ -139,9 +141,11 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
+  public static boolean DEBUG_LOAD_OLD_ID = true;
+
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context)
       throws XWikiException, HibernateException {
-    validateWikis(doc, context);
+    validateDocRef(doc.getDocumentReference(), context);
     boolean bTransaction = true;
     try {
       doc.setStore(store);
@@ -156,8 +160,8 @@ public class CelHibernateStoreDocumentPart {
       Long docId = determineDocId(session, docRefToLoad, doc.getLanguage());
 
       // TODO for DEBUGGING
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("loadXWikiDoc - loading [{}]: {}", docId,
+      if (DEBUG_LOAD_OLD_ID) {
+        LOGGER.warn("loadXWikiDoc - DEBUG loading [{}]: {}", docId,
             store.serialize(docRefToLoad, GLOBAL));
         docId = (long) doc.calculateXWikiId();
       }
@@ -312,7 +316,7 @@ public class CelHibernateStoreDocumentPart {
 
   public void deleteXWikiDoc(XWikiDocument doc, XWikiContext context)
       throws XWikiException, HibernateException {
-    validateWikis(doc, context);
+    validateDocRef(doc.getDocumentReference(), context);
     boolean bTransaction = false;
     boolean commit = false;
     try {
@@ -362,13 +366,15 @@ public class CelHibernateStoreDocumentPart {
     return Utils.getComponent(ClassDefinition.class, XWikiGroupsClass.CLASS_DEF_HINT);
   }
 
-  private void validateWikis(XWikiDocument doc, XWikiContext context) {
-    WikiReference docWiki = doc.getDocumentReference().getWikiReference();
+  private void validateDocRef(DocumentReference docRef, XWikiContext context) {
+    checkArgument(isMatchingEntityType(store.serialize(docRef, LOCAL), EntityType.DOCUMENT),
+        "illegal doc naming [%s]", docRef);
+    WikiReference docWiki = docRef.getWikiReference();
     WikiReference providedContextWiki = new WikiReference(context.getDatabase());
     WikiReference executionContextWiki = store.getModelContext().getWikiRef();
     checkArgument(docWiki.equals(providedContextWiki) && docWiki.equals(executionContextWiki),
         "wikis not matching for doc [%s], providedContextWiki [%s], executionContextWiki [%s]",
-        doc.getDocumentReference(), providedContextWiki, executionContextWiki);
+        docRef, providedContextWiki, executionContextWiki);
   }
 
 }

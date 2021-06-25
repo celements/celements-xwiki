@@ -21,6 +21,7 @@ import org.xwiki.model.reference.ImmutableReference;
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.model.access.IModelAccessFacade;
 import com.celements.store.id.IdVersion;
+import com.celements.store.part.CelHibernateStoreDocumentPart;
 import com.celements.store.part.XWikiDummyDocComparator;
 import com.google.common.collect.ImmutableMap;
 import com.xpn.xwiki.XWikiConfig;
@@ -43,6 +44,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
 
   @Before
   public void prepareTest() throws Exception {
+    CelHibernateStoreDocumentPart.DEBUG_LOAD_OLD_ID = false;
     registerComponentMock(IModelAccessFacade.class);
     sessionFactoryMock = createMockAndAddToDefault(SessionFactory.class);
     primaryStoreMock = createMockAndAddToDefault(XWikiHibernateStore.class);
