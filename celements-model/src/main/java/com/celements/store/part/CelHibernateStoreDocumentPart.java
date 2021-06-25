@@ -153,7 +153,15 @@ public class CelHibernateStoreDocumentPart {
 
       DocumentReference docRefToLoad = RefBuilder.from(doc.getDocumentReference())
           .build(DocumentReference.class);
-      Long docId = determineDocId(session, doc.getDocumentReference(), doc.getLanguage());
+      Long docId = determineDocId(session, docRefToLoad, doc.getLanguage());
+
+      // TODO for DEBUGGING
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("loadXWikiDoc - loading [{}]: {}", docId,
+            store.serialize(docRefToLoad, GLOBAL));
+        docId = (long) doc.calculateXWikiId();
+      }
+
       if (docId != null) {
         session.load(doc, docId);
         validateLoadedDoc(doc, docRefToLoad);
