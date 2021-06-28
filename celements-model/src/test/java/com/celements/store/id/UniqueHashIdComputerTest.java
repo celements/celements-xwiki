@@ -146,28 +146,37 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
 
   @Test
   public void test_computeId_illegalId_XWIKI_2() throws Exception {
-    List<Integer> illegalIds = Arrays.asList(0, Integer.MAX_VALUE, -1, Integer.MIN_VALUE);
+    List<Long> illegalIds = Arrays.asList(123456L, 1L, -1L, -123456L,
+        (long) Integer.MAX_VALUE, (long) Integer.MIN_VALUE);
     MessageDigest digestMock = createMockAndAddToDefault(MessageDigest.class);
     idComputer.injectedDigest = digestMock;
     digestMock.update(isA(byte[].class));
     expectLastCall().times(illegalIds.size());
-    for (Integer id : illegalIds) {
+    for (long id : illegalIds) {
       expect(digestMock.digest()).andReturn(Longs.toByteArray(id)).once();
     }
     replayDefault();
     for (int i = 0; i < illegalIds.size(); i++) {
       final int objCount = i;
-      Throwable cause = new ExceptionAsserter<IdComputationException>(
-          IdComputationException.class) {
-
-        @Override
-        protected void execute() throws IdComputationException {
-          idComputer.computeId(docRef, lang, (byte) 0, objCount);
-        }
-      }.evaluate().getCause();
+      Throwable cause = assertThrows(IdComputationException.class,
+          () -> idComputer.computeId(docRef, lang, (byte) 0, objCount)).getCause();
       assertSame(VerifyException.class, cause.getClass());
-      assertTrue(cause.getMessage().contains(IdVersion.XWIKI_2.name()));
+      assertTrue(cause.getMessage(), cause.getMessage().contains(IdVersion.XWIKI_2.name()));
     }
+    verifyDefault();
+  }
+
+  @Test
+  public void test_computeId_illegalId_zero() throws Exception {
+    MessageDigest digestMock = createMockAndAddToDefault(MessageDigest.class);
+    idComputer.injectedDigest = digestMock;
+    digestMock.update(isA(byte[].class));
+    expect(digestMock.digest()).andReturn(Longs.toByteArray(0));
+    replayDefault();
+    Throwable cause = assertThrows(IdComputationException.class,
+        () -> idComputer.computeId(docRef, lang, (byte) 0, 0)).getCause();
+    assertSame(VerifyException.class, cause.getClass());
+    assertTrue(cause.getMessage(), cause.getMessage().contains("zero"));
     verifyDefault();
   }
 
