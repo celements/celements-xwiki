@@ -161,7 +161,7 @@ public class CelHibernateStoreDocumentPart {
 
       // TODO for DEBUGGING
       if (DEBUG_LOAD_OLD_ID) {
-        LOGGER.warn("loadXWikiDoc - DEBUG loading [{}]: {}", docId,
+        LOGGER.error("loadXWikiDoc - DEBUG loading [{}]: {}", docId,
             store.serialize(docRefToLoad, GLOBAL));
         docId = (long) doc.calculateXWikiId();
       }
