@@ -141,8 +141,6 @@ public class CelHibernateStoreDocumentPart {
     }
   }
 
-  public static boolean DEBUG_LOAD_OLD_ID = true;
-
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context)
       throws XWikiException, HibernateException {
     validateDocRef(doc.getDocumentReference(), context);
@@ -157,22 +155,9 @@ public class CelHibernateStoreDocumentPart {
 
       DocumentReference docRefToLoad = RefBuilder.from(doc.getDocumentReference())
           .build(DocumentReference.class);
-      Long docId = determineDocId(session, docRefToLoad, doc.getLanguage());
-
-      // TODO for DEBUGGING
-      if ((docId == null) && DEBUG_LOAD_OLD_ID) {
-        LOGGER.error("loadXWikiDoc - DEBUG [{}] docId null for {} - {}",
-            context.getWiki(), store.serialize(docRefToLoad, GLOBAL), doc.getLanguage());
-        // docId = (long) doc.calculateXWikiId();
-        docId = 0L;
-      }
-
-      if (docId != null) {
-        session.load(doc, docId);
-        validateLoadedDoc(doc, docRefToLoad);
-      } else {
-        LOGGER.warn("loadXWikiDoc - no id found [{}]", defer(() -> store.serialize(doc, GLOBAL)));
-      }
+      long docId = determineDocId(session, docRefToLoad, doc.getLanguage());
+      session.load(doc, docId);
+      validateLoadedDoc(doc, docRefToLoad);
       sanitizeDoc(doc);
 
       // Loading the attachment list
@@ -238,13 +223,18 @@ public class CelHibernateStoreDocumentPart {
    * This method may use {@link CelementsIdComputer#computeDocumentId} after completion of
    * [CELDEV-605] XWikiDocument id migration
    */
-  Long determineDocId(Session session, DocumentReference docRef, String language) {
-    // TODO test different languages
-    return (Long) session
+  long determineDocId(Session session, DocumentReference docRef, String language) {
+    Long docId = (Long) session
         .createQuery("select id from XWikiDocument where fullName = :fn and language = :lang")
         .setString("fn", store.serialize(docRef, LOCAL))
         .setString("lang", language)
         .uniqueResult();
+    if (docId == null) {
+      LOGGER.info("loadXWikiDoc - no existing doc for [{}.{}]",
+          defer(() -> store.serialize(docRef, GLOBAL)), language);
+      docId = 0L;
+    }
+    return docId;
   }
 
   private void validateLoadedDoc(XWikiDocument doc, DocumentReference expectedDocRef)

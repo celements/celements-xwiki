@@ -154,6 +154,7 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   private long verifyId(long id) throws IdComputationException {
     try {
+      verify(id != 0, "generated id mustn't be zero");
       // TODO this verification can be removed after compeletion of
       // [CELDEV-605] XWikiDocument/BaseCollection id migration
       verify((id > Integer.MAX_VALUE) || (id < Integer.MIN_VALUE),

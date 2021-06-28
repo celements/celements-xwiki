@@ -42,7 +42,6 @@ import org.xwiki.model.reference.DocumentReference;
 import com.celements.common.test.AbstractComponentTest;
 import com.celements.store.DocumentCacheStore.InvalidateState;
 import com.celements.store.id.IdVersion;
-import com.celements.store.part.CelHibernateStoreDocumentPart;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.xpn.xwiki.XWiki;
@@ -98,7 +97,6 @@ public class ConcurrentCacheTest extends AbstractComponentTest {
   @SuppressWarnings("deprecation")
   @Before
   public void setUp_ConcurrentCacheTest() throws Exception {
-    CelHibernateStoreDocumentPart.DEBUG_LOAD_OLD_ID = false;
     getContext().setDatabase(wikiName);
     sessionFactoryMock = createMockAndAddToDefault(SessionFactory.class);
     Utils.getComponent(HibernateSessionFactory.class).setSessionFactory(sessionFactoryMock);
