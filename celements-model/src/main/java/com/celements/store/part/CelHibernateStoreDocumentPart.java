@@ -160,9 +160,9 @@ public class CelHibernateStoreDocumentPart {
       Long docId = determineDocId(session, docRefToLoad, doc.getLanguage());
 
       // TODO for DEBUGGING
-      if (DEBUG_LOAD_OLD_ID) {
-        LOGGER.error("loadXWikiDoc - DEBUG loading [{}]: {}", docId,
-            store.serialize(docRefToLoad, GLOBAL));
+      if ((docId == null) && DEBUG_LOAD_OLD_ID) {
+        LOGGER.error("loadXWikiDoc - DEBUG docId null for {} - {}",
+            store.serialize(docRefToLoad, GLOBAL), doc.getLanguage());
         docId = (long) doc.calculateXWikiId();
       }
 
