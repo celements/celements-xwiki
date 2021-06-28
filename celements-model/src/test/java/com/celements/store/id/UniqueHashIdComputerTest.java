@@ -275,4 +275,30 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     return obj;
   }
 
+  @Test
+  public void test_getMaxCollisionCount() throws Exception {
+    assertEquals("only 2 collision bits", 3, idComputer.getMaxCollisionCount());
+  }
+
+  @Test
+  public void test_extractCollisionCount() throws Exception {
+    byte max = idComputer.getMaxCollisionCount();
+    for (byte collisionCount = 0; collisionCount <= max; collisionCount++) {
+      long docId = idComputer.computeDocumentId(docRef, lang, collisionCount);
+      assertEquals(collisionCount, idComputer.extractCollisionCount(docId));
+    }
+  }
+
+  @Test
+  public void test_computeId_extractCollisionCount() throws Exception {
+    byte max = idComputer.getMaxCollisionCount();
+    for (byte collisionCount = 0; collisionCount <= max; collisionCount++) {
+      XWikiDocument doc = new XWikiDocument(docRef);
+      doc.setLanguage(lang);
+      doc.setId(idComputer.computeDocumentId(docRef, lang, collisionCount), IdVersion.CELEMENTS_3);
+      long docId = idComputer.computeId(doc, 0);
+      assertEquals(collisionCount, idComputer.extractCollisionCount(docId));
+    }
+  }
+
 }

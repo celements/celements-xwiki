@@ -90,7 +90,7 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
         .toImmutableSet();
   }
 
-  private long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {
+  long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {
     checkNotNull(doc);
     byte collisionCount = 0;
     if (doc.hasValidId() && (doc.getIdVersion() == getIdVersion())) {
@@ -99,12 +99,15 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     return computeId(doc.getDocumentReference(), doc.getLanguage(), collisionCount, objectCount);
   }
 
-  private byte extractCollisionCount(long id) {
+  byte extractCollisionCount(long id) {
     // & 0xff (255) to prevent accidental value conversions, see Sonar S3034
     return (byte) ((id >> BITS_OBJECT_COUNT) & (getMaxCollisionCount() & 0xff));
   }
 
-  private byte getMaxCollisionCount() {
+  /**
+   * inclusive
+   */
+  byte getMaxCollisionCount() {
     return ~(-1 << BITS_COLLISION_COUNT);
   }
 
