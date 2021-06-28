@@ -1,6 +1,5 @@
 package com.celements.store.id;
 
-import static com.celements.common.lambda.LambdaExceptionUtil.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Verify.*;
 
@@ -9,8 +8,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.annotation.Requirement;
@@ -65,15 +62,6 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   public long computeDocumentId(DocumentReference docRef, String lang, byte collisionCount)
       throws IdComputationException {
     return computeId(docRef, lang, collisionCount, 0);
-  }
-
-  @Override
-  // TODO test -> IdComputationException
-  public Stream<Long> computeAllDocumentIds(DocumentReference docRef, String lang)
-      throws IdComputationException {
-    return IntStream.rangeClosed(0, getMaxCollisionCount())
-        .mapToObj(byte.class::cast)
-        .map(rethrowFunction(collisionCount -> computeDocumentId(docRef, lang, collisionCount)));
   }
 
   @Override

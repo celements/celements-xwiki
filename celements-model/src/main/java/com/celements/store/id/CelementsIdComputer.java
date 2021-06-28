@@ -1,7 +1,5 @@
 package com.celements.store.id;
 
-import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
@@ -40,15 +38,6 @@ public interface CelementsIdComputer {
    */
   long computeDocumentId(@NotNull DocumentReference docRef, @Nullable String lang,
       byte collisionCount) throws IdComputationException;
-
-  /**
-   * @return computes all possible ids for the given document and language
-   * @throws IdComputationException
-   *           if unable to compute an id
-   */
-  @NotNull
-  Stream<Long> computeAllDocumentIds(@NotNull DocumentReference docRef, @Nullable String lang)
-      throws IdComputationException;
 
   /**
    * @return computes the id for the given document

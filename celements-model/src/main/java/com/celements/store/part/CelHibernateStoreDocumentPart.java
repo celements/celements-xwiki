@@ -143,7 +143,9 @@ public class CelHibernateStoreDocumentPart {
 
   public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context)
       throws XWikiException, HibernateException {
-    validateDocRef(doc.getDocumentReference(), context);
+    DocumentReference docRefToLoad = RefBuilder.from(doc.getDocumentReference())
+        .build(DocumentReference.class);
+    validateDatabase(docRefToLoad, context);
     boolean bTransaction = true;
     try {
       doc.setStore(store);
@@ -153,8 +155,6 @@ public class CelHibernateStoreDocumentPart {
       Session session = store.getSession(context);
       session.setFlushMode(FlushMode.MANUAL);
 
-      DocumentReference docRefToLoad = RefBuilder.from(doc.getDocumentReference())
-          .build(DocumentReference.class);
       long docId = determineDocId(session, docRefToLoad, doc.getLanguage());
       session.load(doc, docId);
       validateLoadedDoc(doc, docRefToLoad);
@@ -170,7 +170,7 @@ public class CelHibernateStoreDocumentPart {
       String cxml = doc.getXClassXML();
       if (cxml != null) {
         bclass.fromXML(cxml);
-        bclass.setDocumentReference(doc.getDocumentReference());
+        bclass.setDocumentReference(docRefToLoad);
         doc.setXClass(bclass);
       }
       // Store this XWikiClass in the context so that we can use it in case of recursive usage
@@ -182,7 +182,7 @@ public class CelHibernateStoreDocumentPart {
         Map<Integer, BaseObject> groupObjs = new HashMap<>();
         while (objIter.hasNext()) {
           BaseObject loadedObject = objIter.next();
-          if (!loadedObject.getDocumentReference().equals(doc.getDocumentReference())) {
+          if (!loadedObject.getDocumentReference().equals(docRefToLoad)) {
             LOGGER.warn("loadXWikiDoc - skipping obj [{}], doc [{}] not matching",
                 loadedObject, defer(() -> store.serialize(doc, GLOBAL)));
             continue;
@@ -360,6 +360,10 @@ public class CelHibernateStoreDocumentPart {
   private void validateDocRef(DocumentReference docRef, XWikiContext context) {
     checkArgument(isMatchingEntityType(store.serialize(docRef, LOCAL), EntityType.DOCUMENT),
         "illegal doc naming [%s]", docRef);
+    validateDatabase(docRef, context);
+  }
+
+  private void validateDatabase(DocumentReference docRef, XWikiContext context) {
     WikiReference docWiki = docRef.getWikiReference();
     WikiReference providedContextWiki = new WikiReference(context.getDatabase());
     WikiReference executionContextWiki = store.getModelContext().getWikiRef();

@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.xwiki.model.reference.DocumentReference;
 
 import com.celements.common.test.AbstractComponentTest;
-import com.celements.common.test.ExceptionAsserter;
 import com.celements.store.id.CelementsIdComputer.IdComputationException;
 import com.google.common.base.VerifyException;
 import com.google.common.primitives.Longs;
@@ -84,26 +83,18 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
 
   @Test
   public void test_computeId_collisionCount_negative() throws Exception {
-    Throwable cause = new ExceptionAsserter<IdComputationException>(IdComputationException.class) {
-
-      @Override
-      protected void execute() throws IdComputationException {
-        idComputer.computeId(docRef, lang, (byte) -1, 0);
-      }
-    }.evaluate().getCause();
+    Throwable cause = assertThrows(IdComputationException.class,
+        () -> idComputer.computeId(docRef, lang, (byte) -1, 0))
+            .getCause();
     assertSame(VerifyException.class, cause.getClass());
     assertTrue(cause.getMessage().contains("negative"));
   }
 
   @Test
   public void test_computeId_collisionCount_overflow() throws Exception {
-    Throwable cause = new ExceptionAsserter<IdComputationException>(IdComputationException.class) {
-
-      @Override
-      protected void execute() throws IdComputationException {
-        idComputer.computeId(docRef, lang, (byte) 0b100, 0);
-      }
-    }.evaluate().getCause();
+    Throwable cause = assertThrows(IdComputationException.class,
+        () -> idComputer.computeId(docRef, lang, (byte) 0b100, 0))
+            .getCause();
     assertSame(VerifyException.class, cause.getClass());
     assertTrue(cause.getMessage().contains("outside of defined range"));
   }
@@ -120,26 +111,18 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
 
   @Test
   public void test_computeId_objectCount_negative() throws Exception {
-    Throwable cause = new ExceptionAsserter<IdComputationException>(IdComputationException.class) {
-
-      @Override
-      protected void execute() throws IdComputationException {
-        idComputer.computeId(docRef, lang, (byte) 0, -1);
-      }
-    }.evaluate().getCause();
+    Throwable cause = assertThrows(IdComputationException.class,
+        () -> idComputer.computeId(docRef, lang, (byte) 0, -1))
+            .getCause();
     assertSame(VerifyException.class, cause.getClass());
     assertTrue(cause.getMessage().contains("negative"));
   }
 
   @Test
   public void test_computeId_objectCount_overflow() throws Exception {
-    Throwable cause = new ExceptionAsserter<IdComputationException>(IdComputationException.class) {
-
-      @Override
-      protected void execute() throws IdComputationException {
-        idComputer.computeId(docRef, lang, (byte) 0, 1 << 12);
-      }
-    }.evaluate().getCause();
+    Throwable cause = assertThrows(IdComputationException.class,
+        () -> idComputer.computeId(docRef, lang, (byte) 0, 1 << 12))
+            .getCause();
     assertSame(VerifyException.class, cause.getClass());
     assertTrue(cause.getMessage().contains("outside of defined range"));
   }
@@ -159,7 +142,8 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     for (int i = 0; i < illegalIds.size(); i++) {
       final int objCount = i;
       Throwable cause = assertThrows(IdComputationException.class,
-          () -> idComputer.computeId(docRef, lang, (byte) 0, objCount)).getCause();
+          () -> idComputer.computeId(docRef, lang, (byte) 0, objCount))
+              .getCause();
       assertSame(VerifyException.class, cause.getClass());
       assertTrue(cause.getMessage(), cause.getMessage().contains(IdVersion.XWIKI_2.name()));
     }
@@ -193,14 +177,9 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     docRef.getWikiReference().setName("asdf");
     assertEquals(exp, idComputer.computeDocumentId(docRef, lang));
     docRef.setName("asdf");
-    assertFalse(exp == idComputer.computeDocumentId(docRef, lang));
-    new ExceptionAsserter<NullPointerException>(NullPointerException.class) {
-
-      @Override
-      protected void execute() throws Exception {
-        idComputer.computeDocumentId(null, lang);
-      }
-    }.evaluate();
+    assertNotEquals(exp, idComputer.computeDocumentId(docRef, lang));
+    assertThrows(NullPointerException.class,
+        () -> idComputer.computeDocumentId(null, lang));
   }
 
   @Test
@@ -209,7 +188,7 @@ public class UniqueHashIdComputerTest extends AbstractComponentTest {
     assertEquals(exp, idComputer.computeDocumentId(docRef, ""));
     assertEquals(exp, idComputer.computeDocumentId(docRef, " "));
     assertEquals(exp, idComputer.computeDocumentId(docRef, null));
-    assertFalse(exp == idComputer.computeDocumentId(docRef, "de"));
+    assertNotEquals(exp, idComputer.computeDocumentId(docRef, "de"));
   }
 
   @Test
