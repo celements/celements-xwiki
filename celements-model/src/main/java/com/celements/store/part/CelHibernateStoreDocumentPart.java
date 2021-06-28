@@ -161,9 +161,10 @@ public class CelHibernateStoreDocumentPart {
 
       // TODO for DEBUGGING
       if ((docId == null) && DEBUG_LOAD_OLD_ID) {
-        LOGGER.error("loadXWikiDoc - DEBUG docId null for {} - {}",
-            store.serialize(docRefToLoad, GLOBAL), doc.getLanguage());
-        docId = (long) doc.calculateXWikiId();
+        LOGGER.error("loadXWikiDoc - DEBUG [{}] docId null for {} - {}",
+            context.getWiki(), store.serialize(docRefToLoad, GLOBAL), doc.getLanguage());
+        // docId = (long) doc.calculateXWikiId();
+        docId = 0L;
       }
 
       if (docId != null) {
