@@ -2,9 +2,12 @@ package com.celements.store.part;
 
 import static com.google.common.base.Preconditions.*;
 import static com.xpn.xwiki.XWikiException.*;
+import static java.util.stream.Collectors.*;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -42,7 +45,6 @@ class DocumentSavePreparationCommand {
   private final XWikiContext context;
 
   private Session session;
-  private Boolean hasExistingDoc;
 
   DocumentSavePreparationCommand(XWikiDocument doc, CelHibernateStore store, XWikiContext context) {
     this.doc = checkNotNull(doc);
@@ -57,11 +59,6 @@ class DocumentSavePreparationCommand {
   public Session getSession() {
     checkState(session != null, "execute command first");
     return session;
-  }
-
-  boolean hasExistingDoc() {
-    checkState(hasExistingDoc != null, "execute command first");
-    return hasExistingDoc;
   }
 
   DocumentSavePreparationCommand execute(boolean bTransaction)
@@ -106,47 +103,53 @@ class DocumentSavePreparationCommand {
     }
   }
 
-  private void prepareDocId() throws IdComputationException, HibernateException {
-    checkState(hasExistingDoc == null, "command already executed");
-    if (doc.hasValidId()) {
-      // documents with valid id have been loaded from the store, thus no id computation needed
-      hasExistingDoc = true;
-    } else {
+  private void prepareDocId() throws IdComputationException, HibernateException, XWikiException {
+    // documents with valid id have been loaded from the store, thus no id computation needed
+    if (!doc.hasValidId()) {
       doc.setId(computeNextFreeDocId(), store.getIdComputer().getIdVersion());
+      if (!doc.isNew()) {
+        doc.setNew(true);
+        LOGGER.warn("saveXWikiDoc - [{}] document without valid id wasn't set to new [{}]",
+            getDatabase(), doc.getDocumentReference(), new Throwable());
+      }
     }
   }
 
-  private long computeNextFreeDocId() throws IdComputationException, HibernateException {
-    String fullName = doc.getFullName();
-    long docId;
-    String existingFullName;
-    byte collisionCount = -1;
-    do {
-      collisionCount++;
-      docId = store.getIdComputer().computeDocumentId(
+  private long computeNextFreeDocId()
+      throws IdComputationException, HibernateException, XWikiException {
+    String docKey = getDocKey(doc.getFullName(), doc.getLanguage());
+    Long nextFreeDocId = null;
+    for (byte collisionCount = 0; nextFreeDocId == null; collisionCount++) {
+      long docId = store.getIdComputer().computeDocumentId(
           doc.getDocumentReference(), doc.getLanguage(), collisionCount);
-      existingFullName = loadExistingDocForId(docId);
-    } while ((existingFullName != null) && hasCollision(fullName, existingFullName, docId));
-    LOGGER.debug("saveXWikiDoc - [{}] computed doc id [{}] for [{}] with collision count [{}]",
-        getDatabase(), doc.getId(), fullName, collisionCount);
-    hasExistingDoc = fullName.equals(existingFullName);
-    return docId;
+      String existingDocKey = loadExistingDocKeyForId(docId);
+      if (existingDocKey == null) {
+        nextFreeDocId = docId;
+      } else if (!docKey.equals(existingDocKey)) {
+        LOGGER.warn("saveXWikiDoc - [{}] collision detected: id [{}], doc [{}], existing doc [{}], "
+            + "count [{}]", getDatabase(), docId, docKey, existingDocKey, collisionCount);
+      } else {
+        throw new XWikiException(MODULE_XWIKI_STORE, ERROR_XWIKI_STORE_HIBERNATE_SAVING_DOC,
+            "saveXWikiDoc - [" + getDatabase() + "] unable to compute next free id "
+                + "for an existing document [" + docKey + "]");
+      }
+    }
+    LOGGER.debug("saveXWikiDoc - [{}] computed doc id [{}] for [{}]",
+        getDatabase(), nextFreeDocId, docKey);
+    return nextFreeDocId;
   }
 
-  private String loadExistingDocForId(long docId) throws HibernateException {
-    return (String) getSession()
-        .createQuery("select fullName from XWikiDocument where id = :id")
+  private String getDocKey(Object... keyParts) {
+    return Stream.of(keyParts).filter(Objects::nonNull).map(Object::toString)
+        .collect(joining(".")).trim();
+  }
+
+  private String loadExistingDocKeyForId(long docId) throws HibernateException {
+    Object[] row = (Object[]) getSession()
+        .createQuery("select fullName, language from XWikiDocument where id = :id")
         .setLong("id", docId)
         .uniqueResult();
-  }
-
-  private boolean hasCollision(String fullName, String existingFullName, long docId) {
-    if (!fullName.equals(existingFullName)) {
-      LOGGER.warn("saveXWikiDoc - [{}] collision detected: id [{}], doc [{}], existing doc [{}]",
-          getDatabase(), docId, fullName, existingFullName);
-      return true;
-    }
-    return false;
+    return (row != null) ? getDocKey(row) : null;
   }
 
   private void prepareMainDoc() throws IdComputationException, XWikiException {

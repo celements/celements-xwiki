@@ -161,8 +161,9 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
   @Test
   public void test_saveXWikiDoc_update() throws Exception {
     long docId = -974136870929809408L;
+    doc.setId(docId, IdVersion.CELEMENTS_3);
+    doc.setNew(false);
     Session sessionMock = createSessionMock(doc);
-    expectSaveDocExists(sessionMock, ImmutableMap.of(docId, doc.getFullName()));
     sessionMock.update(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL));
     expectLastCall();
     expect(sessionMock.close()).andReturn(null);
@@ -182,7 +183,7 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
   public void test_saveXWikiDoc_collision_single() throws Exception {
     final Session sessionMock = createSessionMock(doc);
     expectSaveDocExists(sessionMock, ImmutableMap.of(
-        -974136870929809408L, "space.other"));
+        -974136870929809408L, new Object[] { "space.other", "" }));
     expect(sessionMock.save(cmp(doc, new XWikiDummyDocComparator(), LogicalOperator.EQUAL)))
         .andReturn(null);
     expect(sessionMock.close()).andReturn(null);
@@ -199,10 +200,10 @@ public class CelHibernateStoreTest extends AbstractComponentTest {
   public void test_saveXWikiDoc_collision_exhausted() throws Exception {
     final Session sessionMock = createSessionMock(doc);
     expectSaveDocExists(sessionMock, ImmutableMap.of(
-        -974136870929809408L, "space.other1",
-        -974136870929805312L, "space.other2",
-        -974136870929801216L, "space.other3",
-        -974136870929797120L, "space.other4"));
+        -974136870929809408L, new Object[] { "space.other1", "" },
+        -974136870929805312L, new Object[] { "space.other2", "" },
+        -974136870929801216L, new Object[] { "space.other3", "" },
+        -974136870929797120L, new Object[] { "space.other4", "" }));
     expect(sessionMock.close()).andReturn(null);
 
     replayDefault();

@@ -93,13 +93,13 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
   }
 
   public static void expectSaveDocExists(Session sessionMock,
-      final Map<Long, String> existingFullNames) {
-    String hql = "select fullName from XWikiDocument where id = :id";
+      final Map<Long, Object[]> existingDocs) {
+    String hql = "select fullName, language from XWikiDocument where id = :id";
     Query query = new TestHibernateQuery<XWikiAttachment>(hql) {
 
       @Override
       public Object uniqueResult() throws HibernateException {
-        return existingFullNames.get(params.get("id"));
+        return existingDocs.get(params.get("id"));
       }
     };
     expect(sessionMock.createQuery(eq(hql))).andReturn(query).anyTimes();

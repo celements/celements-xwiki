@@ -103,8 +103,12 @@ public class CelHibernateStoreDocumentPart {
         }
       }
 
+      /*
+       * FIXME [CELDEV-248] ModelLockService
+       * the computed id needs to be locked until the save has happened to prevent overrides.
+       */
       Session session = savePrepCmd.getSession();
-      if (!savePrepCmd.hasExistingDoc()) {
+      if (doc.isNew()) {
         session.save(doc);
       } else {
         session.update(doc);

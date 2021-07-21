@@ -56,7 +56,7 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
     verifyDefault();
     assertSame(sessionMock, cmd.getSession());
-    assertTrue("doc with id already set must stem from db", cmd.hasExistingDoc());
+    assertFalse("doc with id already set must stem from db", doc.isNew());
     assertSame("store should be set", storeMock, doc.getStore());
     assertEquals("doc should be set to context db", getContext().getDatabase(),
         doc.getDocumentReference().getWikiReference().getName());
@@ -82,17 +82,29 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
   }
 
   @Test
+  public void test_execute_hasAlreadyValidId() throws Exception {
+    long docId = -974136870929809408L;
+    XWikiDocument doc = createDoc(false, null);
+    doc.setId(docId, IdVersion.CELEMENTS_3);
+
+    replayDefault();
+    newCommand(doc).execute(false);
+    verifyDefault();
+    assertFalse(doc.isNew());
+    assertEquals(docId, doc.getId());
+    assertSame(IdVersion.CELEMENTS_3, doc.getIdVersion());
+  }
+
+  @Test
   public void test_execute_setId_alreadyExists() throws Exception {
     long docId = -974136870929809408L;
     XWikiDocument doc = createDoc(false, null);
-    expectSaveDocExists(sessionMock, ImmutableMap.of(docId, doc.getFullName()));
+    expectSaveDocExists(sessionMock, ImmutableMap.of(
+        docId, new Object[] { doc.getFullName(), doc.getLanguage() }));
 
     replayDefault();
-    DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
+    assertThrows(XWikiException.class, () -> newCommand(doc).execute(false));
     verifyDefault();
-    assertTrue(cmd.hasExistingDoc());
-    assertEquals(docId, doc.getId());
-    assertSame(IdVersion.CELEMENTS_3, doc.getIdVersion());
   }
 
   @Test
@@ -102,9 +114,9 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     expectSaveDocExists(sessionMock, ImmutableMap.of());
 
     replayDefault();
-    DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
+    newCommand(doc).execute(false);
     verifyDefault();
-    assertFalse(cmd.hasExistingDoc());
+    assertTrue(doc.isNew());
     assertEquals(docId, doc.getId());
     assertSame(IdVersion.CELEMENTS_3, doc.getIdVersion());
   }
@@ -114,13 +126,13 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     long docId = -974136870929801216L;
     XWikiDocument doc = createDoc(false, null);
     expectSaveDocExists(sessionMock, ImmutableMap.of(
-        -974136870929809408L, "space.other1",
-        -974136870929805312L, "space.other2"));
+        -974136870929809408L, new Object[] { "space.other1", "" },
+        -974136870929805312L, new Object[] { "space.other2", "" }));
 
     replayDefault();
-    DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
+    newCommand(doc).execute(false);
     verifyDefault();
-    assertFalse(cmd.hasExistingDoc());
+    assertTrue(doc.isNew());
     assertEquals(docId, doc.getId());
     assertSame(IdVersion.CELEMENTS_3, doc.getIdVersion());
   }
@@ -130,26 +142,23 @@ public class DocumentSavePreparationCommandTest extends AbstractComponentTest {
     long docId = -974136870929801216L;
     XWikiDocument doc = createDoc(false, null);
     expectSaveDocExists(sessionMock, ImmutableMap.of(
-        -974136870929809408L, "space.other1",
-        -974136870929805312L, "space.other2",
-        docId, doc.getFullName()));
+        -974136870929809408L, new Object[] { "space.other1", "" },
+        -974136870929805312L, new Object[] { "space.other2", "" },
+        docId, new Object[] { doc.getFullName(), doc.getLanguage() }));
 
     replayDefault();
-    DocumentSavePreparationCommand cmd = newCommand(doc).execute(false);
+    assertThrows(XWikiException.class, () -> newCommand(doc).execute(false));
     verifyDefault();
-    assertTrue(cmd.hasExistingDoc());
-    assertEquals(docId, doc.getId());
-    assertSame(IdVersion.CELEMENTS_3, doc.getIdVersion());
   }
 
   @Test
   public void test_execute_setId_collision_countExhausted() throws Exception {
     XWikiDocument doc = createDoc(false, null);
     expectSaveDocExists(sessionMock, ImmutableMap.of(
-        -974136870929809408L, "space.other1",
-        -974136870929805312L, "space.other2",
-        -974136870929801216L, "space.other3",
-        -974136870929797120L, "space.other4"));
+        -974136870929809408L, new Object[] { "space.other1", "" },
+        -974136870929805312L, new Object[] { "space.other2", "" },
+        -974136870929801216L, new Object[] { "space.other3", "" },
+        -974136870929797120L, new Object[] { "space.other4", "" }));
 
     replayDefault();
     assertThrows(XWikiException.class, () -> newCommand(doc).execute(false));
