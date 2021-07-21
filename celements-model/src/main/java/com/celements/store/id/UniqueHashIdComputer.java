@@ -1,14 +1,12 @@
 package com.celements.store.id;
 
-import static com.google.common.base.MoreObjects.*;
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Verify.*;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.xwiki.component.annotation.Component;
@@ -23,6 +21,8 @@ import com.google.common.base.VerifyException;
 import com.google.common.primitives.Longs;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
+
+import one.util.streamex.StreamEx;
 
 @Component(UniqueHashIdComputer.NAME)
 public class UniqueHashIdComputer implements CelementsIdComputer {
@@ -44,6 +44,15 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   @Override
   public IdVersion getIdVersion() {
     return IdVersion.CELEMENTS_3;
+  }
+
+  @Override
+  public long compute(DocumentReference docRef, String lang) {
+    try {
+      return computeDocumentId(docRef, lang);
+    } catch (IdComputationException exc) {
+      throw new RuntimeException("should not happend", exc);
+    }
   }
 
   @Override
@@ -81,17 +90,16 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   }
 
   private Set<Long> collectVersionedObjectIds(XWikiDocument doc) {
-    Set<Long> ids = new HashSet<>();
-    for (BaseObject obj : XWikiObjectEditor.on(doc).fetch().iter().append(firstNonNull(
-        doc.getXObjectsToRemove(), Collections.<BaseObject>emptyList()))) {
-      if ((obj != null) && obj.hasValidId() && (obj.getIdVersion() == getIdVersion())) {
-        ids.add(obj.getId());
-      }
-    }
-    return ids;
+    return StreamEx.of(XWikiObjectEditor.on(doc).fetch().stream())
+        .append(doc.getXObjectsToRemove())
+        .filter(Objects::nonNull)
+        .filter(BaseObject::hasValidId)
+        .filter(obj -> obj.getIdVersion() == getIdVersion())
+        .map(BaseObject::getId)
+        .toImmutableSet();
   }
 
-  private long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {
+  long computeId(XWikiDocument doc, int objectCount) throws IdComputationException {
     checkNotNull(doc);
     byte collisionCount = 0;
     if (doc.hasValidId() && (doc.getIdVersion() == getIdVersion())) {
@@ -100,11 +108,15 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
     return computeId(doc.getDocumentReference(), doc.getLanguage(), collisionCount, objectCount);
   }
 
-  private byte extractCollisionCount(long id) {
-    return (byte) ((id >> BITS_OBJECT_COUNT) & getMaxCollisionCount());
+  byte extractCollisionCount(long id) {
+    // & 0xff (255) to prevent accidental value conversions, see Sonar S3034
+    return (byte) ((id >> BITS_OBJECT_COUNT) & (getMaxCollisionCount() & 0xff));
   }
 
-  private byte getMaxCollisionCount() {
+  /**
+   * inclusive
+   */
+  byte getMaxCollisionCount() {
     return ~(-1 << BITS_COLLISION_COUNT);
   }
 
@@ -142,8 +154,10 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   private long verifyId(long id) throws IdComputationException {
     try {
-      // TODO this verification can be removed after compeletion of
-      // [CELDEV-605] XWikiDocument/BaseCollection id migration
+      // generated id mustn't be zero
+      id = (id != 0) ? id : ~id;
+      // FIXME this verification can lead to unrecoverable production fast failures and has be
+      // removed after compeletion of [CELDEV-605] XWikiDocument/BaseCollection id migration
       verify((id > Integer.MAX_VALUE) || (id < Integer.MIN_VALUE),
           "generated id '%s' may collide with '%s'", id, IdVersion.XWIKI_2);
       return id;

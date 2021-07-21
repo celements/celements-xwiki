@@ -1,6 +1,7 @@
 package com.celements.store;
 
 import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -17,14 +18,11 @@ import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.impl.AbstractQueryImpl;
-import org.xwiki.model.reference.DocumentReference;
 
-import com.celements.model.util.ModelUtils;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.BaseProperty;
 import com.xpn.xwiki.objects.PropertyInterface;
-import com.xpn.xwiki.web.Utils;
 
 public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
 
@@ -67,14 +65,14 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
   }
 
   @Override
-  public Query setInteger(String named, int val) {
-    this.params.put(named, new Integer(val));
+  public Query setString(String named, String val) {
+    this.params.put(named, val);
     return this;
   }
 
   @Override
   public Query setLong(String named, long val) {
-    this.params.put(named, new Long(val));
+    this.params.put(named, Long.valueOf(val));
     return this;
   }
 
@@ -95,18 +93,28 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
   }
 
   public static void expectSaveDocExists(Session sessionMock,
-      final DocumentReference existingDocRef) {
-    String hql = "select fullName from XWikiDocument where id = :id";
+      final Map<Long, Object[]> existingDocs) {
+    String hql = "select fullName, language from XWikiDocument where id = :id";
     Query query = new TestHibernateQuery<XWikiAttachment>(hql) {
 
       @Override
       public Object uniqueResult() throws HibernateException {
-        if (existingDocRef != null) {
-          return Utils.getComponent(ModelUtils.class).serializeRefLocal(existingDocRef);
-        }
-        return null;
+        return existingDocs.get(params.get("id"));
       }
+    };
+    expect(sessionMock.createQuery(eq(hql))).andReturn(query).anyTimes();
+  }
 
+  public static void expectLoadDocId(Session sessionMock, String fullName, String lang, long id) {
+    String hql = "select id from XWikiDocument where fullName = :fn and language = :lang";
+    Query query = new TestHibernateQuery<XWikiAttachment>(hql) {
+
+      @Override
+      public Object uniqueResult() throws HibernateException {
+        assertEquals(fullName, params.get("fn"));
+        assertEquals(lang, params.get("lang"));
+        return id;
+      }
     };
     expect(sessionMock.createQuery(eq(hql))).andReturn(query).anyTimes();
   }
@@ -120,7 +128,6 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
       public List<XWikiAttachment> list() throws HibernateException {
         return attList;
       }
-
     };
     expect(sessionMock.createQuery(eq(hql))).andReturn(query).anyTimes();
   }
@@ -151,7 +158,6 @@ public abstract class TestHibernateQuery<T> extends AbstractQueryImpl {
       public List<String[]> list() throws HibernateException {
         return propertiesMap.get(params.get("id"));
       }
-
     };
     expect(sessionMock.createQuery(eq(hql))).andReturn(queryProp).atLeastOnce();
     sessionMock.load(isA(PropertyInterface.class), isA(Serializable.class));

@@ -9,7 +9,7 @@ import org.xwiki.model.reference.DocumentReference;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 @ComponentRole
-public interface CelementsIdComputer {
+public interface CelementsIdComputer extends DocumentIdComputer {
 
   @NotNull
   IdVersion getIdVersion();
