@@ -47,6 +47,15 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
   }
 
   @Override
+  public long compute(DocumentReference docRef, String lang) {
+    try {
+      return computeDocumentId(docRef, lang);
+    } catch (IdComputationException exc) {
+      throw new RuntimeException("should not happend", exc);
+    }
+  }
+
+  @Override
   public long computeDocumentId(DocumentReference docRef, String lang)
       throws IdComputationException {
     return computeDocumentId(docRef, lang, (byte) 0);
@@ -145,9 +154,10 @@ public class UniqueHashIdComputer implements CelementsIdComputer {
 
   private long verifyId(long id) throws IdComputationException {
     try {
-      verify(id != 0, "generated id mustn't be zero");
-      // TODO this verification can be removed after compeletion of
-      // [CELDEV-605] XWikiDocument/BaseCollection id migration
+      // generated id mustn't be zero
+      id = (id != 0) ? id : ~id;
+      // FIXME this verification can lead to unrecoverable production fast failures and has be
+      // removed after compeletion of [CELDEV-605] XWikiDocument/BaseCollection id migration
       verify((id > Integer.MAX_VALUE) || (id < Integer.MIN_VALUE),
           "generated id '%s' may collide with '%s'", id, IdVersion.XWIKI_2);
       return id;
