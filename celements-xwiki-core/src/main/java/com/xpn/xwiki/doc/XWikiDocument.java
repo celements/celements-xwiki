@@ -108,6 +108,7 @@ import org.xwiki.rendering.util.ParserUtils;
 import org.xwiki.velocity.VelocityManager;
 import org.xwiki.velocity.XWikiVelocityException;
 
+import com.celements.store.id.DocumentIdComputer;
 import com.celements.store.id.IdVersion;
 import com.xpn.xwiki.CoreConfiguration;
 import com.xpn.xwiki.XWiki;
@@ -540,16 +541,15 @@ public class XWikiDocument implements DocumentModelBridge {
   }
 
   public long getId() {
-    return this.id;
+    return hasValidId() ? id
+        : Utils.getComponent(DocumentIdComputer.class)
+            .compute(getDocumentReference(), getLanguage());
   }
 
   @Deprecated
   public int calculateXWikiId() {
-    String uniqueName = localEntityReferenceSerializer.serialize(getDocumentReference());
-    if ((language != null) && !language.trim().isEmpty()) {
-      uniqueName += ":" + language;
-    }
-    return uniqueName.hashCode();
+    return (int) Utils.getComponent(DocumentIdComputer.class, "xwiki")
+        .compute(getDocumentReference(), getLanguage());
   }
 
   /**
